@@ -1,0 +1,29 @@
+### Criar top-up
+POST http://localhost:3000/wallet/topups
+Content-Type: application/json
+
+{
+  "amount": 100,
+  "method": "PIX"
+}
+
+### Simular sucesso
+POST http://localhost:3000/wallet/topups/abc3f789-92eb-4368-8cee-5917d6993412/simulate-success
+Content-Type: application/json
+
+### Criar QRCharge (provider)
+POST http://localhost:3000/qr-charges
+Content-Type: application/json
+
+{
+  "amount": 50,
+  "description": "Day pass academia X",
+  "expiresInMinutes": 60
+}
+
+### Buscar detalhes de um QRCharge
+GET http://localhost:3000/qr-charges/1120214b-cd73-444b-a230-c38c6dbae279
+
+### Pagar QR com créditos
+POST http://localhost:3000/wallet/qr-charges/1120214b-cd73-444b-a230-c38c6dbae279/pay-with-credits
+Content-Type: application/json

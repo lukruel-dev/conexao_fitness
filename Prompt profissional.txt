@@ -1,0 +1,326 @@
+Prompt profissional – App “Conexão Fitness”
+Quero que você atue como Product Manager Sênior, Arquiteto de Software e UX Designer para especificar e desenhar um aplicativo mobile chamado “Conexão Fitness”.
+
+O objetivo é produzir tudo em português (Brasil), com foco inicial em Uruguaiana-RS como praça piloto. O app será um marketplace que conecta alunos, personais (profissionais) e academias, permitindo que alunos encontrem, contratem e avaliem serviços de treinamento e acesso a academias, com forte uso de geolocalização.
+
+1. Contexto e visão do produto
+Nome do app: Conexão Fitness.
+
+Visão: marketplace de fitness que conecta academias, personal trainers e alunos, permitindo que alunos encontrem profissionais/academias próximos, contratem serviços e reservem horários diretamente no app.
+
+Cenário-chave: pessoas em trânsito (viagens a trabalho ou lazer) que precisam achar treinos/serviços por geolocalização de onde estiverem.
+
+Idioma/região: pt-BR; priorizar academias e profissionais de Uruguaiana-RS no ranking inicial.
+
+Explique essa visão em no máximo 2 parágrafos e traduza isso em um “product vision statement” claro.
+
+2. Perfis, papéis e RBAC
+Modele o sistema com RBAC contendo, no mínimo, os seguintes papéis:
+
+Aluno:
+
+Ações: buscar, filtrar, comparar, agendar, pagar, avaliar e conversar via chat com personal/academia.
+
+Personal (Profissional):
+
+Ações: criar perfil, comprovar CREF, definir serviços, preços e agenda; receber pagamentos.
+
+Academia:
+
+Ações: cadastrar unidades, serviços/planos (diária, semanal, mensal, “day pass”), horários, infraestrutura; gerenciar equipe de profissionais vinculados; receber pagamentos.
+
+Admin (plataforma):
+
+Ações: moderação, KYC (CREF/CNPJ), disputas e estornos, planos e billing, métricas, curadoria de conteúdo.
+
+Quero uma tabela clara de permissões por papel (CRUD, acesso a dados sensíveis, ações administrativas).
+
+3. Funcionalidades – MVP vs Pós-MVP
+Separe o escopo em MVP e Pós-MVP.
+
+No MVP, inclua, com detalhamento de fluxo e critérios de aceite:
+
+Geolocalização e busca
+
+Listagem por proximidade (GPS/CEP), com boost para Uruguaiana-RS aparecer primeiro.
+
+Filtros: tipo (academia/personal), modalidade (musculação, funcional, cross, ioga, pilates etc.), preço, avaliação, distância, acessibilidade, horário, idioma (fala inglês/espanhol).
+
+Opções visíveis: “usar localização atual” e “buscar por cidade/CEP”.
+
+Perfis verificáveis
+
+Personal: foto, bio, CREF, modalidades, preço/hora, áreas atendidas, agenda.
+
+Academia: CNPJ, fotos, facilidades, planos, regras de acesso, horários de pico.
+
+Agenda e reservas
+
+Time-slots, confirmação, reagendamento/cancelamento com política definida.
+
+Integração opcional com calendário (Google/Apple).
+
+Pagamentos no app
+
+Métodos: cartão e Pix, com split payments entre plataforma e provedor (personal/academia).
+
+Emissão de recibo/nota (quando aplicável) e histórico financeiro para provedor e admin.
+
+Assinaturas (billing recorrente)
+
+Planos distintos para Profissionais e Academias (academias pagam mais).
+
+Benefícios de assinatura: destaque no ranking, selo “premium”, insights/analytics, cupons, prioridade em campanhas.
+
+Mensageria e notificações
+
+Chat básico aluno ↔ personal/academia; push/e-mail/SMS para confirmações e lembretes.
+
+Avaliações e reputação
+
+Pós-serviço com estrelas + comentários; moderação e denúncias.
+
+Painel Admin
+
+Aprovação/KYC (CREF/CNPJ), gestão de planos, disputas/estornos, conteúdo e métricas básicas.
+
+No Pós-MVP, liste, como backlog priorizado, com breve descrição:
+
+“Day pass” digital com QR code para academias, com fallback offline.
+
+Vídeo/teletreino para personals.
+
+Programas/planos de treino compartilháveis no app.
+
+Gamificação (selos de frequência, streaks).
+
+Parcerias (nutrição, fisioterapia).
+
+Marketplace de produtos fitness.
+
+4. Monetização e planos de assinatura
+Defina a estratégia de monetização, com modelos de receita:
+
+Comissão por transação (take rate) + assinaturas recorrentes.
+
+Planos para Profissionais (exemplos, pode ajustar valores/benefícios):
+
+Basic: perfil ativo e até X leads/mês.
+
+Pro: mais destaque, leads ampliados, analytics, cupons.
+
+Elite: prioridade máxima, isenção parcial da comissão, página personalizada.
+
+Planos para Academias (preço maior que profissionais):
+
+Bronze/Prata/Ouro: número de unidades, destaques em busca, “day pass”, relatórios avançados, campanhas segmentadas, vagas promocionais.
+
+Descreva tiers, benefícios, cobrança recorrente (cartão, Pix recorrente se disponível) e política de upgrades, teste grátis e cupons.
+
+5. Ranking, foco regional e fórmula de ordenação
+Proponha uma fórmula de ranking numérica, com pesos claros, combinando:
+
+Distância
+
+Avaliação média
+
+Taxa de resposta
+
+Tipo de plano de assinatura (com peso para assinantes)
+
+Disponibilidade
+
+Implemente um boost regional:
+
+Se a cidade ou GPS do usuário estiver em Uruguaiana-RS, ranquear academias/profissionais de Uruguaiana acima de outros, mantendo relevância e não exibindo inativos.
+
+Descreva a fórmula de ranking explicitamente (por exemplo, uma função escalar com normalização de features).
+
+6. Fluxos essenciais do MVP
+Descreva, com passos claros (idealmente numerados), os fluxos:
+
+Onboarding
+
+Aluno: cadastro rápido (e-mail/telefone), consentimentos LGPD, preferências de modalidades.
+
+Personal: KYC (CREF, documento, selfie), termos profissionais, escolha do plano de assinatura.
+
+Academia: KYC (CNPJ, documento do responsável), termos comerciais, escolha do plano de assinatura.
+
+Reserva e pagamento
+
+Busca → perfil → seleção de serviço/slot → checkout (cupom opcional) → confirmação → notificações → realização → avaliação → liberação do repasse (menos comissão).
+
+Assinatura e faturamento
+
+Seleção de plano → checkout → ciclo mensal/anual → downgrade/upgrade → faturação e notas.
+
+Suporte e disputas
+
+Abertura de ticket → SLA → reembolso parcial/total conforme política.
+
+7. Requisitos não funcionais e compliance
+Detalhe requisitos não funcionais e de conformidade:
+
+LGPD: consentimento granular, políticas de retenção, DPO, direitos do titular (acesso/eliminação), minimização de dados.
+
+Segurança: criptografia em repouso e em trânsito, proteção dos dados de pagamento (PCI DSS via gateway), rate limiting, 2FA para provedores.
+
+Confiabilidade: 99,5% de uptime, logs/auditoria, backups automáticos.
+
+Desempenho: busca < 300 ms p95, listagem com paginação, caching (CDN/Redis).
+
+Escalabilidade: arquitetura cloud-native, stateless onde possível.
+
+Observabilidade: métricas, tracing, alertas.
+
+Acessibilidade: alinhado a WCAG, dark mode, boa performance em redes móveis fracas.
+
+8. Integrações e stack tecnológica
+Sugira uma arquitetura moderna, com justificativas:
+
+Mapas/localização: Google Maps/Places/Distance Matrix ou Mapbox.
+
+Pagamentos Brasil (Pix + cartão + split): avaliar opções como Pagar.me, Mercado Pago, Adyen, PagBrasil, Stripe BR; recomende uma como padrão para baixo churn, bom suporte a Pix e split marketplace.
+
+Push/e-mail/SMS: Firebase/OneSignal, Sendgrid/Mailgun, Twilio/Zenvia.
+
+Autenticação: login tradicional com opção de OAuth/social login.
+
+Stack sugerida (pode confirmar ou propor alternativa):
+
+Mobile: Flutter ou React Native (iOS/Android).
+
+Backend: Node.js (NestJS) ou Python (FastAPI); APIs REST/GraphQL.
+
+Banco: PostgreSQL; Redis (cache/filas); Elastic/OpenSearch para busca.
+
+Infra: GCP ou AWS; IaC com Terraform; CI/CD completo.
+
+Quero um diagrama de arquitetura de alto nível, mesmo que apenas descrito textualmente.
+
+9. Modelo de dados e API
+Defina o esquema de dados (DER lógico) com, no mínimo:
+
+User (Aluno): nome, e-mail, telefone, cidade, último GPS, preferências, consentimentos.
+
+Provedor (Personal/Academia):
+
+Personal: CREF, serviços, preço, raio, agenda, KYC, plano, score.
+
+Academia: CNPJ, unidades (endereços), serviços/planos, horários, facilidades, plano, score.
+
+Serviço: tipo, duração, preço, políticas.
+
+Reserva: user_id, provider_id, service_id, horário, status, pagamento_id.
+
+Pagamento: método (Pix/cartão), split, fee, fatura/nota.
+
+Assinatura: plano, ciclo, status, cobrança.
+
+Avaliação: reserva_id, rating, comentário, flags de moderação.
+
+Mensagens: thread_id, mensagens, anexos.
+
+Log de compliance: consentimentos, KYC, auditoria.
+
+Liste endpoints principais da API (CRUD básicos + reservas + pagamentos + assinaturas), com método HTTP, path, parâmetros e resposta principal.
+
+10. Pagamentos, split e estornos
+Desenhe o fluxo completo de integração de pagamentos para marketplace:
+
+Criação de cobrança (Pix e cartão).
+
+Split entre marketplace e provedor (personal/academia).
+
+Repasse financeiro (payout) e conciliação.
+
+Webhooks de confirmação, estorno, chargeback.
+
+Política de liberação de repasse (ex.: após conclusão do serviço ou janela de disputa).
+
+11. Políticas e termos
+Proponha textos estruturados (em forma de tópicos/templates) para:
+
+Política de cancelamento: janelas para reagendamento/estorno, diferentes cenários (aluno cancela, provedor cancela, no-show).
+
+Regras de no-show.
+
+Termos de uso e privacidade alinhados à LGPD.
+
+Declarações de isenção (risco de atividade física) e limites de responsabilidade.
+
+Estratégia de verificação de credenciais (CREF) e documentos (CNPJ): API oficial quando possível + upload e validação humana.
+
+12. Métricas, testes e critérios de aceite
+Defina os KPI principais:
+
+Aquisição: CAC por canal, conversão visita → reserva.
+
+Atividade: MAU/DAU, retenção D7/D30.
+
+Oferta: tempo médio para 1ª resposta, taxa de aceitação, ocupação de agenda.
+
+Qualidade: NPS, rating médio, disputas por 1.000 reservas.
+
+Receita: GMV, take rate, MRR por plano, churn de assinaturas.
+
+Monte um plano de testes com critérios de aceite cobrindo E2E:
+
+busca → reserva → pagamento → avaliação, incluindo falhas de pagamento, cancelamento e disputa.
+
+Liste explicitamente os critérios de aceite do MVP, incluindo:
+
+Busca geolocalizada funcional com boost para Uruguaiana-RS.
+
+Cadastro e verificação (CREF/CNPJ) operacionais; publicação de perfis.
+
+Agenda e reservas com confirmação e notificações.
+
+Checkout com Pix e cartão, ambos com split payment.
+
+Assinaturas ativas com planos distintos (profissionais x academias) e benefícios aplicados ao ranking.
+
+Avaliações e chat básicos em produção.
+
+Painel Admin com KYC, moderação, disputas e relatórios mínimos.
+
+LGPD implementado (consentimentos, política, DSR básico).
+
+13. Roadmap, custos e publicação
+Monte um roadmap de 8–12 semanas com sprints, entregas principais e marcos até um MVP navegável e piloto em Uruguaiana-RS.
+
+Inclua estimativa de custos de infra/serviços (ordem de grandeza).
+
+Descreva a estratégia de publicação em App Store e Google Play (pré-lançamento, beta fechado, coleta de feedback).
+
+14. Entregáveis finais esperados
+Quero que você produza, de forma estruturada:
+
+PRD completo (documento de requisitos do produto) com escopo MVP e backlog pós-MVP.
+
+Arquitetura de alto nível, escolha de stack e justificativas.
+
+Wireframes textuais das telas-chave:
+
+Aluno: onboarding, busca, listagem, perfil, checkout.
+
+Personal/Academia: cadastro, agenda, planos.
+
+Admin: KYC, moderação, painel de métricas.
+
+Esquema de dados (DER lógico) e lista de endpoints de API.
+
+Fórmula de ranking com pesos e exemplo de cálculo mostrando o boost para Uruguaiana-RS.
+
+Fluxo de pagamentos com split, estorno e conciliação.
+
+Templates de políticas de cancelamento e estorno.
+
+Plano de testes E2E e critérios de aceite do MVP.
+
+Roadmap de sprints (8–12 semanas) com estimativa de custos básicos.
+
+Plano de conformidade LGPD com matriz de dados e consentimentos.
+
+Se algum ponto estiver ambíguo, liste primeiro as dúvidas e opções, antes de assumir decisões de design.
