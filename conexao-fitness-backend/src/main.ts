@@ -8,7 +8,9 @@ async function bootstrap() {
 
   // Middleware para suporte ao Private Network Access (PNA)
   app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Private-Network', 'true');
+    if (req.method === 'OPTIONS' && req.headers['access-control-request-private-network']) {
+      res.setHeader('Access-Control-Allow-Private-Network', 'true');
+    }
     next();
   });
 
