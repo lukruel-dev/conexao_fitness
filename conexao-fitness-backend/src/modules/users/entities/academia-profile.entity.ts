@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 
+
 @Entity('academia_profiles')
 export class AcademiaProfile {
   @PrimaryGeneratedColumn('uuid')
@@ -27,6 +28,9 @@ export class AcademiaProfile {
 
   @Column()
   cnpj: string;
+
+  @Column({ nullable: true })
+  documentUrl?: string;
 
   @Column({ type: 'uuid', nullable: true })
   subscriptionPlanId?: string;

@@ -26,6 +26,9 @@ export class PersonalProfile {
   cref: string;
 
   @Column({ nullable: true })
+  documentUrl?: string;
+
+  @Column({ nullable: true })
   bio?: string;
 
   @Column({ type: 'jsonb', nullable: true })

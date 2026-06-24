@@ -6,7 +6,4 @@ export class CreateBookingDto {
 
   @IsUUID()
   slotId: string;
-
-  @IsUUID()
-  studentId: string;
 }

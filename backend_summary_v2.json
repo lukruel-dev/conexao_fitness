@@ -1,0 +1,454 @@
+{
+    "meta": {
+        "document_name": "backend_summary_v2",
+        "purpose": "Frontend handoff document for AI-assisted UI generation",
+        "project_name": "conexao-fitness",
+        "api_style": "REST JSON",
+        "notes": [
+            "This document mixes confirmed backend behavior with clearly labeled inferred frontend needs.",
+            "Confirmed behaviors were manually validated for bookings create/cancel flow."
+        ]
+    },
+    "backend_stack": {
+        "runtime": "Node.js",
+        "language": "TypeScript",
+        "framework": "NestJS",
+        "orm": "TypeORM",
+        "database": "PostgreSQL",
+        "validation": [
+            "class-validator",
+            "class-transformer"
+        ],
+        "testing": [
+            "Jest",
+            "Supertest"
+        ],
+        "response_format": "JSON"
+    },
+    "domain_modules": [
+        {
+            "name": "users",
+            "status": "confirmed"
+        },
+        {
+            "name": "services",
+            "status": "confirmed"
+        },
+        {
+            "name": "bookings",
+            "status": "confirmed"
+        }
+    ],
+    "entities": {
+        "User": {
+            "table": "users",
+            "fields": {
+                "id": "string",
+                "email": "string",
+                "phone": "string | null",
+                "passwordHash": "string",
+                "type": "string",
+                "status": "string",
+                "cityBase": "string | null",
+                "lastLat": "number | null",
+                "lastLng": "number | null",
+                "createdAt": "string",
+                "updatedAt": "string"
+            },
+            "known_examples": {
+                "type": [
+                    "ALUNO",
+                    "PERSONAL"
+                ],
+                "status": [
+                    "ATIVO"
+                ]
+            }
+        },
+        "Service": {
+            "table": "services",
+            "fields": {
+                "id": "string",
+                "providerId": "string",
+                "durationMinutes": "number",
+                "price": "number",
+                "unitId": "string | null",
+                "description": "string | null",
+                "type": "ServiceType",
+                "isActive": "boolean",
+                "providerType": "ProviderType",
+                "name": "string",
+                "modality": "string",
+                "currency": "string",
+                "createdAt": "string",
+                "updatedAt": "string"
+            }
+        },
+        "ScheduleSlot": {
+            "table": "schedule_slots",
+            "fields": {
+                "id": "string",
+                "status": "ScheduleSlotStatus",
+                "serviceId": "string",
+                "startsAt": "string",
+                "endsAt": "string",
+                "studentId": "string | null",
+                "createdAt": "string",
+                "updatedAt": "string"
+            }
+        },
+        "Booking": {
+            "table": "bookings",
+            "fields": {
+                "id": "string",
+                "serviceId": "string",
+                "slotId": "string",
+                "studentId": "string",
+                "status": "BookingStatus",
+                "cancelledAt": "string | null",
+                "createdAt": "string",
+                "updatedAt": "string"
+            }
+        }
+    },
+    "enums": {
+        "ServiceType": [
+            "DIARIA",
+            "SESSAO",
+            "PLANO_MENSAL",
+            "DAY_PASS"
+        ],
+        "ProviderType": [
+            "PERSONAL",
+            "ACADEMIA"
+        ],
+        "ScheduleSlotStatus": [
+            "AVAILABLE",
+            "BOOKED",
+            "BLOCKED"
+        ],
+        "BookingStatus": [
+            "PENDING",
+            "CONFIRMED",
+            "CANCELLED"
+        ]
+    },
+    "confirmed_api_endpoints": [
+        {
+            "key": "createBooking",
+            "method": "POST",
+            "path": "/bookings",
+            "summary": "Creates a booking for a student in a specific service slot",
+            "request": {
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": {
+                    "studentId": "string",
+                    "serviceId": "string",
+                    "slotId": "string"
+                }
+            },
+            "success_response": {
+                "statusCode": 200,
+                "example": {
+                    "id": "ad28eb2d-06b5-4232-8557-483076c300da",
+                    "serviceId": "33333333-3333-3333-3333-333333333333",
+                    "slotId": "44444444-4444-4444-4444-444444444444",
+                    "studentId": "11111111-1111-1111-1111-111111111111",
+                    "status": "CONFIRMED",
+                    "cancelledAt": null,
+                    "createdAt": "2026-04-20T03:27:17.532Z",
+                    "updatedAt": "2026-04-20T03:27:17.532Z"
+                }
+            },
+            "side_effects": [
+                "The corresponding schedule slot becomes BOOKED."
+            ]
+        },
+        {
+            "key": "cancelBooking",
+            "method": "PATCH",
+            "path": "/bookings/:bookingId/cancel",
+            "summary": "Cancels an existing booking",
+            "request": {
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "pathParams": {
+                    "bookingId": "string"
+                },
+                "body": {
+                    "studentId": "string"
+                }
+            },
+            "success_response": {
+                "statusCode": 200,
+                "example": {
+                    "id": "ad28eb2d-06b5-4232-8557-483076c300da",
+                    "serviceId": "33333333-3333-3333-3333-333333333333",
+                    "slotId": "44444444-4444-4444-4444-444444444444",
+                    "studentId": "11111111-1111-1111-1111-111111111111",
+                    "status": "CANCELLED",
+                    "cancelledAt": "2026-04-20T03:36:53.265Z",
+                    "slot": {
+                        "id": "44444444-4444-4444-4444-444444444444",
+                        "serviceId": "33333333-3333-3333-3333-333333333333"
+                    }
+                }
+            },
+            "side_effects": [
+                "The schedule slot becomes AVAILABLE again.",
+                "The schedule slot studentId becomes null."
+            ]
+        }
+    ],
+    "known_error_responses": [
+        {
+            "scenario": "slot_not_available",
+            "endpoint": "POST /bookings",
+            "statusCode": 400,
+            "example": {
+                "message": "Slot is not available (current status: BOOKED)",
+                "error": "Bad Request",
+                "statusCode": 400
+            }
+        },
+        {
+            "scenario": "booking_already_cancelled",
+            "endpoint": "PATCH /bookings/:bookingId/cancel",
+            "statusCode": 400,
+            "example": {
+                "message": "Booking is already cancelled",
+                "error": "Bad Request",
+                "statusCode": 400
+            }
+        }
+    ],
+    "inferred_or_likely_endpoints": [
+        {
+            "key": "listServices",
+            "method": "GET",
+            "path": "/services",
+            "status": "not_yet_confirmed",
+            "frontend_need": "service marketplace / catalog"
+        },
+        {
+            "key": "getServiceById",
+            "method": "GET",
+            "path": "/services/:serviceId",
+            "status": "not_yet_confirmed",
+            "frontend_need": "service details page"
+        },
+        {
+            "key": "listScheduleSlotsByService",
+            "method": "GET",
+            "path": "/schedule-slots?serviceId=:serviceId",
+            "status": "not_yet_confirmed",
+            "frontend_need": "service schedule calendar"
+        },
+        {
+            "key": "listBookingsByStudent",
+            "method": "GET",
+            "path": "/bookings/students/:studentId",
+            "status": "not_yet_confirmed",
+            "frontend_need": "my bookings screen"
+        },
+        {
+            "key": "listBookingsByService",
+            "method": "GET",
+            "path": "/bookings/services/:serviceId",
+            "status": "not_yet_confirmed",
+            "frontend_need": "provider service booking management"
+        }
+    ],
+    "core_business_rules": [
+        {
+            "id": "BR-001",
+            "rule": "A booking can only be created for a schedule slot with status AVAILABLE."
+        },
+        {
+            "id": "BR-002",
+            "rule": "When a booking is created successfully, its status is CONFIRMED."
+        },
+        {
+            "id": "BR-003",
+            "rule": "When a booking is created, the linked schedule slot changes to BOOKED."
+        },
+        {
+            "id": "BR-004",
+            "rule": "A BOOKED slot cannot be booked again."
+        },
+        {
+            "id": "BR-005",
+            "rule": "When a booking is cancelled, booking.status becomes CANCELLED and cancelledAt is filled."
+        },
+        {
+            "id": "BR-006",
+            "rule": "When a booking is cancelled, the linked schedule slot returns to AVAILABLE."
+        },
+        {
+            "id": "BR-007",
+            "rule": "When a booking is cancelled, the slot studentId becomes null."
+        },
+        {
+            "id": "BR-008",
+            "rule": "A booking that is already cancelled cannot be cancelled again."
+        }
+    ],
+    "frontend_route_suggestions": [
+        {
+            "route": "/login",
+            "purpose": "authentication entry point",
+            "status": "suggested"
+        },
+        {
+            "route": "/services",
+            "purpose": "list all available services",
+            "status": "suggested"
+        },
+        {
+            "route": "/services/:serviceId",
+            "purpose": "service detail with booking CTA",
+            "status": "suggested"
+        },
+        {
+            "route": "/services/:serviceId/schedule",
+            "purpose": "calendar or list of available slots",
+            "status": "suggested"
+        },
+        {
+            "route": "/bookings/confirm",
+            "purpose": "booking confirmation step after selecting a slot",
+            "status": "suggested"
+        },
+        {
+            "route": "/my-bookings",
+            "purpose": "student bookings list with active and cancelled states",
+            "status": "suggested"
+        },
+        {
+            "route": "/provider/services",
+            "purpose": "provider dashboard listing owned services",
+            "status": "suggested"
+        },
+        {
+            "route": "/provider/services/:serviceId/bookings",
+            "purpose": "provider view of bookings for one service",
+            "status": "suggested"
+        }
+    ],
+    "screen_to_endpoint_mapping": [
+        {
+            "screen": "services_list",
+            "expected_endpoints": [
+                "GET /services"
+            ],
+            "main_data": [
+                "Service[]"
+            ]
+        },
+        {
+            "screen": "service_details",
+            "expected_endpoints": [
+                "GET /services/:serviceId",
+                "GET /schedule-slots?serviceId=:serviceId"
+            ],
+            "main_data": [
+                "Service",
+                "ScheduleSlot[]"
+            ]
+        },
+        {
+            "screen": "booking_checkout",
+            "expected_endpoints": [
+                "POST /bookings"
+            ],
+            "main_data": [
+                "CreateBookingRequest",
+                "Booking"
+            ]
+        },
+        {
+            "screen": "my_bookings",
+            "expected_endpoints": [
+                "GET /bookings/students/:studentId"
+            ],
+            "main_data": [
+                "Booking[]"
+            ]
+        },
+        {
+            "screen": "booking_details_or_actions",
+            "expected_endpoints": [
+                "PATCH /bookings/:bookingId/cancel"
+            ],
+            "main_data": [
+                "CancelBookingRequest",
+                "Booking"
+            ]
+        }
+    ],
+    "ui_states_and_behaviors": {
+        "slot_visual_states": [
+            {
+                "status": "AVAILABLE",
+                "ui_label": "Disponível",
+                "clickable": true
+            },
+            {
+                "status": "BOOKED",
+                "ui_label": "Reservado",
+                "clickable": false
+            },
+            {
+                "status": "BLOCKED",
+                "ui_label": "Bloqueado",
+                "clickable": false
+            }
+        ],
+        "booking_visual_states": [
+            {
+                "status": "CONFIRMED",
+                "ui_label": "Confirmado",
+                "cancel_button_visible": true
+            },
+            {
+                "status": "CANCELLED",
+                "ui_label": "Cancelado",
+                "cancel_button_visible": false
+            }
+        ],
+        "ux_rules": [
+            "Disable or visually block BOOKED and BLOCKED slots.",
+            "Optimistically navigating after booking is acceptable, but always reconcile with API response.",
+            "After cancellation, refresh both booking list and service schedule state.",
+            "Display user-friendly messages for business rule errors."
+        ]
+    },
+    "typescript_interfaces": {
+        "code": "export type UUID = string;\n\nexport type ServiceType = 'DIARIA' | 'SESSAO' | 'PLANO_MENSAL' | 'DAY_PASS';\nexport type ProviderType = 'PERSONAL' | 'ACADEMIA';\nexport type ScheduleSlotStatus = 'AVAILABLE' | 'BOOKED' | 'BLOCKED';\nexport type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED';\n\nexport interface User {\n  id: UUID;\n  email: string;\n  phone: string | null;\n  passwordHash?: string;\n  type: string;\n  status: string;\n  cityBase: string | null;\n  lastLat: number | null;\n  lastLng: number | null;\n  createdAt: string;\n  updatedAt: string;\n}\n\nexport interface Service {\n  id: UUID;\n  providerId: UUID;\n  durationMinutes: number;\n  price: number;\n  unitId: UUID | null;\n  description: string | null;\n  type: ServiceType;\n  isActive: boolean;\n  providerType: ProviderType;\n  name: string;\n  modality: string;\n  currency: string;\n  createdAt: string;\n  updatedAt: string;\n}\n\nexport interface ScheduleSlot {\n  id: UUID;\n  status: ScheduleSlotStatus;\n  serviceId: UUID;\n  startsAt: string;\n  endsAt: string;\n  studentId: UUID | null;\n  createdAt: string;\n  updatedAt: string;\n}\n\nexport interface Booking {\n  id: UUID;\n  serviceId: UUID;\n  slotId: UUID;\n  studentId: UUID;\n  status: BookingStatus;\n  cancelledAt: string | null;\n  createdAt: string;\n  updatedAt: string;\n}\n\nexport interface CreateBookingRequest {\n  studentId: UUID;\n  serviceId: UUID;\n  slotId: UUID;\n}\n\nexport interface CancelBookingRequest {\n  studentId: UUID;\n}\n\nexport interface ApiErrorResponse {\n  message: string;\n  error: string;\n  statusCode: number;\n}"
+    },
+    "frontend_generation_guidance": {
+        "priority_flows": [
+            "student browses services",
+            "student opens a service",
+            "student selects an AVAILABLE slot",
+            "student creates a booking",
+            "student sees booking in My Bookings",
+            "student cancels a booking"
+        ],
+        "design_notes": [
+            "Treat schedule slot status as the key UI state source for calendar rendering.",
+            "Treat booking status as the key UI state source for user booking history.",
+            "Do not assume every inferred endpoint already exists; build API client wrappers so URLs can be adjusted quickly.",
+            "Keep API base URL configurable, e.g. http://localhost:3001."
+        ]
+    },
+    "open_questions": [
+        "Authentication endpoints and token shape are not yet documented.",
+        "Global API prefix may be absent or may become /api later.",
+        "Confirmed list endpoints for services, schedule slots and users still need validation.",
+        "Pagination, filtering and sorting contracts are not yet defined."
+    ]
+}

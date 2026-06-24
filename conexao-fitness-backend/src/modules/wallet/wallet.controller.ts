@@ -1,21 +1,25 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { CreateTopupDto } from './dto/create-topup.dto';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Carteira e Pagamentos')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('wallet')
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
   @Get('me/balance')
-  async getMyBalance() {
-    const fakeUserId = 'user_fake_1';
-    return this.walletService.getMyBalance(fakeUserId);
+  async getMyBalance(@CurrentUser() user: any) {
+    return this.walletService.getMyBalance(user.id);
   }
 
   @Post('topups')
-  async createTopup(@Body() dto: CreateTopupDto) {
-    const fakeUserId = 'user_fake_1';
-    return this.walletService.createTopup(fakeUserId, dto);
+  async createTopup(@Body() dto: CreateTopupDto, @CurrentUser() user: any) {
+    return this.walletService.createTopup(user.id, dto);
   }
 
   @Post('topups/:id/simulate-success')
@@ -24,8 +28,7 @@ export class WalletController {
   }
 
   @Post('qr-charges/:id/pay-with-credits')
-  async payQrWithCredits(@Param('id') id: string) {
-    const fakeUserId = 'user_fake_1';
-    return this.walletService.payQrWithCredits(fakeUserId, id);
+  async payQrWithCredits(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.walletService.payQrWithCredits(user.id, id);
   }
 }

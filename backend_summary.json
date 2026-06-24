@@ -1,0 +1,266 @@
+{
+    "project": {
+        "name": "conexao-fitness-backend",
+        "summary": "Backend REST para plataforma de fitness com usuarios, servicos, slots de agenda e bookings."
+    },
+    "backend_stack": {
+        "runtime": "Node.js",
+        "language": "TypeScript",
+        "framework": "NestJS",
+        "orm": "TypeORM",
+        "database": "PostgreSQL",
+        "validation": [
+            "class-validator",
+            "class-transformer"
+        ],
+        "testing": [
+            "Jest",
+            "Supertest"
+        ],
+        "response_format": "JSON",
+        "notes": [
+            "NestJS serializa objetos retornados pelos controllers automaticamente para JSON.",
+            "Por padrao, GET responde 200 e POST tende a responder 201, salvo customizacao no controller."
+        ]
+    },
+    "modules": [
+        "users",
+        "services",
+        "bookings"
+    ],
+    "entities": {
+        "users": {
+            "table": "users",
+            "fields": [
+                "id",
+                "email",
+                "phone",
+                "passwordHash",
+                "type",
+                "status",
+                "cityBase",
+                "lastLat",
+                "lastLng",
+                "createdAt",
+                "updatedAt"
+            ],
+            "known_values": {
+                "type_examples": [
+                    "ALUNO",
+                    "PERSONAL"
+                ],
+                "status_examples": [
+                    "ATIVO"
+                ]
+            }
+        },
+        "services": {
+            "table": "services",
+            "fields": [
+                "id",
+                "providerId",
+                "durationMinutes",
+                "price",
+                "unitId",
+                "description",
+                "type",
+                "isActive",
+                "providerType",
+                "name",
+                "modality",
+                "currency",
+                "createdAt",
+                "updatedAt"
+            ],
+            "enums": {
+                "type": [
+                    "DIARIA",
+                    "SESSAO",
+                    "PLANO_MENSAL",
+                    "DAY_PASS"
+                ],
+                "providerType": [
+                    "PERSONAL",
+                    "ACADEMIA"
+                ]
+            }
+        },
+        "schedule_slots": {
+            "table": "schedule_slots",
+            "fields": [
+                "id",
+                "status",
+                "serviceId",
+                "startsAt",
+                "endsAt",
+                "studentId",
+                "createdAt",
+                "updatedAt"
+            ],
+            "enums": {
+                "status": [
+                    "AVAILABLE",
+                    "BOOKED",
+                    "BLOCKED"
+                ]
+            }
+        },
+        "bookings": {
+            "table": "bookings",
+            "fields": [
+                "id",
+                "serviceId",
+                "slotId",
+                "studentId",
+                "status",
+                "cancelledAt",
+                "createdAt",
+                "updatedAt"
+            ],
+            "known_statuses": [
+                "PENDING",
+                "CONFIRMED",
+                "CANCELLED"
+            ]
+        }
+    },
+    "api_endpoints": [
+        {
+            "name": "create_booking",
+            "method": "POST",
+            "path": "/bookings",
+            "status_success": [
+                200,
+                201
+            ],
+            "request_body": {
+                "studentId": "uuid",
+                "serviceId": "uuid",
+                "slotId": "uuid"
+            },
+            "response_example": {
+                "id": "uuid",
+                "serviceId": "uuid",
+                "slotId": "uuid",
+                "studentId": "uuid",
+                "status": "CONFIRMED",
+                "cancelledAt": null,
+                "createdAt": "ISO_DATE",
+                "updatedAt": "ISO_DATE"
+            },
+            "observed_behavior": [
+                "Cria um booking com status CONFIRMED.",
+                "Muda o schedule_slot correspondente para BOOKED."
+            ]
+        },
+        {
+            "name": "cancel_booking",
+            "method": "PATCH",
+            "path": "/bookings/:bookingId/cancel",
+            "status_success": [
+                200
+            ],
+            "request_body": {
+                "studentId": "uuid"
+            },
+            "response_example": {
+                "id": "uuid",
+                "serviceId": "uuid",
+                "slotId": "uuid",
+                "studentId": "uuid",
+                "status": "CANCELLED",
+                "cancelledAt": "ISO_DATE",
+                "slot": {
+                    "id": "uuid",
+                    "serviceId": "uuid"
+                }
+            },
+            "observed_behavior": [
+                "Cancela o booking.",
+                "Preenche cancelledAt.",
+                "Retorna o schedule_slot para AVAILABLE.",
+                "Limpa studentId do slot para null."
+            ]
+        }
+    ],
+    "error_examples": [
+        {
+            "scenario": "slot_already_booked",
+            "statusCode": 400,
+            "body": {
+                "message": "Slot is not available (current status: BOOKED)",
+                "error": "Bad Request",
+                "statusCode": 400
+            }
+        },
+        {
+            "scenario": "booking_already_cancelled",
+            "statusCode": 400,
+            "body": {
+                "message": "Booking is already cancelled",
+                "error": "Bad Request",
+                "statusCode": 400
+            }
+        }
+    ],
+    "business_rules": [
+        {
+            "rule": "Um aluno pode criar booking apenas em slot AVAILABLE."
+        },
+        {
+            "rule": "Ao criar booking com sucesso, o slot muda para BOOKED."
+        },
+        {
+            "rule": "Nao e permitido criar nova reserva em slot ja BOOKED."
+        },
+        {
+            "rule": "Ao cancelar booking, o status do booking vira CANCELLED e cancelledAt e preenchido."
+        },
+        {
+            "rule": "Ao cancelar booking, o slot volta para AVAILABLE."
+        },
+        {
+            "rule": "Ao cancelar booking, studentId do slot volta para null."
+        },
+        {
+            "rule": "Nao e permitido cancelar duas vezes o mesmo booking."
+        },
+        {
+            "rule": "Existem tipos distintos de usuario e provider, sugerindo jornadas diferentes para aluno, personal e academia."
+        }
+    ],
+    "frontend_implications": {
+        "main_screens": [
+            "login_or_user_identification",
+            "services_listing",
+            "service_details",
+            "schedule_slots_calendar",
+            "booking_confirmation",
+            "my_bookings",
+            "cancel_booking_flow"
+        ],
+        "ui_states": {
+            "slot_statuses": [
+                "AVAILABLE",
+                "BOOKED",
+                "BLOCKED"
+            ],
+            "booking_statuses": [
+                "CONFIRMED",
+                "CANCELLED"
+            ]
+        },
+        "important_behaviors": [
+            "Desabilitar slots BOOKED e BLOCKED na UI.",
+            "Permitir cancelar apenas bookings ativos.",
+            "Apos cancelar, atualizar agenda e meus bookings.",
+            "Tratar erros da API com mensagens amigaveis ao usuario."
+        ]
+    },
+    "known_gaps_or_pending_validation": [
+        "Rotas de login/autenticacao ainda nao foram detalhadas neste resumo.",
+        "Rotas de listagem de services, users e bookings ainda precisam de contrato final confirmado.",
+        "Prefixo global da API pode variar entre /bookings e /api/bookings dependendo da configuracao do backend.",
+        "Vale formalizar este contrato em OpenAPI ou JSON Schema depois."
+    ]
+}
