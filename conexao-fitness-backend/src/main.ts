@@ -6,6 +6,12 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Middleware para suporte ao Private Network Access (PNA)
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Private-Network', 'true');
+    next();
+  });
+
   app.enableCors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
@@ -27,7 +33,12 @@ async function bootstrap() {
     },
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'Access-Control-Request-Private-Network'
+    ],
   });
 
   app.useGlobalPipes(
