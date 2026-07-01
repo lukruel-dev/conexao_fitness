@@ -2,13 +2,15 @@ import { IsNumber, IsOptional, IsString, Min, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class SearchServicesDto {
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  lat: number;
+  lat?: number;
 
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  lng: number;
+  lng?: number;
 
   @IsOptional()
   @IsNumber()

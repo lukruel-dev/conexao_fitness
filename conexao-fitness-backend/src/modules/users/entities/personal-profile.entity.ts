@@ -22,8 +22,11 @@ export class PersonalProfile {
   @Column()
   publicName: string;
 
-  @Column()
-  cref: string;
+  @Column({ nullable: true })
+  cref?: string;
+
+  @Column({ nullable: true, default: 'Personal Trainer' })
+  professionTitle?: string;
 
   @Column({ nullable: true })
   documentUrl?: string;

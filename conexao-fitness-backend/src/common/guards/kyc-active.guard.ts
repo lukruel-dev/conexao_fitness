@@ -10,8 +10,8 @@ export class KycActiveGuard implements CanActivate {
       throw new ForbiddenException('Usuário não autenticado');
     }
     
-    // Alunos não precisam de KYC restrito, mas Personais/Academias precisam para publicar/vender
-    if (user.type === 'ALUNO') {
+    // Aluno não precisa de KYC no momento, só Personal e Academia
+    if (user.role === 'STUDENT') {
       return true;
     }
 

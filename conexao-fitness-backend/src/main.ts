@@ -1,10 +1,16 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { join } from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/uploads/',
+  });
 
   // Middleware para suporte ao Private Network Access (PNA)
   app.use((req, res, next) => {
@@ -15,32 +21,16 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      
-      try {
-        const hostname = new URL(origin).hostname;
-        const allowed = [/\.lovableproject\.com$/, /\.lovable\.app$/, /\.lovable\.dev$/];
-        
-        if (allowed.some(r => r.test(hostname))) {
-          return callback(null, true);
-        }
-      } catch (e) {}
-
-      if (/^http:\/\/localhost:\d+$/.test(origin)) {
-        return callback(null, true);
-      }
-      
-      return callback(new Error('Not allowed by CORS'));
-    },
-    credentials: true,
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'Accept',
-      'Access-Control-Request-Private-Network'
+    origin: [
+      /\.lovableproject\.com$/,
+      /\.lovable\.app$/,
+      "http://localhost:5173",
+      "http://localhost:8080",
     ],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+    credentials: true,
+    maxAge: 86400,
   });
 
   app.useGlobalPipes(

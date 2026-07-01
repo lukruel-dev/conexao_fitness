@@ -23,12 +23,23 @@ import { Booking } from './modules/bookings/entities/booking.entity';
 import { Subscription } from './modules/payments/entities/subscription.entity';
 
 import { BookingsCancelledAtAndIndexes1713380000000 } from './database/migrations/1713380000000-BookingsCancelledAtAndIndexes';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { Review } from './modules/reviews/entities/review.entity';
+import { ChatModule } from './modules/chat/chat.module';
+import { Message } from './modules/chat/entities/message.entity';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { Notification } from './modules/notifications/entities/notification.entity';
+import { AvailabilityModule } from './modules/availability/availability.module';
+import { ProviderAvailability } from './modules/availability/entities/provider-availability.entity';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ 
+      isGlobal: true, 
+      envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' 
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST ?? 'localhost',
@@ -46,6 +57,10 @@ const isDev = process.env.NODE_ENV !== 'production';
         ScheduleSlot,
         Booking,
         Subscription,
+        Review,
+        Message,
+        Notification,
+        ProviderAvailability,
       ],
       synchronize: isDev,
       migrationsRun: !isDev,
@@ -60,6 +75,10 @@ const isDev = process.env.NODE_ENV !== 'production';
     UploadModule,
     AdminModule,
     SearchModule,
+    ReviewsModule,
+    ChatModule,
+    NotificationsModule,
+    AvailabilityModule,
   ],
 })
 export class AppModule {}

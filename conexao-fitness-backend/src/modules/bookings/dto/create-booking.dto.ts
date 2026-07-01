@@ -1,4 +1,4 @@
-import { IsUUID } from 'class-validator';
+import { IsUUID, IsOptional } from 'class-validator';
 
 export class CreateBookingDto {
   @IsUUID()
@@ -6,4 +6,8 @@ export class CreateBookingDto {
 
   @IsUUID()
   slotId: string;
+
+  @IsOptional()
+  @IsUUID()
+  studentId?: string;
 }

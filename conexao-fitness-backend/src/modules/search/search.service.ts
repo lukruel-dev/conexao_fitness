@@ -22,25 +22,32 @@ export class SearchService {
     // Quando o app expandir, basta remover do .env
     const pilotCity = this.configService.get<string>('PILOT_CITY', 'Uruguaiana');
 
+    const radius = radiusKm || 5000;
+
     // A fórmula de Haversine em SQL puro para calcular distância (em KM)
     // 6371 é o raio da Terra em KM
-    const distanceFormula = `
-      ( 6371 * acos(
-          cos(radians(:userLat)) * cos(radians(provider.lastLat)) *
-          cos(radians(provider.lastLng) - radians(:userLng)) +
-          sin(radians(:userLat)) * sin(radians(provider.lastLat))
-      ) )
-    `;
+    let distanceFormula = '0';
+    if (lat !== undefined && lng !== undefined) {
+      distanceFormula = `
+        ( 6371 * acos(
+            cos(radians(:userLat)) * cos(radians(provider.lastLat)) *
+            cos(radians(provider.lastLng) - radians(:userLng)) +
+            sin(radians(:userLat)) * sin(radians(provider.lastLat))
+        ) )
+      `;
+    }
 
     // Vamos construir a query puxando Service e fazendo JOIN com User (provedor)
     const qb = this.servicesRepo.createQueryBuilder('service')
       .leftJoinAndSelect('service.provider', 'provider')
       .where('service.isActive = :isActive', { isActive: true })
       // Filtra provedores que já passaram pelo KYC
-      .andWhere("provider.status = 'ATIVO'")
-      // Lógica de Raio (Haversine) - Filtramos apenas se tiver lastLat/lastLng
-      .andWhere(`provider.lastLat IS NOT NULL AND provider.lastLng IS NOT NULL`)
-      .andWhere(`${distanceFormula} <= :radiusKm`, { userLat: lat, userLng: lng, radiusKm });
+      .andWhere("provider.status = 'ATIVO'");
+      
+    if (lat !== undefined && lng !== undefined) {
+      qb.andWhere(`provider.lastLat IS NOT NULL AND provider.lastLng IS NOT NULL`)
+        .andWhere(`${distanceFormula} <= :radiusKm`, { userLat: lat, userLng: lng, radiusKm: radius });
+    }
 
     // Aplicar filtros dinâmicos
     if (modality) {

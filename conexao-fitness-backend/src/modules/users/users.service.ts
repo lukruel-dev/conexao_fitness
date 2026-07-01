@@ -26,12 +26,22 @@ export class UsersService {
     const hashedPassword = await bcrypt.hash(dto.password, salt);
 
     const user = this.usersRepo.create({
+      name: dto.name,
       email: dto.email,
       passwordHash: hashedPassword,
-      type: dto.type,
+      role: dto.role,
       status: 'PENDENTE_KYC',
     });
 
+    return this.usersRepo.save(user);
+  }
+
+  async updateAvatar(userId: string, avatarUrl: string): Promise<User> {
+    const user = await this.findOne(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.avatarUrl = avatarUrl;
     return this.usersRepo.save(user);
   }
 
@@ -68,7 +78,7 @@ export class UsersService {
 
   async createPersonalProfile(userId: string, dto: CreatePersonalProfileDto): Promise<User> {
     const user = await this.findOneOrFail(userId);
-    if (user.type !== 'PERSONAL') {
+    if (user.role !== 'PERSONAL') {
       throw new Error('Usuário não é um PERSONAL');
     }
     
@@ -91,7 +101,7 @@ export class UsersService {
 
   async createAcademiaProfile(userId: string, dto: CreateAcademiaProfileDto): Promise<User> {
     const user = await this.findOneOrFail(userId);
-    if (user.type !== 'ACADEMIA') {
+    if (user.role !== 'ACADEMIA') {
       throw new Error('Usuário não é uma ACADEMIA');
     }
     

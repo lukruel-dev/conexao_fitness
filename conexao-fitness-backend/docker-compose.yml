@@ -14,5 +14,19 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: conexao-fitness-postgres-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: conexao_fitness_test
+      POSTGRES_USER: conexao_user
+      POSTGRES_PASSWORD: conexao_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+
 volumes:
   postgres_data:
+  postgres_test_data:

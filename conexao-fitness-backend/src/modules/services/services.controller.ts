@@ -7,11 +7,13 @@ import {
   Patch,
   Post,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 
 import { ServicesService } from './services.service';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
+import { GetServicesDto } from './dto/get-services.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -35,8 +37,8 @@ export class ServicesController {
   }
 
   @Get()
-  findAll() {
-    return this.servicesService.findAll();
+  findAll(@Query() query: GetServicesDto) {
+    return this.servicesService.findAll(query);
   }
 
   @Get(':id')
@@ -50,8 +52,16 @@ export class ServicesController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     return this.servicesService.remove(id);
+  }
+
+  @Post(':id/generate-slots')
+  async generateSlots(
+    @Param('id') id: string,
+    @Body('daysAhead') daysAhead?: number,
+  ) {
+    return this.servicesService.generateSlotsForService(id, daysAhead);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, KycActiveGuard)
@@ -65,8 +75,11 @@ export class ServicesController {
   }
 
   @Get(':serviceId/slots')
-  listScheduleSlotsForService(@Param('serviceId') serviceId: string) {
-    return this.servicesService.listScheduleSlotsForService(serviceId);
+  listScheduleSlotsForService(
+    @Param('serviceId') serviceId: string,
+    @Query() query: any,
+  ) {
+    return this.servicesService.listScheduleSlotsForService(serviceId, query);
   }
 
   @Patch('slots/:slotId')

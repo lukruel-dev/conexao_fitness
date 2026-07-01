@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
@@ -14,6 +14,9 @@ export class AuthService {
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.usersService.findByEmail(email);
     if (user && await bcrypt.compare(pass, user.passwordHash)) {
+      if (user.status === 'SUSPENSO') {
+        throw new UnauthorizedException('Conta suspensa. Entre em contato com o suporte.');
+      }
       const { passwordHash, ...result } = user;
       return result;
     }
@@ -21,19 +24,24 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { email: user.email, sub: user.id, type: user.type, status: user.status };
+    const payload = { email: user.email, sub: user.id, role: user.role };
     return {
-      access_token: this.jwtService.sign(payload),
+      accessToken: this.jwtService.sign(payload),
       user: {
         id: user.id,
+        name: user.name,
         email: user.email,
-        type: user.type,
-        status: user.status,
+        role: user.role,
+        avatarUrl: user.avatarUrl,
       }
     };
   }
 
   async register(dto: CreateUserDto) {
+    const existingUser = await this.usersService.findByEmail(dto.email);
+    if (existingUser) {
+      throw new ConflictException('Este e-mail já está em uso.');
+    }
     const user = await this.usersService.create(dto);
     return this.login(user);
   }

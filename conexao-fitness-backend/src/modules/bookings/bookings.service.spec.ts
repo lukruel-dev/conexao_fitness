@@ -14,6 +14,10 @@ import { Service } from '../services/entities/service.entity';
 import { ScheduleSlot } from '../services/entities/schedule-slot.entity';
 import { ScheduleSlotStatus } from '../services/enums/schedule-slot-status.enum';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { PaymentsService } from '../payments/payments.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { EmailService } from '../notifications/email.service';
+import { User } from '../users/entities/user.entity';
 
 // ─── Factories ───────────────────────────────────────────────────────────────
 
@@ -82,6 +86,7 @@ describe('BookingsService', () => {
 
   const mockServicesRepo = {
     existsBy: jest.fn(),
+    findOneBy: jest.fn(),
   };
 
   const mockDataSource = {
@@ -95,7 +100,11 @@ describe('BookingsService', () => {
         { provide: getRepositoryToken(Booking), useValue: mockBookingsRepo },
         { provide: getRepositoryToken(Service), useValue: mockServicesRepo },
         { provide: getRepositoryToken(ScheduleSlot), useValue: {} },
+        { provide: getRepositoryToken(User), useValue: {} },
         { provide: DataSource, useValue: mockDataSource },
+        { provide: PaymentsService, useValue: { createCheckoutSessionForBooking: jest.fn().mockResolvedValue({ checkoutUrl: 'url', paymentIntentId: 'pi' }) } },
+        { provide: NotificationsService, useValue: { create: jest.fn() } },
+        { provide: EmailService, useValue: { sendEmail: jest.fn() } },
       ],
     }).compile();
 
@@ -137,7 +146,7 @@ describe('BookingsService', () => {
       });
       setupTransaction(manager);
 
-      const result = await service.createBooking(dto);
+      const result = await service.createBooking(dto, 'student-uuid');
 
       // slot deve ter sido marcado como BOOKED antes de persistir
       expect(slot.status).toBe(ScheduleSlotStatus.BOOKED);
@@ -146,7 +155,7 @@ describe('BookingsService', () => {
         serviceId: dto.serviceId,
         slotId: dto.slotId,
         studentId: dto.studentId,
-        status: BookingStatus.CONFIRMED,
+        status: BookingStatus.PENDING,
         cancelledAt: null,
       });
     });
@@ -157,7 +166,7 @@ describe('BookingsService', () => {
       });
       setupTransaction(manager);
 
-      await expect(service.createBooking(dto)).rejects.toThrow(NotFoundException);
+      await expect(service.createBooking(dto, 'student-uuid')).rejects.toThrow(NotFoundException);
     });
 
     it('lança NotFoundException — slot não encontrado', async () => {
@@ -168,7 +177,7 @@ describe('BookingsService', () => {
       });
       setupTransaction(manager);
 
-      await expect(service.createBooking(dto)).rejects.toThrow(NotFoundException);
+      await expect(service.createBooking(dto, 'student-uuid')).rejects.toThrow(NotFoundException);
     });
 
     it('lança BadRequestException — slot pertence a outro service', async () => {
@@ -180,7 +189,7 @@ describe('BookingsService', () => {
       });
       setupTransaction(manager);
 
-      await expect(service.createBooking(dto)).rejects.toThrow(BadRequestException);
+      await expect(service.createBooking(dto, 'student-uuid')).rejects.toThrow(BadRequestException);
     });
 
     it('lança BadRequestException — slot não está AVAILABLE (ex.: BOOKED)', async () => {
@@ -192,7 +201,7 @@ describe('BookingsService', () => {
       });
       setupTransaction(manager);
 
-      await expect(service.createBooking(dto)).rejects.toThrow(BadRequestException);
+      await expect(service.createBooking(dto, 'student-uuid')).rejects.toThrow(BadRequestException);
     });
 
     it('lança BadRequestException — slot não está AVAILABLE (ex.: BLOCKED)', async () => {
@@ -204,7 +213,7 @@ describe('BookingsService', () => {
       });
       setupTransaction(manager);
 
-      await expect(service.createBooking(dto)).rejects.toThrow(BadRequestException);
+      await expect(service.createBooking(dto, 'student-uuid')).rejects.toThrow(BadRequestException);
     });
 
     it('lança ConflictException — double-check detecta booking ativo existente (L3)', async () => {
@@ -223,7 +232,7 @@ describe('BookingsService', () => {
       });
       setupTransaction(manager);
 
-      await expect(service.createBooking(dto)).rejects.toThrow(ConflictException);
+      await expect(service.createBooking(dto, 'student-uuid')).rejects.toThrow(ConflictException);
     });
 
     it('lança ConflictException — unique index Postgres 23505 (L4, race condition residual)', async () => {
@@ -231,14 +240,14 @@ describe('BookingsService', () => {
       // violação do unique partial index UQ_bookings_slot_active.
       mockDataSource.transaction.mockRejectedValue(makePgUniqueError());
 
-      await expect(service.createBooking(dto)).rejects.toThrow(ConflictException);
+      await expect(service.createBooking(dto, 'student-uuid')).rejects.toThrow(ConflictException);
     });
 
     it('propaga erros desconhecidos sem mascarar', async () => {
       const unexpectedError = new Error('DB connection lost');
       mockDataSource.transaction.mockRejectedValue(unexpectedError);
 
-      await expect(service.createBooking(dto)).rejects.toThrow('DB connection lost');
+      await expect(service.createBooking(dto, 'student-uuid')).rejects.toThrow('DB connection lost');
     });
   });
 
@@ -267,7 +276,7 @@ describe('BookingsService', () => {
       });
       setupTransaction(manager);
 
-      const result = await service.cancelBooking('booking-uuid', 'student-uuid');
+      const result = await service.cancelBooking('booking-uuid', { id: 'student-uuid' });
 
       expect(result.status).toBe(BookingStatus.CANCELLED);
       expect(result.cancelledAt).toBeInstanceOf(Date);
@@ -291,7 +300,7 @@ describe('BookingsService', () => {
       });
       setupTransaction(manager);
 
-      await service.cancelBooking('booking-uuid', 'student-uuid');
+      await service.cancelBooking('booking-uuid', { id: 'student-uuid' });
 
       // slot NÃO deve ter sido salvo como AVAILABLE
       const slotSaveCalls = (manager.save as jest.Mock).mock.calls.filter(
@@ -308,7 +317,7 @@ describe('BookingsService', () => {
       setupTransaction(manager);
 
       await expect(
-        service.cancelBooking('nao-existe', 'student-uuid'),
+        service.cancelBooking('nao-existe', { id: 'student-uuid' }),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -320,7 +329,7 @@ describe('BookingsService', () => {
       setupTransaction(manager);
 
       await expect(
-        service.cancelBooking('booking-uuid', 'student-uuid'),
+        service.cancelBooking('booking-uuid', { id: 'student-uuid' }),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -335,7 +344,7 @@ describe('BookingsService', () => {
       setupTransaction(manager);
 
       await expect(
-        service.cancelBooking('booking-uuid', 'student-uuid'),
+        service.cancelBooking('booking-uuid', { id: 'student-uuid' }),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -409,20 +418,20 @@ describe('BookingsService', () => {
 
     it('retorna bookings do service sem filtro', async () => {
       const bookings = [makeBooking()];
-      mockServicesRepo.existsBy.mockResolvedValue(true);
+      mockServicesRepo.findOneBy.mockResolvedValue({ providerId: 'provider-1' });
       mockBookingsRepo.createQueryBuilder.mockReturnValue(makeQb(bookings));
 
-      const result = await service.listServiceBookings('service-uuid');
+      const result = await service.listServiceBookings('service-uuid', 'provider-1');
 
       expect(result).toEqual(bookings);
     });
 
     it('aplica andWhere de status quando filtro informado', async () => {
-      mockServicesRepo.existsBy.mockResolvedValue(true);
+      mockServicesRepo.findOneBy.mockResolvedValue({ providerId: 'provider-1' });
       const qbMock = makeQb([]);
       mockBookingsRepo.createQueryBuilder.mockReturnValue(qbMock);
 
-      await service.listServiceBookings('service-uuid', {
+      await service.listServiceBookings('service-uuid', 'provider-1', {
         status: BookingStatus.CONFIRMED,
       });
 

@@ -39,4 +39,13 @@ export class UsersController {
   createAcademiaProfile(@CurrentUser() user: any, @Body() dto: CreateAcademiaProfileDto) {
     return this.usersService.createAcademiaProfile(user.id, dto);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/avatar')
+  async updateAvatar(
+    @CurrentUser() user: any,
+    @Body('avatarUrl') avatarUrl: string,
+  ) {
+    return this.usersService.updateAvatar(user.id, avatarUrl);
+  }
 }

@@ -12,13 +12,16 @@ import { PersonalProfile } from './personal-profile.entity';
 import { AcademiaProfile } from './academia-profile.entity';
 import { Booking } from '../../bookings/entities/booking.entity';
 
-export type UserType = 'ALUNO' | 'PERSONAL' | 'ACADEMIA' | 'ADMIN';
+export type UserRole = 'STUDENT' | 'PERSONAL' | 'ACADEMIA' | 'ADMIN';
 export type UserStatus = 'ATIVO' | 'PENDENTE_KYC' | 'SUSPENSO';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column({ type: 'varchar', default: '' })
+  name: string;
 
   @Column({ unique: true })
   email: string;
@@ -29,8 +32,11 @@ export class User {
   @Column()
   passwordHash: string;
 
-  @Column({ type: 'varchar' })
-  type: UserType;
+  @Column({ type: 'varchar', nullable: true })
+  avatarUrl?: string;
+
+  @Column({ type: 'varchar', default: 'STUDENT' })
+  role: UserRole;
 
   @Column({ type: 'varchar', default: 'PENDENTE_KYC' })
   status: UserStatus;
@@ -43,6 +49,15 @@ export class User {
 
   @Column({ type: 'double precision', nullable: true })
   lastLng?: number;
+
+  @Column({ nullable: true })
+  stripeAccountId?: string;
+
+  @Column({ type: 'double precision', default: 5.0 })
+  averageRating: number;
+
+  @Column({ type: 'int', default: 0 })
+  totalReviews: number;
 
   @CreateDateColumn()
   createdAt: Date;

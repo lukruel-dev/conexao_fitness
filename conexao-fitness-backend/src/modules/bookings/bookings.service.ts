@@ -15,6 +15,10 @@ import { Service } from '../services/entities/service.entity';
 import { ScheduleSlot } from '../services/entities/schedule-slot.entity';
 import { ScheduleSlotStatus } from '../services/enums/schedule-slot-status.enum';
 import { PaymentsService } from '../payments/payments.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { EmailService } from '../notifications/email.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
+import { User } from '../users/entities/user.entity';
 
 /**
  * Código de erro Postgres para unique_violation.
@@ -37,6 +41,10 @@ export class BookingsService {
 
     private readonly dataSource: DataSource,
     private readonly paymentsService: PaymentsService,
+    private readonly notificationsService: NotificationsService,
+    private readonly emailService: EmailService,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
   ) {}
 
   /**
@@ -163,20 +171,19 @@ export class BookingsService {
    *   A fonte canônica é Booking.studentId. Não tocamos em ScheduleSlot.studentId
    *   aqui — ele deve ser depreciado (ver comentário na entidade ScheduleSlot).
    */
-  async cancelBooking(bookingId: string, studentId: string): Promise<Booking> {
+  async cancelBooking(bookingId: string, user?: { id: string, role?: string }): Promise<Booking> {
     return this.dataSource.transaction(async (manager) => {
-      // Busca booking COM a relação slot carregada para poder atualizar o slot
-      // dentro da mesma transação sem um segundo findOne separado.
+      // Busca booking COM a relação slot e service carregada
       const booking = await manager.findOne(Booking, {
         where: { id: bookingId },
-        relations: ['slot'],
+        relations: ['slot', 'service', 'student'],
       });
 
       if (!booking) {
         throw new NotFoundException('Booking not found');
       }
 
-      if (booking.studentId !== studentId) {
+      if (user && user.role !== 'ADMIN' && booking.studentId !== user.id) {
         throw new ForbiddenException(
           'You are not allowed to cancel this booking',
         );
@@ -210,8 +217,58 @@ export class BookingsService {
         }
       }
 
+      // Notifica as partes (fora da transação principal para não falhar o rollback)
+      setTimeout(async () => {
+        try {
+          const provider = await this.userRepo.findOneBy({ id: booking.service.providerId });
+          if (provider && booking.student) {
+            // Notifica Aluno
+            await this.notificationsService.create(booking.student.id, 'Reserva Cancelada', `Sua reserva para ${booking.service.name} foi cancelada.`, NotificationType.BOOKING);
+            await this.emailService.sendEmail(booking.student.email, 'Reserva Cancelada', `<p>Sua reserva para <strong>${booking.service.name}</strong> foi cancelada.</p>`);
+            
+            // Notifica Profissional
+            await this.notificationsService.create(provider.id, 'Reserva Cancelada', `A reserva de ${booking.student.name} para ${booking.service.name} foi cancelada.`, NotificationType.BOOKING);
+            await this.emailService.sendEmail(provider.email, 'Reserva Cancelada', `<p>O aluno <strong>${booking.student.name}</strong> cancelou a reserva para <strong>${booking.service.name}</strong>.</p>`);
+          }
+        } catch (e) {
+          console.error('Erro ao enviar notificacao de cancelamento', e);
+        }
+      }, 0);
+
       return booking;
     });
+  }
+
+  async confirmBooking(bookingId: string): Promise<Booking> {
+    const booking = await this.bookingsRepo.findOne({
+      where: { id: bookingId },
+      relations: ['service', 'student', 'slot'],
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    booking.status = BookingStatus.CONFIRMED;
+    const savedBooking = await this.bookingsRepo.save(booking);
+
+    // Notifica as partes
+    try {
+      const provider = await this.userRepo.findOneBy({ id: booking.service.providerId });
+      if (provider && booking.student) {
+        // Notifica Aluno
+        await this.notificationsService.create(booking.student.id, 'Reserva Confirmada!', `Sua reserva para ${booking.service.name} está confirmada.`, NotificationType.BOOKING);
+        await this.emailService.sendEmail(booking.student.email, 'Reserva Confirmada', `<p>Parabéns, sua reserva para <strong>${booking.service.name}</strong> foi confirmada!</p>`);
+        
+        // Notifica Profissional
+        await this.notificationsService.create(provider.id, 'Nova Reserva Confirmada', `Você tem uma nova reserva confirmada de ${booking.student.name} para ${booking.service.name}.`, NotificationType.BOOKING);
+        await this.emailService.sendEmail(provider.email, 'Nova Reserva Confirmada', `<p>O aluno <strong>${booking.student.name}</strong> acabou de confirmar uma reserva para <strong>${booking.service.name}</strong>!</p>`);
+      }
+    } catch (e) {
+      console.error('Erro ao enviar notificacao de confirmacao', e);
+    }
+
+    return savedBooking;
   }
 
   /**
@@ -242,11 +299,16 @@ export class BookingsService {
    */
   async listServiceBookings(
     serviceId: string,
+    providerId: string,
     filter?: FilterBookingsDto,
   ): Promise<Booking[]> {
-    const serviceExists = await this.servicesRepo.existsBy({ id: serviceId });
-    if (!serviceExists) {
+    const service = await this.servicesRepo.findOneBy({ id: serviceId });
+    if (!service) {
       throw new NotFoundException('Service not found');
+    }
+
+    if (service.providerId !== providerId) {
+      throw new ForbiddenException('Você não pode acessar reservas de um serviço que não é seu');
     }
 
     const qb = this.bookingsRepo
