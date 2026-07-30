@@ -1,0 +1,362 @@
+(node:31648) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:38420) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[31m[Nest] 38420  - [39m20/07/2026, 21:58:38 [31m  ERROR[39m [38;5;3m[TypeOrmModule] [39m[31mUnable to connect to the database. Retrying (1)...[39m
+QueryFailedError: coluna "stripeCustomerId" da relação "users" já existe
+    at PostgresQueryRunner.query (D:\projetos_apps\conexao_fitness\conexao-fitness-backend\node_modules\typeorm\driver\src\driver\postgres\PostgresQueryRunner.ts:325:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async PostgresQueryRunner.executeQueries (D:\projetos_apps\conexao_fitness\conexao-fitness-backend\node_modules\typeorm\query-runner\src\query-runner\BaseQueryRunner.ts:681:13)
+    at async PostgresQueryRunner.addColumn (D:\projetos_apps\conexao_fitness\conexao-fitness-backend\node_modules\typeorm\driver\src\driver\postgres\PostgresQueryRunner.ts:1160:9)
+    at async PostgresQueryRunner.addColumns (D:\projetos_apps\conexao_fitness\conexao-fitness-backend\node_modules\typeorm\driver\src\driver\postgres\PostgresQueryRunner.ts:1174:13)
+    at async RdbmsSchemaBuilder.addNewColumns (D:\projetos_apps\conexao_fitness\conexao-fitness-backend\node_modules\typeorm\schema-builder\src\schema-builder\RdbmsSchemaBuilder.ts:845:13)
+    at async RdbmsSchemaBuilder.executeSchemaSyncOperationsInProperOrder (D:\projetos_apps\conexao_fitness\conexao-fitness-backend\node_modules\typeorm\schema-builder\src\schema-builder\RdbmsSchemaBuilder.ts:227:9)
+    at async RdbmsSchemaBuilder.build (D:\projetos_apps\conexao_fitness\conexao-fitness-backend\node_modules\typeorm\schema-builder\src\schema-builder\RdbmsSchemaBuilder.ts:95:13)
+    at async DataSource.synchronize (D:\projetos_apps\conexao_fitness\conexao-fitness-backend\node_modules\typeorm\data-source\src\data-source\DataSource.ts:340:9)
+    at async DataSource.initialize (D:\projetos_apps\conexao_fitness\conexao-fitness-backend\node_modules\typeorm\data-source\src\data-source\DataSource.ts:278:43)
+[31m[Nest] 38420  - [39m20/07/2026, 21:58:41 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3001[39m[38;5;3m +2ms[39m
+node:net:1940
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3001
+}
+
+Node.js v22.22.1
+(node:36432) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:39496) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[31m[Nest] 39496  - [39m20/07/2026, 22:16:41 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3001[39m[38;5;3m +2ms[39m
+node:net:1940
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3001
+}
+
+Node.js v22.22.1
+(node:18000) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[31m[Nest] 18000  - [39m20/07/2026, 22:16:57 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3001[39m[38;5;3m +2ms[39m
+node:net:1940
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3001
+}
+
+Node.js v22.22.1
+(node:36524) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:37352) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[31m[Nest] 37352  - [39m20/07/2026, 22:21:33 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3001[39m[38;5;3m +1ms[39m
+node:net:1940
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3001
+}
+
+Node.js v22.22.1
+(node:39204) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:27244) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[31m[Nest] 27244  - [39m20/07/2026, 22:21:57 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3001[39m[38;5;3m +2ms[39m
+node:net:1940
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3001
+}
+
+Node.js v22.22.1
+(node:39008) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[31m[Nest] 39008  - [39m20/07/2026, 22:22:07 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3001[39m[38;5;3m +3ms[39m
+node:net:1940
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3001
+}
+
+Node.js v22.22.1
+(node:38012) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:39916) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[31m[Nest] 39916  - [39m20/07/2026, 22:30:47 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3001[39m[38;5;3m +3ms[39m
+node:net:1940
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3001
+}
+
+Node.js v22.22.1
+(node:1988) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:39028) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[31m[Nest] 39028  - [39m20/07/2026, 22:35:46 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3001[39m[38;5;3m +2ms[39m
+node:net:1940
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3001
+}
+
+Node.js v22.22.1
+(node:39056) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:39056) Stripe: We recommend building your integration using Accounts v2. See https://docs.stripe.com/api/v2/core/accounts
+[31m[Nest] 39056  - [39m20/07/2026, 22:42:20 [31m  ERROR[39m [38;5;3m[ExceptionsHandler] [39mStripeInvalidRequestError: You can only create new accounts if you've signed up for Connect, which you can do at https://dashboard.stripe.com/connect.
+    at generateV1Error [90m(D:\projetos_apps\conexao_fitness\conexao-fitness-backend\[39mnode_modules\[4mstripe[24m\src\Error.ts:23:12[90m)[39m
+    at <anonymous> [90m(D:\projetos_apps\conexao_fitness\conexao-fitness-backend\[39mnode_modules\[4mstripe[24m\src\RequestSender.ts:205:38[90m)[39m
+[90m    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)[39m
+Originating from:
+    at AccountResource._makeRequest [90m(D:\projetos_apps\conexao_fitness\conexao-fitness-backend\[39mnode_modules\[4mstripe[24m\src\StripeResource.ts:98:27[90m)[39m
+    at AccountResource.create [90m(D:\projetos_apps\conexao_fitness\conexao-fitness-backend\[39mnode_modules\[4mstripe[24m\src\resources\Accounts.ts:122:17[90m)[39m
+    at PaymentsService.getOnboardingLink [90m(D:\projetos_apps\conexao_fitness\conexao-fitness-backend\[39msrc\modules\payments\payments.service.ts:106:50[90m)[39m
+[90m    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)[39m
+    at async PaymentsController.onboardProvider [90m(D:\projetos_apps\conexao_fitness\conexao-fitness-backend\[39msrc\modules\payments\payments.controller.ts:20:17[90m)[39m
+    at async [90mD:\projetos_apps\conexao_fitness\conexao-fitness-backend\[39mnode_modules\[4m@nestjs\core[24m\router\router-execution-context.js:46:28
+    at async [90mD:\projetos_apps\conexao_fitness\conexao-fitness-backend\[39mnode_modules\[4m@nestjs\core[24m\router\router-proxy.js:9:17 {
+  type: [32m'StripeInvalidRequestError'[39m,
+  raw: {
+    message: [32m"You can only create new accounts if you've signed up for Connect, which you can do at https://dashboard.stripe.com/connect."[39m,
+    request_log_url: [32m'https://dashboard.stripe.com/acct_1TmMRoR8Zsp2ACDI/test/workbench/logs?object=req_klB0RcHrNoCyub'[39m,
+    type: [32m'invalid_request_error'[39m,
+    headers: {
+      server: [32m'nginx'[39m,
+      date: [32m'Tue, 21 Jul 2026 01:42:20 GMT'[39m,
+      [32m'content-type'[39m: [32m'application/json'[39m,
+      [32m'content-length'[39m: [32m'322'[39m,
+      connection: [32m'keep-alive'[39m,
+      [32m'access-control-allow-credentials'[39m: [32m'true'[39m,
+      [32m'access-control-allow-methods'[39m: [32m'GET, HEAD, PUT, PATCH, POST, DELETE'[39m,
+      [32m'access-control-allow-origin'[39m: [32m'*'[39m,
+      [32m'access-control-expose-headers'[39m: [32m'Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required'[39m,
+      [32m'access-control-max-age'[39m: [32m'300'[39m,
+      [32m'cache-control'[39m: [32m'no-cache, no-store'[39m,
+      [32m'content-security-policy'[39m: [32m"base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none'; img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src 'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=IpiT4sMgp_XyVQKDHOjx1QKm3oU0XK-G9Qf-sh6CSxlQ_yrIY16N9SGC5z9qQkMkES5coFY7G_fcCgC9; report-to csp"[39m,
+      [32m'idempotency-key'[39m: [32m'stripe-node-retry-87c62513-be8e-4605-871d-4a66def3de52'[39m,
+      [32m'original-request'[39m: [32m'req_klB0RcHrNoCyub'[39m,
+      [32m'report-to'[39m: [32m'{"group":"csp","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/csp-report-v2?q=IpiT4sMgp_XyVQKDHOjx1QKm3oU0XK-G9Qf-sh6CSxlQ_yrIY16N9SGC5z9qQkMkES5coFY7G_fcCgC9&t=1"}],"include_subdomains":true}'[39m,
+      [32m'reporting-endpoints'[39m: [32m'csp="https://q.stripe.com/csp-report-v2?q=IpiT4sMgp_XyVQKDHOjx1QKm3oU0XK-G9Qf-sh6CSxlQ_yrIY16N9SGC5z9qQkMkES5coFY7G_fcCgC9&t=1"'[39m,
+      [32m'request-id'[39m: [32m'req_klB0RcHrNoCyub'[39m,
+      [32m'stripe-notice'[39m: [32m'We recommend building your integration using Accounts v2. See https://docs.stripe.com/api/v2/core/accounts'[39m,
+      [32m'stripe-should-retry'[39m: [32m'false'[39m,
+      [32m'stripe-version'[39m: [32m'2024-12-18.acacia'[39m,
+      vary: [32m'Origin'[39m,
+      [32m'x-stripe-priority-routing-enabled'[39m: [32m'true'[39m,
+      [32m'x-stripe-routing-context-priority-tier'[39m: [32m'api-testmode'[39m,
+      [32m'x-wc'[39m: [32m'3c3'[39m,
+      [32m'strict-transport-security'[39m: [32m'max-age=63072000; includeSubDomains; preload'[39m
+    },
+    statusCode: [33m400[39m,
+    requestId: [32m'req_klB0RcHrNoCyub'[39m
+  },
+  rawType: [32m'invalid_request_error'[39m,
+  code: [90mundefined[39m,
+  doc_url: [90mundefined[39m,
+  param: [90mundefined[39m,
+  detail: [90mundefined[39m,
+  headers: {
+    server: [32m'nginx'[39m,
+    date: [32m'Tue, 21 Jul 2026 01:42:20 GMT'[39m,
+    [32m'content-type'[39m: [32m'application/json'[39m,
+    [32m'content-length'[39m: [32m'322'[39m,
+    connection: [32m'keep-alive'[39m,
+    [32m'access-control-allow-credentials'[39m: [32m'true'[39m,
+    [32m'access-control-allow-methods'[39m: [32m'GET, HEAD, PUT, PATCH, POST, DELETE'[39m,
+    [32m'access-control-allow-origin'[39m: [32m'*'[39m,
+    [32m'access-control-expose-headers'[39m: [32m'Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required'[39m,
+    [32m'access-control-max-age'[39m: [32m'300'[39m,
+    [32m'cache-control'[39m: [32m'no-cache, no-store'[39m,
+    [32m'content-security-policy'[39m: [32m"base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none'; img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src 'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=IpiT4sMgp_XyVQKDHOjx1QKm3oU0XK-G9Qf-sh6CSxlQ_yrIY16N9SGC5z9qQkMkES5coFY7G_fcCgC9; report-to csp"[39m,
+    [32m'idempotency-key'[39m: [32m'stripe-node-retry-87c62513-be8e-4605-871d-4a66def3de52'[39m,
+    [32m'original-request'[39m: [32m'req_klB0RcHrNoCyub'[39m,
+    [32m'report-to'[39m: [32m'{"group":"csp","max_age":8640,"endpoints":[{"url":"https://q.stripe.com/csp-report-v2?q=IpiT4sMgp_XyVQKDHOjx1QKm3oU0XK-G9Qf-sh6CSxlQ_yrIY16N9SGC5z9qQkMkES5coFY7G_fcCgC9&t=1"}],"include_subdomains":true}'[39m,
+    [32m'reporting-endpoints'[39m: [32m'csp="https://q.stripe.com/csp-report-v2?q=IpiT4sMgp_XyVQKDHOjx1QKm3oU0XK-G9Qf-sh6CSxlQ_yrIY16N9SGC5z9qQkMkES5coFY7G_fcCgC9&t=1"'[39m,
+    [32m'request-id'[39m: [32m'req_klB0RcHrNoCyub'[39m,
+    [32m'stripe-notice'[39m: [32m'We recommend building your integration using Accounts v2. See https://docs.stripe.com/api/v2/core/accounts'[39m,
+    [32m'stripe-should-retry'[39m: [32m'false'[39m,
+    [32m'stripe-version'[39m: [32m'2024-12-18.acacia'[39m,
+    vary: [32m'Origin'[39m,
+    [32m'x-stripe-priority-routing-enabled'[39m: [32m'true'[39m,
+    [32m'x-stripe-routing-context-priority-tier'[39m: [32m'api-testmode'[39m,
+    [32m'x-wc'[39m: [32m'3c3'[39m,
+    [32m'strict-transport-security'[39m: [32m'max-age=63072000; includeSubDomains; preload'[39m
+  },
+  requestId: [32m'req_klB0RcHrNoCyub'[39m,
+  statusCode: [33m400[39m,
+  userMessage: [90mundefined[39m,
+  charge: [90mundefined[39m,
+  decline_code: [90mundefined[39m,
+  payment_intent: [90mundefined[39m,
+  payment_method: [90mundefined[39m,
+  payment_method_type: [90mundefined[39m,
+  setup_intent: [90mundefined[39m,
+  source: [90mundefined[39m
+}
+(node:37492) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[31m[Nest] 37492  - [39m20/07/2026, 22:43:14 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3001[39m[38;5;3m +2ms[39m
+node:net:1940
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3001
+}
+
+Node.js v22.22.1
+(node:33352) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:36356) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[31m[Nest] 36356  - [39m20/07/2026, 22:44:12 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3001[39m[38;5;3m +3ms[39m
+node:net:1940
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3001
+}
+
+Node.js v22.22.1
+(node:35892) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:34748) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[31m[Nest] 34748  - [39m20/07/2026, 22:44:57 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3001[39m[38;5;3m +2ms[39m
+node:net:1940
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3001
+}
+
+Node.js v22.22.1
+(node:33336) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[31m[Nest] 33336  - [39m20/07/2026, 22:47:04 [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use 0.0.0.0:3001[39m[38;5;3m +3ms[39m
+node:net:1940
+    const ex = new UVExceptionWithHostPort(err, 'listen', address, port);
+               ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3001
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3001
+}
+
+Node.js v22.22.1
+^C^C

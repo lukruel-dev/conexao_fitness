@@ -23,6 +23,15 @@ export class WalletAccount {
   })
   currentBalance: string;
 
+  @Column({
+    name: 'pending_balance',
+    type: 'decimal',
+    precision: 12,
+    scale: 2,
+    default: 0,
+  })
+  pendingBalance: string;
+
   @Column({ default: 'ACTIVE' })
   status: 'ACTIVE' | 'FROZEN' | 'CLOSED';
 }

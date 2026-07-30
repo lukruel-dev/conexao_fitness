@@ -38,6 +38,9 @@ export class Service {
   @Column({ type: 'uuid', nullable: true })
   unitId: string | null;
 
+  @Column({ type: 'uuid', nullable: true })
+  catalogId: string | null;
+
   @Column({ length: 120 })
   name: string;
 

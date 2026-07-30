@@ -54,4 +54,9 @@ export class AdminController {
   activateUser(@Param('id') userId: string) {
     return this.adminService.activateUser(userId);
   }
+
+  @Get('subscriptions')
+  findAllSubscriptions() {
+    return this.adminService.findAllSubscriptions();
+  }
 }

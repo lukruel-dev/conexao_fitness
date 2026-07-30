@@ -29,6 +29,6 @@ export class PaymentsController {
     if (!priceId) {
       return { error: 'priceId is required' };
     }
-    return this.paymentsService.createSubscriptionCheckout(user.id, priceId);
+    return this.paymentsService.createSubscriptionPaymentIntent(user.id, priceId);
   }
 }

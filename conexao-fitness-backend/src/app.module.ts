@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -31,6 +32,11 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { Notification } from './modules/notifications/entities/notification.entity';
 import { AvailabilityModule } from './modules/availability/availability.module';
 import { ProviderAvailability } from './modules/availability/entities/provider-availability.entity';
+import { ServiceCatalogModule } from './modules/service-catalog/service-catalog.module';
+import { WalletModule } from './modules/wallet/wallet.module';
+import { WalletAccount } from './modules/wallet/entities/wallet-account.entity';
+import { PaymentIntent } from './modules/wallet/entities/payment-intent.entity';
+import { QRModule as QrModule } from './modules/qr/qr.module';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -40,33 +46,63 @@ const isDev = process.env.NODE_ENV !== 'production';
       isGlobal: true, 
       envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' 
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST ?? 'localhost',
-      port: Number(process.env.DB_PORT ?? 5432),
-      username: process.env.DB_USER ?? 'postgres',
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME ?? 'conexao_fitness',
-      entities: [
-        User,
-        AlunoProfile,
-        PersonalProfile,
-        AcademiaProfile,
-        AcademiaUnit,
-        Service,
-        ScheduleSlot,
-        Booking,
-        Subscription,
-        Review,
-        Message,
-        Notification,
-        ProviderAvailability,
-      ],
-      synchronize: isDev,
-      migrationsRun: !isDev,
-      migrations: [BookingsCancelledAtAndIndexes1713380000000],
-      logging: isDev ? ['query', 'error'] : ['error'],
-    }),
+    ScheduleModule.forRoot(),
+    TypeOrmModule.forRoot(
+      process.env.DATABASE_URL
+        ? {
+            type: 'postgres',
+            url: process.env.DATABASE_URL,
+            ssl: { rejectUnauthorized: false },
+            entities: [
+              User,
+              AlunoProfile,
+              PersonalProfile,
+              AcademiaProfile,
+              AcademiaUnit,
+              Service,
+              ScheduleSlot,
+              Booking,
+              Subscription,
+              Review,
+              Message,
+              Notification,
+              ProviderAvailability,
+              WalletAccount,
+              PaymentIntent,
+            ],
+            synchronize: true,
+            logging: ['error'],
+          }
+        : {
+            type: 'postgres',
+            host: process.env.DB_HOST ?? 'localhost',
+            port: Number(process.env.DB_PORT ?? 5432),
+            username: process.env.DB_USER ?? 'postgres',
+            password: process.env.DB_PASS,
+            database: process.env.DB_NAME ?? 'conexao_fitness',
+            entities: [
+              User,
+              AlunoProfile,
+              PersonalProfile,
+              AcademiaProfile,
+              AcademiaUnit,
+              Service,
+              ScheduleSlot,
+              Booking,
+              Subscription,
+              Review,
+              Message,
+              Notification,
+              ProviderAvailability,
+              WalletAccount,
+              PaymentIntent,
+            ],
+            synchronize: isDev,
+            migrationsRun: !isDev,
+            migrations: [BookingsCancelledAtAndIndexes1713380000000],
+            logging: isDev ? ['query', 'error'] : ['error'],
+          },
+    ),
     UsersModule,
     ServicesModule,
     BookingsModule,
@@ -79,6 +115,8 @@ const isDev = process.env.NODE_ENV !== 'production';
     ChatModule,
     NotificationsModule,
     AvailabilityModule,
+    ServiceCatalogModule,
+    WalletModule,
   ],
 })
 export class AppModule {}

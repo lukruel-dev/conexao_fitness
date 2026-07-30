@@ -81,6 +81,7 @@ export class ChatService {
             'Nova Mensagem',
             `Você tem uma nova mensagem de ${sender.name} sobre o agendamento de ${booking.service.name}.`,
             NotificationType.CHAT,
+            bookingId, // referenceId
           );
           
           await this.emailService.sendEmail(

@@ -27,6 +27,9 @@ export class Notification {
   })
   type: NotificationType;
 
+  @Column({ nullable: true, type: 'uuid' })
+  referenceId: string;
+
   @Column({ default: false })
   isRead: boolean;
 

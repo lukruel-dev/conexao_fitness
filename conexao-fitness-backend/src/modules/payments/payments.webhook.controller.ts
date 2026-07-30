@@ -1,6 +1,7 @@
 import { Controller, Post, Body, Headers, HttpCode, HttpStatus, Req, BadRequestException, forwardRef, Inject } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { BookingsService } from '../bookings/bookings.service';
+import { WalletService } from '../wallet/wallet.service';
 
 @Controller('webhooks/payments')
 export class PaymentsWebhookController {
@@ -8,6 +9,8 @@ export class PaymentsWebhookController {
     private readonly paymentsService: PaymentsService,
     @Inject(forwardRef(() => BookingsService))
     private readonly bookingsService: BookingsService,
+    @Inject(forwardRef(() => WalletService))
+    private readonly walletService: WalletService,
   ) {}
 
   @Post('stripe')
@@ -22,11 +25,6 @@ export class PaymentsWebhookController {
 
     let event;
     try {
-      // In NestJS, req.body is already parsed as JSON by default.
-      // Stripe requires the raw body buffer to verify signatures securely.
-      // For this MVP, if we don't have raw body, we can just trust the payload or skip signature validation if STRIPE_WEBHOOK_SECRET is not set.
-      // Since this is a test environment, we'll manually construct the event or skip verification if raw body isn't available.
-      
       const secret = process.env.STRIPE_WEBHOOK_SECRET;
       if (secret && req.rawBody) {
         event = this.paymentsService.stripe.webhooks.constructEvent(
@@ -41,35 +39,46 @@ export class PaymentsWebhookController {
       throw new BadRequestException(`Webhook Error: ${err.message}`);
     }
 
-    // Handle the event
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as any;
-      const bookingId = session.metadata?.bookingId;
+    // PaymentIntent Webhooks (Booking & Top-up)
+    if (event.type === 'payment_intent.succeeded') {
+      const paymentIntent = event.data.object as any;
+      const purpose = paymentIntent.metadata?.purpose;
 
-      if (bookingId) {
-        // Confirma a reserva
-        await this.bookingsService.confirmBooking(bookingId);
+      if (purpose === 'BOOKING') {
+        const bookingId = paymentIntent.metadata?.bookingId;
+        if (bookingId) {
+          await this.bookingsService.confirmBooking(bookingId);
+        }
+      } else if (purpose === 'WALLET_TOPUP') {
+        const topupIntentId = paymentIntent.metadata?.paymentIntentId;
+        if (topupIntentId) {
+          await this.walletService.simulateTopupSuccess(topupIntentId);
+        }
       }
-    } else if (event.type === 'checkout.session.expired' || event.type === 'checkout.session.async_payment_failed') {
-      const session = event.data.object as any;
-      const bookingId = session.metadata?.bookingId;
+    } else if (event.type === 'payment_intent.payment_failed' || event.type === 'payment_intent.canceled') {
+      const paymentIntent = event.data.object as any;
+      const purpose = paymentIntent.metadata?.purpose;
 
-      if (bookingId) {
-        // Cancela a reserva (liberando a vaga)
-        // Como o webhook é do sistema, cancelamos sem checar studentId (por isso fiz o param opcional)
-        await this.bookingsService.cancelBooking(bookingId);
+      if (purpose === 'BOOKING') {
+        const bookingId = paymentIntent.metadata?.bookingId;
+        if (bookingId) {
+          await this.bookingsService.cancelBooking(bookingId);
+        }
       }
     }
 
-    // Eventos de Assinatura
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as any;
-      if (session.mode === 'subscription') {
-        const userId = session.metadata?.userId;
-        const subscriptionId = session.subscription;
-        if (userId && subscriptionId) {
-          await this.paymentsService.activateSubscription(userId, subscriptionId);
-        }
+    // Invoice Webhooks (Subscriptions)
+    if (event.type === 'invoice.paid') {
+      const invoice = event.data.object as any;
+      const subscriptionId = invoice.subscription;
+      
+      // Quando a assinatura é criada, a primeira invoice gera esse evento.
+      // E usamos o metadata 'userId' (no subscription) para ativá-la
+      const stripeSub = await this.paymentsService.stripe.subscriptions.retrieve(subscriptionId);
+      const userId = stripeSub.metadata?.userId;
+      
+      if (userId && subscriptionId) {
+        await this.paymentsService.activateSubscription(userId, subscriptionId);
       }
     } else if (event.type === 'customer.subscription.updated') {
       const subscription = event.data.object as any;

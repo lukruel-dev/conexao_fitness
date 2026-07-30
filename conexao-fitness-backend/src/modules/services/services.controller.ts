@@ -46,11 +46,15 @@ export class ServicesController {
     return this.servicesService.findOneOrFail(id);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('PERSONAL', 'ACADEMIA', 'ADMIN')
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateServiceDto) {
     return this.servicesService.update(id, dto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('PERSONAL', 'ACADEMIA', 'ADMIN')
   @Delete(':id')
   async remove(@Param('id') id: string) {
     return this.servicesService.remove(id);

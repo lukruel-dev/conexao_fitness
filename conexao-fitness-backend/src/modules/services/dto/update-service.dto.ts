@@ -4,6 +4,7 @@ export class UpdateServiceDto {
   providerType?: ProviderType;
   providerId?: string;
   unitId?: string | null;
+  catalogId?: string;
   name?: string;
   description?: string | null;
   modality?: string;

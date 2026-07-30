@@ -5,6 +5,7 @@ import { WalletAccount } from './entities/wallet-account.entity';
 import { PaymentIntent } from './entities/payment-intent.entity';
 import { CreateTopupDto } from './dto/create-topup.dto';
 import { QRService } from '../qr/qr.service';
+import { PaymentsService } from '../payments/payments.service';
 
 @Injectable()
 export class WalletService {
@@ -14,6 +15,7 @@ export class WalletService {
     @InjectRepository(PaymentIntent)
     private readonly paymentIntentRepo: Repository<PaymentIntent>,
     private readonly qrService: QRService,
+    private readonly paymentsService: PaymentsService,
   ) {}
 
   async getMyBalance(userId: string) {
@@ -27,6 +29,7 @@ export class WalletService {
         ownerType: 'USER',
         currency: 'BRL',
         currentBalance: '0.00',
+        pendingBalance: '0.00',
         status: 'ACTIVE',
       });
       wallet = await this.walletRepo.save(wallet);
@@ -36,6 +39,7 @@ export class WalletService {
       wallet_account_id: wallet.id,
       currency: wallet.currency,
       current_balance: Number(wallet.currentBalance),
+      pending_balance: Number(wallet.pendingBalance),
     };
   }
 
@@ -51,12 +55,16 @@ export class WalletService {
 
     const saved = await this.paymentIntentRepo.save(intent);
 
+    const paymentInfo = await this.paymentsService.createPaymentIntentForTopup(userId, saved.id, dto.amount);
+
     return {
       payment_intent_id: saved.id,
       amount: Number(saved.amount),
       currency: saved.currency,
       method: saved.method,
       status: saved.status,
+      clientSecret: paymentInfo.clientSecret,
+      stripePaymentIntentId: paymentInfo.paymentIntentId,
     };
   }
 
@@ -127,5 +135,74 @@ export class WalletService {
       paid_amount: amount,
       new_balance: newBalance,
     };
+  }
+
+  async deductBalance(userId: string, amount: number) {
+    const balanceInfo = await this.getMyBalance(userId);
+    if (balanceInfo.current_balance < amount) {
+      throw new Error('Saldo insuficiente na carteira');
+    }
+
+    const wallet = await this.walletRepo.findOneOrFail({
+      where: { ownerId: userId, ownerType: 'USER' },
+    });
+
+    const newBalance = Number(wallet.currentBalance) - amount;
+    wallet.currentBalance = newBalance.toFixed(2);
+    await this.walletRepo.save(wallet);
+
+    return newBalance;
+  }
+
+  async addBalance(userId: string, amount: number, options?: { type: 'AVAILABLE' | 'PENDING' }) {
+    // getMyBalance cria a carteira se nao existir
+    await this.getMyBalance(userId);
+
+    const wallet = await this.walletRepo.findOneOrFail({
+      where: { ownerId: userId, ownerType: 'USER' },
+    });
+
+    if (options?.type === 'PENDING') {
+      const newPending = Number(wallet.pendingBalance) + amount;
+      wallet.pendingBalance = newPending.toFixed(2);
+    } else {
+      const newBalance = Number(wallet.currentBalance) + amount;
+      wallet.currentBalance = newBalance.toFixed(2);
+    }
+    
+    await this.walletRepo.save(wallet);
+    return wallet;
+  }
+
+  async releasePendingBalance(userId: string, amount: number) {
+    const wallet = await this.walletRepo.findOneOrFail({
+      where: { ownerId: userId, ownerType: 'USER' },
+    });
+
+    const pending = Number(wallet.pendingBalance);
+    if (pending < amount) {
+      throw new Error('Saldo pendente insuficiente para liberação');
+    }
+
+    wallet.pendingBalance = (pending - amount).toFixed(2);
+    wallet.currentBalance = (Number(wallet.currentBalance) + amount).toFixed(2);
+    
+    await this.walletRepo.save(wallet);
+    return wallet;
+  }
+
+  async refundPendingBalance(userId: string, amount: number) {
+    const wallet = await this.walletRepo.findOneOrFail({
+      where: { ownerId: userId, ownerType: 'USER' },
+    });
+
+    const pending = Number(wallet.pendingBalance);
+    if (pending < amount) {
+      throw new Error('Saldo pendente insuficiente para estorno');
+    }
+
+    wallet.pendingBalance = (pending - amount).toFixed(2);
+    await this.walletRepo.save(wallet);
+    return wallet;
   }
 }

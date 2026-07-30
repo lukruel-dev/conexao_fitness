@@ -4,7 +4,8 @@ export class CreateServiceDto {
   providerType: ProviderType;
   providerId: string;
   unitId?: string | null;
-  name: string;
+  catalogId?: string;
+  name?: string;
   description?: string | null;
   modality: string;
   durationMinutes: number;

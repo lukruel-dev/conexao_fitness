@@ -1,0 +1,9 @@
+# Conexão Fitness
+
+> Marketplace que conecta alunos, personal trainers e academias por geolocalização em Uruguaiana-RS e região. Permite buscar serviços, comparar preços e agendar horários direto pelo app.
+
+## Pages
+
+- [Início](/): visão geral da plataforma, como funciona, planos e CTA.
+- [Buscar serviços](/buscar): busca por academias, personal trainers e modalidades com filtros.
+- [Cadastro](/cadastro): criação de conta para alunos, personals e academias.

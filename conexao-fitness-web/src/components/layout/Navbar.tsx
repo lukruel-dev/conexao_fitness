@@ -27,6 +27,10 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
+            <Link href="/quem-somos" className="text-sm font-semibold text-brand-green hover:text-white transition-colors flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-green/10 border border-brand-green/30">
+              <span className="w-2 h-2 rounded-full bg-brand-green animate-pulse" />
+              Quem somos
+            </Link>
             <Link href="/#como-funciona" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">
               Como<br/>Funciona
             </Link>

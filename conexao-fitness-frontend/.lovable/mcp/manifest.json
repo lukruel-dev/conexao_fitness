@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "sdk_version": "0.22.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "conexao-fitness-mcp",
+      "version": "0.1.0",
+      "title": "Conexão Fitness MCP"
+    },
+    "tools": [
+      {
+        "name": "search_services",
+        "title": "Search fitness services",
+        "description": "Search publicly listed fitness services (personal trainers and gyms) on Conexão Fitness. Returns basic public info: name, modality, provider type, price and city. Filters are optional.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "q": {
+              "description": "Free-text query (name, modality, etc).",
+              "type": "string"
+            },
+            "modality": {
+              "description": "Modality filter, e.g. musculação, yoga, funcional.",
+              "type": "string"
+            },
+            "providerType": {
+              "description": "Restrict to personal trainers or gyms.",
+              "type": "string",
+              "enum": [
+                "PERSONAL",
+                "ACADEMIA"
+              ]
+            },
+            "city": {
+              "description": "Filter by city.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_service",
+        "title": "Get service details",
+        "description": "Fetch the public details of a single fitness service by id from Conexão Fitness.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The service id."
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

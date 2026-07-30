@@ -53,6 +53,9 @@ export class User {
   @Column({ nullable: true })
   stripeAccountId?: string;
 
+  @Column({ nullable: true })
+  stripeCustomerId?: string;
+
   @Column({ type: 'double precision', default: 5.0 })
   averageRating: number;
 

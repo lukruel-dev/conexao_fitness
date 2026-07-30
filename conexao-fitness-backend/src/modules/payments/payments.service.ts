@@ -35,10 +35,27 @@ export class PaymentsService {
   }
 
   /**
-   * Cria uma sessão de checkout no Stripe (Split Payment)
+   * Helper to get or create a Stripe Customer for a User
    */
-  async createCheckoutSessionForBooking(bookingId: string, amount: number, providerId: string) {
-    this.logger.log(`Criando sessão do Stripe para o booking ${bookingId}`);
+  async getOrCreateCustomer(user: User): Promise<string> {
+    if (user.stripeCustomerId) {
+      return user.stripeCustomerId;
+    }
+    const customer = await this.stripe.customers.create({
+      email: user.email,
+      name: user.name,
+      metadata: { userId: user.id },
+    });
+    user.stripeCustomerId = customer.id;
+    await this.userRepo.save(user);
+    return customer.id;
+  }
+
+  /**
+   * Cria uma intenção de pagamento no Stripe (Split Payment)
+   */
+  async createPaymentIntentForBooking(bookingId: string, amount: number, providerId: string) {
+    this.logger.log(`Criando PaymentIntent do Stripe para o booking ${bookingId}`);
     
     const provider = await this.userRepo.findOneBy({ id: providerId });
     if (!provider) {
@@ -51,48 +68,30 @@ export class PaymentsService {
 
     const { platformFee, providerAmount } = this.calculateSplit(amount);
     
-    // Stripe expects amounts in cents (e.g. 50.00 BRL = 5000)
     const amountInCents = Math.round(amount * 100);
     const platformFeeInCents = Math.round(platformFee * 100);
 
-    const sessionConfig: Stripe.Checkout.SessionCreateParams = {
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'brl',
-            product_data: {
-              name: 'Reserva Conexão Fitness',
-              description: `Booking ID: ${bookingId}`,
-            },
-            unit_amount: amountInCents,
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
+    const intentConfig: Stripe.PaymentIntentCreateParams = {
+      amount: amountInCents,
+      currency: 'brl',
       metadata: {
         bookingId: bookingId,
+        purpose: 'BOOKING'
       },
-      success_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/agendamentos?success=true`,
-      cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/agendamentos?canceled=true`,
     };
 
-    // Aplica o Split Payment apenas se tiver uma conta conectada válida do Stripe
     if (provider.stripeAccountId && provider.stripeAccountId.startsWith('acct_')) {
-      sessionConfig.payment_intent_data = {
-        application_fee_amount: platformFeeInCents,
-        transfer_data: {
-          destination: provider.stripeAccountId,
-        },
+      intentConfig.application_fee_amount = platformFeeInCents;
+      intentConfig.transfer_data = {
+        destination: provider.stripeAccountId,
       };
     }
 
-    const session = await this.stripe.checkout.sessions.create(sessionConfig);
+    const paymentIntent = await this.stripe.paymentIntents.create(intentConfig);
 
     return {
-      checkoutUrl: session.url,
-      paymentIntentId: session.payment_intent as string,
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
     };
   }
 
@@ -127,65 +126,71 @@ export class PaymentsService {
     return accountLink.url;
   }
 
-  /**
-   * Recebe e processa webhooks assíncronos do Mercado Pago
-   */
   async handleWebhook(event: any) {
     this.logger.log(`Webhook recebido do Mercado Pago: ${JSON.stringify(event)}`);
-    // Em produção, isso bateria na API do MP para validar o status real da transação
-    // E então chamaria BookingsService para confirmar a reserva.
     return { received: true };
   }
 
   /**
-   * Cria uma sessão de checkout para assinatura de plano (SaaS)
+   * Cria uma assinatura incompleta para retornar client_secret
    */
-  async createSubscriptionCheckout(userId: string, priceId: string) {
+  async createSubscriptionPaymentIntent(userId: string, priceId: string) {
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new NotFoundException('User not found');
 
-    // Create a pending subscription in our DB
+    const customerId = await this.getOrCreateCustomer(user);
+
     const subscription = this.subscriptionRepo.create({
       userId,
-      planName: 'Premium Plan', // In a real scenario, fetch name based on priceId
+      planName: 'Premium Plan',
       status: SubscriptionStatus.PENDING,
     });
     await this.subscriptionRepo.save(subscription);
     
-    // Create Stripe checkout session
-    const sessionConfig: Stripe.Checkout.SessionCreateParams = {
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      metadata: {
-        userId: userId,
-      },
-      customer_email: user.email, // Can use customer if we have stripeCustomerId
-      success_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/perfil?subscription_success=true`,
-      cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/perfil?subscription_canceled=true`,
-    };
+    const stripeSub = await this.stripe.subscriptions.create({
+      customer: customerId,
+      items: [{ price: priceId }],
+      payment_behavior: 'default_incomplete',
+      payment_settings: { save_default_payment_method: 'on_subscription' },
+      expand: ['latest_invoice.payment_intent'],
+      metadata: { userId },
+    });
+    
+    const invoice = stripeSub.latest_invoice as any;
+    const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
 
-    const session = await this.stripe.checkout.sessions.create(sessionConfig);
-    
-    // Better way to save subscription: We need it to be synchronously saved so webhook finds it, 
-    // or we can just rely on the webhook to create/update based on userId in metadata.
-    // Relying on webhook is safer for subscriptions since Stripe creates the subscription object.
-    
     return {
-      checkoutUrl: session.url,
+      clientSecret: paymentIntent.client_secret,
+      subscriptionId: stripeSub.id,
     };
   }
 
   /**
-   * Ativa uma assinatura após o checkout
+   * Cria um PaymentIntent para recarga da carteira
    */
+  async createPaymentIntentForTopup(userId: string, topupIntentId: string, amount: number) {
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) throw new NotFoundException('User not found');
+
+    const amountInCents = Math.round(amount * 100);
+
+    const paymentIntent = await this.stripe.paymentIntents.create({
+      amount: amountInCents,
+      currency: 'brl',
+      metadata: {
+        paymentIntentId: topupIntentId,
+        userId,
+        purpose: 'WALLET_TOPUP',
+      },
+    });
+
+    return {
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+    };
+  }
+
   async activateSubscription(userId: string, subscriptionId: string) {
-    // Acha a subscription pendente do usuário
     const sub = await this.subscriptionRepo.findOne({
       where: { userId, status: SubscriptionStatus.PENDING },
       order: { createdAt: 'DESC' },
@@ -199,9 +204,6 @@ export class PaymentsService {
     }
   }
 
-  /**
-   * Atualiza uma assinatura (renovação)
-   */
   async updateSubscription(subscriptionId: string, currentPeriodEnd: number) {
     const sub = await this.subscriptionRepo.findOneBy({ externalSubscriptionId: subscriptionId });
     if (sub) {
@@ -211,9 +213,6 @@ export class PaymentsService {
     }
   }
 
-  /**
-   * Cancela uma assinatura
-   */
   async cancelSubscription(subscriptionId: string) {
     const sub = await this.subscriptionRepo.findOneBy({ externalSubscriptionId: subscriptionId });
     if (sub) {

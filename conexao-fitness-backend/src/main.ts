@@ -24,8 +24,14 @@ async function bootstrap() {
     origin: [
       /\.lovableproject\.com$/,
       /\.lovable\.app$/,
+      /\.trycloudflare\.com$/,
       "http://localhost:5173",
       "http://localhost:8080",
+      "http://192.168.1.8",
+      "http://192.168.1.8:5173",
+      "http://192.168.1.8:8081",
+      /\.exp\.direct$/,
+      '*' // Em ambiente de desenvolvimento local (reunião) é seguro deixar aberto
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Accept"],
@@ -53,6 +59,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  await app.listen(3001);
+  await app.listen(3001, '0.0.0.0');
 }
 bootstrap();

@@ -19,6 +19,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { EmailService } from '../notifications/email.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { User } from '../users/entities/user.entity';
+import { WalletService } from '../wallet/wallet.service';
 
 /**
  * Código de erro Postgres para unique_violation.
@@ -45,6 +46,7 @@ export class BookingsService {
     private readonly emailService: EmailService,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    private readonly walletService: WalletService,
   ) {}
 
   /**
@@ -131,8 +133,8 @@ export class BookingsService {
         return { createdBooking: savedBooking, serviceData: service };
       });
 
-      // 8. Após a transação concluída com sucesso, cria a intenção de pagamento no Mercado Pago
-      const paymentInfo = await this.paymentsService.createCheckoutSessionForBooking(
+      // 8. Após a transação concluída com sucesso, cria a intenção de pagamento no Stripe
+      const paymentInfo = await this.paymentsService.createPaymentIntentForBooking(
         createdBooking.id,
         Number(serviceData.price),
         serviceData.providerId,
@@ -140,7 +142,7 @@ export class BookingsService {
 
       return {
         ...createdBooking,
-        checkoutUrl: paymentInfo.checkoutUrl,
+        clientSecret: paymentInfo.clientSecret,
         paymentIntentId: paymentInfo.paymentIntentId,
       };
     } catch (err) {
@@ -155,6 +157,69 @@ export class BookingsService {
       }
       throw err;
     }
+  }
+
+  /**
+   * Gera um novo PaymentIntent para um booking PENDING existente.
+   */
+  async retryPayment(bookingId: string, userId: string) {
+    const booking = await this.bookingsRepo.findOne({
+      where: { id: bookingId },
+      relations: ['service'],
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    if (booking.studentId !== userId) {
+      throw new ForbiddenException('You do not own this booking');
+    }
+
+    if (booking.status !== BookingStatus.PENDING) {
+      throw new BadRequestException('Booking is not pending payment');
+    }
+
+    const paymentInfo = await this.paymentsService.createPaymentIntentForBooking(
+      booking.id,
+      Number(booking.service.price),
+      booking.service.providerId,
+    );
+
+    return {
+      clientSecret: paymentInfo.clientSecret,
+      paymentIntentId: paymentInfo.paymentIntentId,
+    };
+  }
+
+  /**
+   * Paga um booking pendente usando o saldo da carteira do usuário.
+   */
+  async payWithWallet(bookingId: string, userId: string) {
+    const booking = await this.bookingsRepo.findOne({
+      where: { id: bookingId },
+      relations: ['service'],
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    if (booking.studentId !== userId) {
+      throw new ForbiddenException('You do not own this booking');
+    }
+
+    if (booking.status !== BookingStatus.PENDING) {
+      throw new BadRequestException('Booking is not pending payment');
+    }
+
+    const price = Number(booking.service.price);
+
+    // Deduz o saldo primeiro. Se falhar por falta de saldo, o WalletService lançará um erro
+    await this.walletService.deductBalance(userId, price);
+
+    // Saldo deduzido com sucesso, vamos confirmar a reserva e disparar notificações
+    return this.confirmBooking(booking.id);
   }
 
   /**
@@ -193,11 +258,26 @@ export class BookingsService {
         throw new BadRequestException('Booking is already cancelled');
       }
 
+      const previousStatus = booking.status;
+
       // Atualiza booking primeiro para liberar o unique partial index antes de
       // checar outros bookings ativos (caso haja uma waitlist no futuro).
       booking.status = BookingStatus.CANCELLED;
       booking.cancelledAt = new Date();
       await manager.save(Booking, booking);
+
+      // Refund process se a reserva já estava paga (CONFIRMED)
+      if (previousStatus === BookingStatus.CONFIRMED) {
+        const price = Number(booking.service.price);
+        try {
+          // Estorna do pending balance do provider
+          await this.walletService.refundPendingBalance(booking.service.providerId, price);
+          // Adiciona credito no available balance do aluno
+          await this.walletService.addBalance(booking.studentId, price);
+        } catch (err) {
+          console.error('Erro ao processar estorno de saldo:', err);
+        }
+      }
 
       // Devolve slot para AVAILABLE somente se não houver outro booking ativo.
       // O filtro exclui explicitamente CANCELLED (status IN CONFIRMED, PENDING).
@@ -249,8 +329,15 @@ export class BookingsService {
       throw new NotFoundException('Booking not found');
     }
 
+    if (booking.status === BookingStatus.CONFIRMED) {
+      return booking; // Já confirmado
+    }
+
     booking.status = BookingStatus.CONFIRMED;
     const savedBooking = await this.bookingsRepo.save(booking);
+
+    // Repassa o saldo para o profissional como pendente (escrow) independentemente de como pagou
+    await this.walletService.addBalance(booking.service.providerId, Number(booking.service.price), { type: 'PENDING' });
 
     // Notifica as partes
     try {
@@ -316,6 +403,29 @@ export class BookingsService {
       .leftJoinAndSelect('booking.slot', 'slot')
       .leftJoinAndSelect('booking.student', 'student')
       .where('booking."serviceId" = :serviceId', { serviceId })
+      .orderBy('slot.startsAt', 'ASC');
+
+    if (filter?.status) {
+      qb.andWhere('booking.status = :status', { status: filter.status });
+    }
+
+    return qb.getMany();
+  }
+
+  /**
+   * Lista todos os bookings recebidos por um profissional (em todos os seus serviços).
+   * Carrega relações service, slot e student.
+   */
+  async listProviderBookings(
+    providerId: string,
+    filter?: FilterBookingsDto,
+  ): Promise<Booking[]> {
+    const qb = this.bookingsRepo
+      .createQueryBuilder('booking')
+      .innerJoinAndSelect('booking.service', 'service')
+      .leftJoinAndSelect('booking.slot', 'slot')
+      .leftJoinAndSelect('booking.student', 'student')
+      .where('service."providerId" = :providerId', { providerId })
       .orderBy('slot.startsAt', 'ASC');
 
     if (filter?.status) {

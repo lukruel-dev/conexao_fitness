@@ -8,9 +8,14 @@ import { Service } from './entities/service.entity';
 import { ScheduleSlot } from './entities/schedule-slot.entity';
 
 import { AvailabilityModule } from '../availability/availability.module';
+import { ServiceCatalogModule } from '../service-catalog/service-catalog.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Service, ScheduleSlot]), AvailabilityModule],
+  imports: [
+    TypeOrmModule.forFeature([Service, ScheduleSlot]),
+    AvailabilityModule,
+    ServiceCatalogModule,
+  ],
   controllers: [ServicesController],
   providers: [ServicesService],
   exports: [ServicesService],

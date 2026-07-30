@@ -19,6 +19,7 @@ import { ScheduleSlotStatus } from './enums/schedule-slot-status.enum';
 import { User } from '../users/entities/user.entity';
 import { Subscription } from '../payments/entities/subscription.entity';
 import { AvailabilityService } from '../availability/availability.service';
+import { ServiceCatalogService } from '../service-catalog/service-catalog.service';
 
 @Injectable()
 export class ServicesService {
@@ -30,18 +31,37 @@ export class ServicesService {
     private readonly scheduleSlotsRepo: Repository<ScheduleSlot>,
 
     private readonly availabilityService: AvailabilityService,
+    private readonly serviceCatalogService: ServiceCatalogService,
   ) {}
 
   async create(dto: CreateServiceDto): Promise<Service> {
+    let name = dto.name;
+    let modality = dto.modality;
+    let durationMinutes = dto.durationMinutes;
+    let type = dto.type;
+
+    if (dto.catalogId) {
+      const catalog = await this.serviceCatalogService.findOne(dto.catalogId);
+      name = catalog.name;
+      modality = catalog.modality;
+      durationMinutes = catalog.durationMinutes;
+      type = catalog.type;
+    }
+
+    if (!name || !modality) {
+      throw new BadRequestException('Name and modality are required or catalogId must be provided');
+    }
+
     const service = this.servicesRepo.create({
       providerType: dto.providerType,
       providerId: dto.providerId,
       unitId: dto.unitId ?? null,
-      name: dto.name,
+      catalogId: dto.catalogId ?? null,
+      name,
       description: dto.description ?? null,
-      modality: dto.modality,
-      durationMinutes: dto.durationMinutes,
-      type: dto.type,
+      modality,
+      durationMinutes,
+      type,
       price: dto.price,
       currency: dto.currency ?? 'BRL',
       isActive: dto.isActive ?? true,
@@ -57,7 +77,7 @@ export class ServicesService {
     
     if (query?.q) {
       qb.andWhere(
-        '(service.name ILIKE :q OR service.description ILIKE :q OR service.modality ILIKE :q)',
+        '(service.name ILIKE :q OR service.description ILIKE :q OR service.modality ILIKE :q OR provider.name ILIKE :q)',
         { q: `%${query.q}%` },
       );
     }
@@ -153,6 +173,7 @@ export class ServicesService {
       providerType: dto.providerType,
       providerId: dto.providerId,
       unitId: dto.unitId,
+      catalogId: dto.catalogId,
       name: dto.name,
       description: dto.description,
       modality: dto.modality,

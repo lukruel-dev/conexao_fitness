@@ -96,4 +96,11 @@ export class AdminService {
     user.status = 'ATIVO';
     return this.usersRepo.save(user);
   }
+
+  async findAllSubscriptions(): Promise<Subscription[]> {
+    return this.subscriptionsRepo.find({
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
+  }
 }

@@ -38,6 +38,32 @@ export class BookingsController {
   }
 
   /**
+   * POST /bookings/:bookingId/retry-payment
+   * Tenta pagar novamente uma reserva pendente.
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post(':bookingId/retry-payment')
+  retryPayment(
+    @Param('bookingId', ParseUUIDPipe) bookingId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.bookingsService.retryPayment(bookingId, user.id);
+  }
+
+  /**
+   * POST /bookings/:bookingId/pay-with-wallet
+   * Paga uma reserva pendente usando o saldo da carteira do usuário.
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post(':bookingId/pay-with-wallet')
+  payWithWallet(
+    @Param('bookingId', ParseUUIDPipe) bookingId: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.bookingsService.payWithWallet(bookingId, user.id);
+  }
+
+  /**
    * PATCH /bookings/:bookingId/cancel
    * Cancela uma reserva existente.
    */
@@ -84,5 +110,22 @@ export class BookingsController {
   ): Promise<Booking[]> {
     // We pass user.id to the service to validate ownership
     return this.bookingsService.listServiceBookings(serviceId, user.id, filter);
+  }
+
+  /**
+   * GET /bookings/providers/:providerId
+   * Lista todos os bookings recebidos por um profissional
+   */
+  @UseGuards(JwtAuthGuard)
+  @Get('providers/:providerId')
+  async findByProvider(
+    @Param('providerId', ParseUUIDPipe) providerId: string,
+    @Query() filter: FilterBookingsDto,
+    @CurrentUser() user: any,
+  ): Promise<Booking[]> {
+    if (providerId !== user.id && user.role !== 'ADMIN') {
+      throw new ForbiddenException('Você não pode acessar reservas de outro profissional');
+    }
+    return this.bookingsService.listProviderBookings(providerId, filter);
   }
 }
