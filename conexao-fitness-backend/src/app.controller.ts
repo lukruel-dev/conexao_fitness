@@ -6,8 +6,13 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  getHello(): any {
+    return {
+      status: 'online',
+      message: 'Conexão Fitness API 🚀 - Marketplace de Saúde e Fitness',
+      docs: '/api/docs',
+      timestamp: new Date().toISOString(),
+    };
   }
 
   @Get('ping')
