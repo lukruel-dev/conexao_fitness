@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
@@ -27,7 +27,7 @@ jobs:
       - name: Install Frontend Dependencies & Build
         run: |
           cd conexao-fitness-frontend
-          npm ci
+          npm install
           npm run build
           npx cap sync android
 
