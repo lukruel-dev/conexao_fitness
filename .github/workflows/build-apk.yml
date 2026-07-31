@@ -26,7 +26,9 @@ jobs:
 
       - name: Install Dependencies
         working-directory: conexao-fitness-frontend
-        run: npm install --legacy-peer-deps
+        run: |
+          rm -f package-lock.json
+          npm install --legacy-peer-deps --no-audit --no-fund
 
       - name: Build Web App
         working-directory: conexao-fitness-frontend
