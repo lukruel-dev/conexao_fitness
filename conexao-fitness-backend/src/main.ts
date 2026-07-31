@@ -21,18 +21,7 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: [
-      /\.lovableproject\.com$/,
-      /\.lovable\.app$/,
-      /\.trycloudflare\.com$/,
-      "http://localhost:5173",
-      "http://localhost:8080",
-      "http://192.168.1.8",
-      "http://192.168.1.8:5173",
-      "http://192.168.1.8:8081",
-      /\.exp\.direct$/,
-      '*' // Em ambiente de desenvolvimento local (reunião) é seguro deixar aberto
-    ],
+    origin: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Accept"],
     credentials: true,
