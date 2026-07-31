@@ -19,7 +19,8 @@ export default function TabLayout() {
           javaScriptEnabled={true}
           domStorageEnabled={true}
           startInLoadingState={true}
-          scalesPageToFit={true}
+          scalesPageToFit={false}
+          textZoom={100}
           allowsBackForwardNavigationGestures={true}
         />
       </SafeAreaView>

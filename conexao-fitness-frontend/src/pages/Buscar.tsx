@@ -55,13 +55,18 @@ const Buscar = () => {
 
   // Auto-tenta uma vez ao montar (silencioso — se já tiver permissão concedida, ativa)
   useEffect(() => {
-    if (!("permissions" in navigator)) return;
-    navigator.permissions
-      ?.query({ name: "geolocation" as PermissionName })
-      .then((status) => {
-        if (status.state === "granted") requestGeolocation(true);
-      })
-      .catch(() => {});
+    try {
+      if (navigator && navigator.permissions && typeof navigator.permissions.query === "function") {
+        navigator.permissions
+          .query({ name: "geolocation" as PermissionName })
+          .then((status) => {
+            if (status.state === "granted") requestGeolocation(true);
+          })
+          .catch(() => {});
+      }
+    } catch (err) {
+      console.warn("Permissions API not fully supported:", err);
+    }
   }, []);
 
   const { data: services, isLoading } = useQuery({
