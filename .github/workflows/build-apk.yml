@@ -16,26 +16,31 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '20'
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Frontend Dependencies & Build
-        run: |
-          cd conexao-fitness-frontend
-          npm install
-          npm run build
-          npx cap sync android
+      - name: Install Dependencies
+        working-directory: conexao-fitness-frontend
+        run: npm install --legacy-peer-deps
 
-      - name: Build Android APK with Gradle
+      - name: Build Web App
+        working-directory: conexao-fitness-frontend
+        run: npm run build
+
+      - name: Sync Capacitor
+        working-directory: conexao-fitness-frontend
+        run: npx cap sync android
+
+      - name: Build Android APK
+        working-directory: conexao-fitness-frontend/android
         run: |
-          cd conexao-fitness-frontend/android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
