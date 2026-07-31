@@ -18,11 +18,11 @@ jobs:
         with:
           node-version: 24
 
-      - name: Setup Java JDK
+      - name: Setup Java JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Install Dependencies
         working-directory: conexao-fitness-frontend
@@ -40,7 +40,7 @@ jobs:
         working-directory: conexao-fitness-frontend/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
