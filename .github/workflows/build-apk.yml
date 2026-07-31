@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 24
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
@@ -26,9 +26,7 @@ jobs:
 
       - name: Install Dependencies
         working-directory: conexao-fitness-frontend
-        run: |
-          rm -f package-lock.json
-          npm install --legacy-peer-deps --no-audit --no-fund
+        run: npm install --legacy-peer-deps --no-audit --no-fund
 
       - name: Build Web App
         working-directory: conexao-fitness-frontend
