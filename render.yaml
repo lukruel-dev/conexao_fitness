@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: conexao-fitness-backend
+    env: docker
+    plan: free
+    region: oregon
+    rootDir: conexao-fitness-backend
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+
+  - type: static
+    name: conexao-fitness-web
+    plan: free
+    region: oregon
+    rootDir: conexao-fitness-frontend
+    buildCommand: npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
