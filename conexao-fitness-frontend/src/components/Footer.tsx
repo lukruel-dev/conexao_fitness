@@ -11,9 +11,9 @@ const Footer = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div>
-            <Link to="/" className="flex items-center gap-3 mb-4">
-              <img src={logo} alt="Conexão Fitness" className="h-12 w-auto rounded-lg" />
-              <span className="font-display font-bold text-xl">
+            <Link to="/" className="flex items-center gap-3 mb-4 shrink-0">
+              <img src={logo} alt="Conexão Fitness" className="h-10 md:h-12 w-auto rounded-lg shrink-0" />
+              <span className="font-display font-bold text-lg md:text-xl whitespace-nowrap shrink-0">
                 <span className="text-foreground">Conexão</span>{" "}
                 <span className="text-secondary">Fitness</span>
               </span>

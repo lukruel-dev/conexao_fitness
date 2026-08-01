@@ -21,9 +21,9 @@ const Header = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-lg border-b border-border/50 pt-[max(24px,env(safe-area-inset-top))]">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
-          <Link to="/" className="flex items-center gap-3">
-            <img src={logo} alt="Conexão Fitness" className="h-10 md:h-12 w-auto rounded-lg" />
-            <span className="font-display font-bold text-lg md:text-xl">
+          <Link to="/" className="flex items-center gap-2 shrink-0">
+            <img src={logo} alt="Conexão Fitness" className="h-8 md:h-12 w-auto rounded-lg shrink-0" />
+            <span className="font-display font-bold text-base md:text-xl whitespace-nowrap shrink-0">
               <span className="text-foreground">Conexão</span>{" "}
               <span className="text-secondary">Fitness</span>
             </span>
