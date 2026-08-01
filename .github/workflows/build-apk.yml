@@ -16,13 +16,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 20
 
-      - name: Setup Java JDK 17
+      - name: Setup Java JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -35,19 +35,30 @@ jobs:
         working-directory: conexao-fitness-frontend
         run: npm run build
 
-      - name: Sync Capacitor
+      - name: Remove stale Android platform and re-sync
         working-directory: conexao-fitness-frontend
-        run: npx cap sync android
-
-      - name: Check AAR Metadata
-        working-directory: conexao-fitness-frontend/android
         run: |
-          chmod +x gradlew
-          ./gradlew :app:checkDebugAarMetadata --stacktrace --info
+          # Remove the existing android dir (it was committed from Windows and may have stale paths)
+          rm -rf android
+
+          # Re-create the native Android project from scratch
+          npx cap add android
+
+          # Sync web assets + plugins into native project
+          npx cap sync android
+
+          # Debug: verify capacitor AAR libs exist
+          echo "=== Checking Capacitor AAR libs ==="
+          ls -la node_modules/@capacitor/android/capacitor/libs/ || echo "WARNING: libs dir missing"
+          ls -la android/capacitor/ || echo "WARNING: android/capacitor missing"
+          echo "=== Capacitor Android project contents ==="
+          ls -la android/app/src/main/assets/public/ | head -5 || echo "WARNING: web assets missing"
 
       - name: Build Android APK
         working-directory: conexao-fitness-frontend/android
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
