@@ -102,10 +102,10 @@ const PlansSection = () => {
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="text-primary font-semibold text-sm uppercase tracking-wider">Planos e Preços</span>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mt-3 mb-4">
+          <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold mt-3 mb-4">
             Escolha seu <span className="gradient-text">plano</span>
           </h2>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-base sm:text-lg">
             Planos flexíveis para profissionais e academias de todos os tamanhos.
           </p>
         </div>

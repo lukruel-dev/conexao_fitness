@@ -89,27 +89,27 @@ const Buscar = () => {
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="font-display text-3xl md:text-4xl font-bold mb-2">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
               Encontre seu <span className="gradient-text">treino</span>
             </h1>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <MapPin className="w-4 h-4 text-primary" />
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
               <span>Uruguaiana, RS</span>
             </div>
           </div>
 
           {/* Search bar */}
-          <div className="bg-card border border-border rounded-2xl p-4 mb-6 shadow-card">
+          <div className="bg-card border border-border rounded-2xl p-3 sm:p-4 mb-6 shadow-card">
             <div className="flex flex-col md:flex-row gap-3">
               <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
-                <Search className="w-4 h-4 text-muted-foreground" />
+                <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <Input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   aria-label="Buscar academia, personal trainer ou modalidade"
                   placeholder="Buscar academia, personal ou modalidade..."
-                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 text-sm"
                 />
               </div>
               <Button
@@ -119,6 +119,7 @@ const Buscar = () => {
                 onClick={() => requestGeolocation(false)}
                 disabled={geoLoading}
                 aria-label="Usar minha localização"
+                className="w-full md:w-auto shrink-0 flex items-center justify-center gap-2 h-11 text-sm font-medium"
               >
                 {geoLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

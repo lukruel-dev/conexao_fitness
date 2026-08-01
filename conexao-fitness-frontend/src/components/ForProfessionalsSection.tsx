@@ -22,10 +22,10 @@ const ForProfessionalsSection = () => {
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-16">
           <span className="text-primary font-semibold text-sm uppercase tracking-wider">Para Profissionais</span>
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mt-3 mb-4">
+          <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold mt-3 mb-4">
             Cresça com a <span className="gradient-text">Conexão Fitness</span>
           </h2>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-base sm:text-lg">
             Seja você um profissional do universo fitness ou dono de academia, conecte-se com novos alunos e expanda seus negócios.
           </p>
         </div>
@@ -33,14 +33,14 @@ const ForProfessionalsSection = () => {
         {/* Two Cards */}
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {/* Personal Card */}
-          <div className="bg-card rounded-3xl p-8 border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-card group">
-            <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mb-6">
-              <Users className="w-8 h-8 text-primary-foreground" />
+          <div className="bg-card rounded-3xl p-6 sm:p-8 border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-card group">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl gradient-primary flex items-center justify-center mb-6">
+              <Users className="w-7 h-7 sm:w-8 sm:h-8 text-primary-foreground" />
             </div>
-            <h3 className="font-display text-2xl font-bold mb-3 text-foreground">
+            <h3 className="font-display text-xl sm:text-2xl font-bold mb-3 text-foreground">
               Profissionais
             </h3>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-muted-foreground text-sm sm:text-base mb-6">
               Crie seu perfil verificado, defina seus serviços e preços, e seja encontrado por alunos na sua região.
             </p>
 
@@ -55,7 +55,7 @@ const ForProfessionalsSection = () => {
               ))}
             </ul>
 
-            <Button variant="hero" className="w-full">
+            <Button variant="hero" className="w-full h-auto py-3.5 whitespace-normal leading-normal text-sm sm:text-base">
               Cadastrar como Profissional
             </Button>
           </div>

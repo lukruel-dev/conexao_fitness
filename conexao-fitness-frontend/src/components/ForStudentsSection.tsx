@@ -42,10 +42,10 @@ const ForStudentsSection = () => {
           {/* Content */}
           <div>
             <span className="text-secondary font-semibold text-sm uppercase tracking-wider">Para Alunos</span>
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mt-3 mb-6">
+            <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold mt-3 mb-6">
               Seu treino, <span className="text-secondary">sua escolha</span>
             </h2>
-            <p className="text-muted-foreground text-lg mb-8 max-w-lg">
+            <p className="text-muted-foreground text-base sm:text-lg mb-8 max-w-lg">
               Viajando a trabalho ou lazer? Quer experimentar uma nova academia? 
               Encontre as melhores opções perto de você com poucos cliques.
             </p>

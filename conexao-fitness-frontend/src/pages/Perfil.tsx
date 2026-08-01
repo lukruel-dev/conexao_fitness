@@ -126,9 +126,9 @@ const Perfil = () => {
                   onChange={handleAvatarPick}
                 />
               </div>
-              <div>
-                <h2 className="font-display font-bold text-lg">{user.name}</h2>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-display font-bold text-lg truncate">{user.name}</h2>
+                <p className="text-sm text-muted-foreground truncate">{user.email}</p>
                 <span className="text-xs px-2 py-0.5 mt-1 inline-block rounded-full bg-secondary/10 text-secondary font-medium">
                   {user.role === "STUDENT"
                     ? "Aluno"

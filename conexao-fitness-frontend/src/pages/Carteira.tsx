@@ -86,15 +86,15 @@ export default function Carteira() {
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
       <main className="flex-1 container mx-auto px-4 pt-28 pb-16 max-w-4xl">
-        <h1 className="text-3xl font-bold font-display text-primary flex items-center gap-2 mb-2">
-          <Wallet className="w-8 h-8" /> Minha Carteira
+        <h1 className="text-2xl sm:text-3xl font-bold font-display text-primary flex items-center gap-2 mb-2">
+          <Wallet className="w-7 h-7 sm:w-8 sm:h-8" /> Minha Carteira
         </h1>
-        <p className="text-muted-foreground mb-8">
+        <p className="text-muted-foreground text-sm sm:text-base mb-8">
           Gerencie seu saldo e adicione fundos para pagar suas aulas.
         </p>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-card border border-border rounded-2xl p-8 flex flex-col justify-center items-center text-center shadow-sm relative overflow-hidden">
+          <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 flex flex-col justify-center items-center text-center shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5">
               <Wallet className="w-32 h-32" />
             </div>
@@ -102,7 +102,7 @@ export default function Carteira() {
             {isLoading ? (
               <div className="h-12 w-32 bg-muted animate-pulse rounded-lg mb-2"></div>
             ) : (
-              <p className="text-4xl md:text-5xl font-display font-bold text-foreground">
+              <p className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-foreground">
                 R$ {(balance?.current_balance || 0).toFixed(2).replace(".", ",")}
               </p>
             )}
@@ -133,13 +133,13 @@ export default function Carteira() {
             <form onSubmit={handleAddFunds} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Valor (R$)</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-muted-foreground">R$</span>
+                <div className="relative flex items-center">
+                  <span className="absolute left-3.5 text-muted-foreground font-medium text-sm">R$</span>
                   <Input 
                     type="number" 
                     step="0.01" 
                     min="5"
-                    className="pl-9"
+                    className="pl-11 text-base"
                     placeholder="0,00" 
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
