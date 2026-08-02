@@ -7,6 +7,8 @@ import PasswordInput from "@/components/PasswordInput";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 
+import { ArrowLeft } from "lucide-react";
+
 import logo from "@/assets/logo.jpeg";
 
 const Login = () => {
@@ -27,9 +29,16 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Link to="/" className="flex items-center gap-3 justify-center mb-8">
+        <div className="mb-6 flex justify-start">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1.5 px-3 rounded-lg bg-muted/60 hover:bg-muted">
+            <ArrowLeft className="w-4 h-4" />
+            <span>Voltar ao início</span>
+          </Link>
+        </div>
+
+        <Link to="/" className="flex items-center gap-3 justify-center mb-6">
           <img src={logo} alt="Conexão Fitness" className="h-12 w-auto rounded-lg" />
           <span className="font-display font-bold text-xl">
             <span className="text-foreground">Conexão</span>{" "}

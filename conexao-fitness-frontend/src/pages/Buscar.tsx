@@ -108,8 +108,8 @@ const Buscar = () => {
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   aria-label="Buscar academia, personal trainer ou modalidade"
-                  placeholder="Buscar academia, personal ou modalidade..."
-                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 text-sm"
+                  placeholder="Buscar academia, personal..."
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 text-xs sm:text-sm placeholder:text-xs placeholder:sm:text-sm min-w-0 flex-1"
                 />
               </div>
               <Button

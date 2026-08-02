@@ -151,13 +151,14 @@ export default function Carteira() {
               <Button 
                 type="submit" 
                 variant="hero" 
-                className="w-full" 
+                className="w-full h-auto py-3.5 px-3 text-xs sm:text-sm font-semibold whitespace-normal leading-snug flex items-center justify-center gap-2" 
                 disabled={topupMutation.isPending || !amount}
               >
                 {topupMutation.isPending ? "Processando..." : (
                   <>
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Pagar com Cartão (Stripe) <ArrowRight className="w-4 h-4 ml-2" />
+                    <CreditCard className="w-4 h-4 shrink-0" />
+                    <span>Pagar com Cartão (Stripe)</span>
+                    <ArrowRight className="w-4 h-4 shrink-0" />
                   </>
                 )}
               </Button>
