@@ -10,19 +10,19 @@ const CTASection = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
+          <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
             Pronto para <span className="gradient-text">transformar</span> sua rotina de treinos?
           </h2>
-          <p className="text-muted-foreground text-lg md:text-xl mb-10 max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-base sm:text-lg md:text-xl mb-8 sm:mb-10 max-w-2xl mx-auto">
             Junte-se a milhares de pessoas que já encontraram academias e os mais diversos profissionais do mundo fitness de forma rápida e prática com a Conexão Fitness.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button variant="hero" size="xl">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+            <Button variant="hero" size="xl" className="w-full sm:w-auto text-base sm:text-lg h-12 sm:h-14 px-6 whitespace-normal leading-snug">
               Começar Agora
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-5 h-5 shrink-0" />
             </Button>
-            <Button variant="heroOutline" size="xl">
+            <Button variant="heroOutline" size="xl" className="w-full sm:w-auto text-base sm:text-lg h-12 sm:h-14 px-6 whitespace-normal leading-snug">
               Falar com Especialista
             </Button>
           </div>
