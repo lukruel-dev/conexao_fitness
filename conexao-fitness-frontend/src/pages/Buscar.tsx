@@ -46,7 +46,20 @@ const Buscar = () => {
 
     if (!("geolocation" in navigator)) {
       setCoords(URUGUAIANA_COORDS);
-      if (!silent) toast({ title: "Localização Padrão", description: "Geolocalização não suportada. Usando Uruguaiana - RS como referência." });
+      if (!silent) toast({ title: "Localização Padrão", description: "Geolocalização não suportada neste navegador. Usando Uruguaiana - RS como referência." });
+      return;
+    }
+
+    // Verificar se a origem é segura em testes móveis (HTTP em IP local é bloqueado pelos navegadores mobile)
+    const isSecure = window.isSecureContext || window.location.protocol === "https:" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    if (!isSecure) {
+      setCoords(URUGUAIANA_COORDS);
+      if (!silent) {
+        toast({
+          title: "Conexão Não Segura (HTTP)",
+          description: "No celular, o navegador exige conexão segura (HTTPS) para acessar o GPS. Usando Uruguaiana - RS.",
+        });
+      }
       return;
     }
 
@@ -62,13 +75,21 @@ const Buscar = () => {
         // Fallback automático para Uruguaiana em caso de erro/bloqueio
         setCoords(URUGUAIANA_COORDS);
         if (!silent) {
+          let desc = "Não foi possível obter GPS. Usando Uruguaiana - RS como referência.";
+          if (err.code === err.PERMISSION_DENIED) {
+            desc = "Permissão de GPS negada. Permita o acesso à localização nas configurações do navegador/celular.";
+          } else if (err.code === err.POSITION_UNAVAILABLE) {
+            desc = "Sinal de GPS indisponível. Verifique se a Localização/GPS está ativada no celular.";
+          } else if (err.code === err.TIMEOUT) {
+            desc = "Tempo limite para obter localização excedido. Tente novamente.";
+          }
           toast({
             title: "Localização Padrão Ativada",
-            description: "Não foi possível obter GPS. Usando Uruguaiana - RS como referência.",
+            description: desc,
           });
         }
       },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 }
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 5 * 60 * 1000 }
     );
   };
 
@@ -136,14 +157,16 @@ const Buscar = () => {
                 onClick={() => requestGeolocation(false)}
                 disabled={geoLoading}
                 aria-label="Usar minha localização"
-                className="w-full md:w-auto shrink-0 flex items-center justify-center gap-2 h-11 text-sm font-medium"
+                className="w-full md:w-auto shrink-0 flex items-center justify-center gap-2 h-11 text-xs sm:text-sm font-medium px-3 sm:px-4 max-w-full overflow-hidden"
               >
                 {geoLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
                 ) : (
-                  <LocateFixed className="w-4 h-4" />
+                  <LocateFixed className="w-4 h-4 shrink-0" />
                 )}
-                {coords ? "Localização ativa (clique p/ remover)" : "Perto de mim"}
+                <span className="truncate">
+                  {coords ? "Localização ativa (remover)" : "Perto de mim"}
+                </span>
               </Button>
             </div>
 
