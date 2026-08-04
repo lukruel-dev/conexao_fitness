@@ -12,6 +12,8 @@ const Header = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
+  const isProvider = isAuthenticated && (user?.role === "PERSONAL" || user?.role === "ACADEMIA");
+
   const handleLogout = () => {
     logout();
     navigate("/");
