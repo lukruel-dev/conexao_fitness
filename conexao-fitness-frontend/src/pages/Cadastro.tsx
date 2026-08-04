@@ -29,9 +29,15 @@ const Cadastro = () => {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await register({ name, email, password, role });
+      const newUser = await register({ name, email, password, role });
       toast.success("Conta criada com sucesso!");
-      navigate("/buscar");
+      if (newUser?.role === "ADMIN") {
+        navigate("/admin");
+      } else if (newUser?.role === "PERSONAL" || newUser?.role === "ACADEMIA") {
+        navigate("/agenda-profissional");
+      } else {
+        navigate("/buscar");
+      }
     } catch (err) {
       toast.error("Erro no cadastro", { description: (err as Error).message });
     }

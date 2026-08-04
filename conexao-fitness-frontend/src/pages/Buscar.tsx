@@ -33,39 +33,56 @@ const Buscar = () => {
   const [radiusKm, setRadiusKm] = useState<number | undefined>(undefined);
   const [geoLoading, setGeoLoading] = useState(false);
 
+  const URUGUAIANA_COORDS = { lat: -29.7578, lng: -57.0872 };
+
   const requestGeolocation = (silent = false) => {
-    if (!("geolocation" in navigator)) {
-      if (!silent) toast({ title: "Geolocalização indisponível", description: "Seu navegador não suporta geolocalização.", variant: "destructive" });
+    if (coords && !silent) {
+      // Se já possui coords ativas e o usuário clicou de novo, desativa
+      setCoords(null);
+      setRadiusKm(undefined);
+      toast({ title: "Filtro de localização removido", description: "Mostrando todos os serviços sem restrição de distância." });
       return;
     }
+
+    if (!("geolocation" in navigator)) {
+      setCoords(URUGUAIANA_COORDS);
+      if (!silent) toast({ title: "Localização Padrão", description: "Geolocalização não suportada. Usando Uruguaiana - RS como referência." });
+      return;
+    }
+
     setGeoLoading(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setGeoLoading(false);
-        if (!silent) toast({ title: "Localização ativada", description: "Mostrando serviços próximos a você." });
+        if (!silent) toast({ title: "Localização ativada!", description: "Mostrando serviços próximos à sua posição." });
       },
       (err) => {
         setGeoLoading(false);
-        if (!silent) toast({ title: "Não foi possível obter sua localização", description: err.message, variant: "destructive" });
+        // Fallback automático para Uruguaiana em caso de erro/bloqueio
+        setCoords(URUGUAIANA_COORDS);
+        if (!silent) {
+          toast({
+            title: "Localização Padrão Ativada",
+            description: "Não foi possível obter GPS. Usando Uruguaiana - RS como referência.",
+          });
+        }
       },
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 }
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 }
     );
   };
 
-  // Auto-tenta uma vez ao montar (silencioso — se já tiver permissão concedida, ativa)
+  // Auto-tenta uma vez ao montar (silencioso)
   useEffect(() => {
-    try {
-      if (navigator && navigator.permissions && typeof navigator.permissions.query === "function") {
-        navigator.permissions
-          .query({ name: "geolocation" as PermissionName })
-          .then((status) => {
-            if (status.state === "granted") requestGeolocation(true);
-          })
-          .catch(() => {});
-      }
-    } catch (err) {
-      console.warn("Permissions API not fully supported:", err);
+    if (navigator && navigator.permissions && typeof navigator.permissions.query === "function") {
+      navigator.permissions
+        .query({ name: "geolocation" as PermissionName })
+        .then((status) => {
+          if (status.state === "granted") {
+            requestGeolocation(true);
+          }
+        })
+        .catch(() => {});
     }
   }, []);
 
@@ -95,7 +112,7 @@ const Buscar = () => {
             </h1>
             <div className="flex items-center gap-2 text-muted-foreground text-sm">
               <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
-              <span>Uruguaiana, RS</span>
+              <span>{coords ? "Filtrando por localização" : "Uruguaiana, RS (e região)"}</span>
             </div>
           </div>
 
@@ -126,7 +143,7 @@ const Buscar = () => {
                 ) : (
                   <LocateFixed className="w-4 h-4" />
                 )}
-                {coords ? "Localização ativa" : "Perto de mim"}
+                {coords ? "Localização ativa (clique p/ remover)" : "Perto de mim"}
               </Button>
             </div>
 

@@ -20,9 +20,15 @@ const Login = () => {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login({ email, password });
+      const loggedUser = await login({ email, password });
       toast.success("Bem-vindo de volta!");
-      navigate("/buscar");
+      if (loggedUser?.role === "ADMIN") {
+        navigate("/admin");
+      } else if (loggedUser?.role === "PERSONAL" || loggedUser?.role === "ACADEMIA") {
+        navigate("/agenda-profissional");
+      } else {
+        navigate("/buscar");
+      }
     } catch (err) {
       toast.error("Erro ao entrar", { description: (err as Error).message });
     }

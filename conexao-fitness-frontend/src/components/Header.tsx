@@ -31,47 +31,58 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link to="/buscar" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
-              Buscar
-            </Link>
-            <Link to="/quem-somos" className="text-foreground font-semibold hover:text-primary transition-colors flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/20">
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              Quem somos
-            </Link>
-            {isAuthenticated && (
-              <Link to="/meus-agendamentos" className="text-muted-foreground hover:text-foreground transition-colors">
-                Meus agendamentos
-              </Link>
-            )}
-            {isAuthenticated && (
-              <Link to="/carteira" className="text-muted-foreground hover:text-foreground transition-colors">
-                Carteira
-              </Link>
-            )}
-            {isAuthenticated && (user?.role === "PERSONAL" || user?.role === "ACADEMIA") && (
+            {isProvider ? (
               <>
-                <Link to="/agenda-profissional" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/carteira" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                  Carteira
+                </Link>
+                <Link to="/agenda-profissional" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                   Meus alunos
                 </Link>
-                <Link to="/meus-servicos" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/meus-servicos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                   Meus serviços
+                </Link>
+                <Link to="/perfil" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                  Perfil
+                </Link>
+                <Link to="/#planos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                  Planos
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/buscar" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                  Buscar
+                </Link>
+                <Link to="/quem-somos" className="text-foreground font-semibold hover:text-primary transition-colors flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/20">
+                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  Quem somos
+                </Link>
+                {isAuthenticated && (
+                  <Link to="/meus-agendamentos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                    Meus agendamentos
+                  </Link>
+                )}
+                {isAuthenticated && (
+                  <Link to="/carteira" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                    Carteira
+                  </Link>
+                )}
+                {isAuthenticated && (
+                  <Link to="/perfil" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                    Perfil
+                  </Link>
+                )}
+                {user?.role === "ADMIN" && (
+                  <Link to="/admin" className="text-secondary font-semibold hover:text-secondary/80 transition-colors font-medium">
+                    Admin
+                  </Link>
+                )}
+                <Link to="/#planos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                  Planos
                 </Link>
               </>
             )}
-            {isAuthenticated && (
-              <Link to="/perfil" className="text-muted-foreground hover:text-foreground transition-colors">
-                Perfil
-              </Link>
-            )}
-            {user?.role === "ADMIN" && (
-              <Link to="/admin" className="text-secondary font-semibold hover:text-secondary/80 transition-colors">
-                Admin
-              </Link>
-            )}
-            <Link to="/#planos" className="text-muted-foreground hover:text-foreground transition-colors">
-              Planos
-            </Link>
-
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
@@ -113,46 +124,58 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-border/50 animate-fade-in">
             <nav className="flex flex-col gap-4">
-              <Link to="/buscar" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
-                Buscar
-              </Link>
-              <Link to="/quem-somos" onClick={() => setIsMenuOpen(false)} className="text-primary font-semibold hover:text-primary/80 transition-colors py-2 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary" />
-                Quem somos
-              </Link>
-              {isAuthenticated && (
-                <Link to="/meus-agendamentos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
-                  Meus agendamentos
-                </Link>
-              )}
-              {isAuthenticated && (
-                <Link to="/carteira" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
-                  Carteira
-                </Link>
-              )}
-              {isAuthenticated && (user?.role === "PERSONAL" || user?.role === "ACADEMIA") && (
+              {isProvider ? (
                 <>
+                  <Link to="/carteira" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                    Carteira
+                  </Link>
                   <Link to="/agenda-profissional" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
                     Meus alunos
                   </Link>
                   <Link to="/meus-servicos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
                     Meus serviços
                   </Link>
+                  <Link to="/perfil" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                    Perfil
+                  </Link>
+                  <Link to="/#planos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                    Planos
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/buscar" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                    Buscar
+                  </Link>
+                  <Link to="/quem-somos" onClick={() => setIsMenuOpen(false)} className="text-primary font-semibold hover:text-primary/80 transition-colors py-2 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-primary" />
+                    Quem somos
+                  </Link>
+                  {isAuthenticated && (
+                    <Link to="/meus-agendamentos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                      Meus agendamentos
+                    </Link>
+                  )}
+                  {isAuthenticated && (
+                    <Link to="/carteira" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                      Carteira
+                    </Link>
+                  )}
+                  {isAuthenticated && (
+                    <Link to="/perfil" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                      Perfil
+                    </Link>
+                  )}
+                  {user?.role === "ADMIN" && (
+                    <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="text-secondary font-semibold py-2">
+                      Admin
+                    </Link>
+                  )}
+                  <Link to="/#planos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                    Planos
+                  </Link>
                 </>
               )}
-              {isAuthenticated && (
-                <Link to="/perfil" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
-                  Perfil
-                </Link>
-              )}
-              {user?.role === "ADMIN" && (
-                <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="text-secondary font-semibold py-2">
-                  Admin
-                </Link>
-              )}
-              <Link to="/#planos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
-                Planos
-              </Link>
 
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
                 {isAuthenticated ? (

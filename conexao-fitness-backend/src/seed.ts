@@ -10,6 +10,8 @@ import { PersonalProfile } from './modules/users/entities/personal-profile.entit
 import { AlunoProfile } from './modules/users/entities/aluno-profile.entity';
 import { AcademiaProfile } from './modules/users/entities/academia-profile.entity';
 import { Service as AppService, ProviderType, ServiceType } from './modules/services/entities/service.entity';
+import { ScheduleSlot } from './modules/services/entities/schedule-slot.entity';
+import { ScheduleSlotStatus } from './modules/services/enums/schedule-slot-status.enum';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
@@ -19,6 +21,7 @@ async function bootstrap() {
   const alunoRepo = app.get<Repository<AlunoProfile>>(getRepositoryToken(AlunoProfile));
   const academiaRepo = app.get<Repository<AcademiaProfile>>(getRepositoryToken(AcademiaProfile));
   const servicesRepo = app.get<Repository<AppService>>(getRepositoryToken(AppService));
+  const slotsRepo = app.get<Repository<ScheduleSlot>>(getRepositoryToken(ScheduleSlot));
 
   const passwordHash = await bcrypt.hash('123456', 10);
   console.log('🚀 Iniciando Seeding do Banco de Dados Conexão Fitness...');
@@ -292,7 +295,40 @@ async function bootstrap() {
     await servicesRepo.save(service);
   }
 
-  console.log('🎉 Seeding concluído com sucesso!');
+  // 8. Gerar horários (vagas) para teste em TODOS os serviços cadastrados
+  console.log('⏰ Gerando horários (ScheduleSlots) nas agendas para testes...');
+  const allServices = await servicesRepo.find();
+  const timesToGenerate = [8, 10, 14, 16, 18, 19]; // 6 horários por dia
+  const slotsToInsert: ScheduleSlot[] = [];
+
+  for (const srv of allServices) {
+    const now = new Date();
+    for (let dayOffset = 1; dayOffset <= 3; dayOffset++) {
+      for (const hour of timesToGenerate) {
+        const startsAt = new Date(now);
+        startsAt.setDate(now.getDate() + dayOffset);
+        startsAt.setHours(hour, 0, 0, 0);
+
+        const duration = srv.durationMinutes || 60;
+        const endsAt = new Date(startsAt.getTime() + duration * 60000);
+
+        const slot = slotsRepo.create({
+          serviceId: srv.id,
+          startsAt,
+          endsAt,
+          status: ScheduleSlotStatus.AVAILABLE,
+        });
+        slotsToInsert.push(slot);
+      }
+    }
+  }
+
+  if (slotsToInsert.length > 0) {
+    await slotsRepo.save(slotsToInsert);
+    console.log(`✅ ${slotsToInsert.length} horários criados nas agendas!`);
+  }
+
+  console.log('🎉 Seeding e horários das agendas concluídos com sucesso!');
   await app.close();
 }
 

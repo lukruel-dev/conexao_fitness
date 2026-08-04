@@ -160,12 +160,12 @@ const Perfil = () => {
                 </div>
                 <Button
                   variant="hero"
-                  className="w-full md:w-auto"
+                  className="w-full md:w-auto h-auto min-h-[40px] py-2.5 px-5 whitespace-normal sm:whitespace-nowrap flex items-center justify-center gap-2 text-center max-w-full"
                   onClick={() => onboardMutation.mutate()}
                   disabled={onboardMutation.isPending}
                 >
-                  <ShieldCheck className="w-4 h-4" />
-                  {onboardMutation.isPending ? "Redirecionando..." : "Configurar Recebimentos (Stripe)"}
+                  <ShieldCheck className="w-4 h-4 shrink-0" />
+                  <span>{onboardMutation.isPending ? "Redirecionando..." : "Configurar Recebimentos (Stripe)"}</span>
                 </Button>
               </div>
 
