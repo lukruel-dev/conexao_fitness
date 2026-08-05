@@ -9,6 +9,8 @@ import { listServices } from "@/services/services";
 import { formatBRL } from "@/lib/format";
 import { MapPin, Search, Star, Clock, LocateFixed, Loader2, BadgeCheck } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { Capacitor } from "@capacitor/core";
+import { Geolocation } from "@capacitor/geolocation";
 
 const modalityOptions = ["Todos", "Musculação", "Funcional", "CrossFit", "Yoga", "Pilates"];
 const typeOptions: { value: "" | "PERSONAL" | "ACADEMIA"; label: string }[] = [
@@ -35,7 +37,7 @@ const Buscar = () => {
 
   const URUGUAIANA_COORDS = { lat: -29.7578, lng: -57.0872 };
 
-  const requestGeolocation = (silent = false) => {
+  const requestGeolocation = async (silent = false) => {
     if (coords && !silent) {
       // Se já possui coords ativas e o usuário clicou de novo, desativa
       setCoords(null);
@@ -44,53 +46,99 @@ const Buscar = () => {
       return;
     }
 
-    if (!("geolocation" in navigator)) {
-      setCoords(URUGUAIANA_COORDS);
-      if (!silent) toast({ title: "Localização Padrão", description: "Geolocalização não suportada neste navegador. Usando Uruguaiana - RS como referência." });
-      return;
-    }
+    setGeoLoading(true);
 
-    // Verificar se a origem é segura em testes móveis (HTTP em IP local é bloqueado pelos navegadores mobile)
-    const isSecure = window.isSecureContext || window.location.protocol === "https:" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-    if (!isSecure) {
+    try {
+      // Se estiver executando como app nativo (Capacitor no Android / iOS)
+      if (Capacitor.isNativePlatform()) {
+        let permStatus = await Geolocation.checkPermissions();
+
+        // Solicitar permissão nativa se não concedida
+        if (permStatus.location !== "granted" && permStatus.coarseLocation !== "granted") {
+          permStatus = await Geolocation.requestPermissions();
+        }
+
+        if (permStatus.location === "granted" || permStatus.coarseLocation === "granted") {
+          const position = await Geolocation.getCurrentPosition({
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 5 * 60 * 1000,
+          });
+          setCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
+          setGeoLoading(false);
+          if (!silent) toast({ title: "Localização ativada!", description: "Mostrando serviços próximos à sua posição." });
+          return;
+        } else {
+          setGeoLoading(false);
+          setCoords(URUGUAIANA_COORDS);
+          if (!silent) {
+            toast({
+              title: "Permissão de GPS Negada",
+              description: "Para usar sua localização, aceite a permissão no pop-up do Android ou ative nas Configurações do celular.",
+            });
+          }
+          return;
+        }
+      }
+
+      // Executando no navegador Web
+      if (!("geolocation" in navigator)) {
+        setCoords(URUGUAIANA_COORDS);
+        setGeoLoading(false);
+        if (!silent) toast({ title: "Localização Padrão", description: "Geolocalização não suportada neste navegador. Usando Uruguaiana - RS como referência." });
+        return;
+      }
+
+      // Verificar se a origem é segura em testes móveis
+      const isSecure = window.isSecureContext || window.location.protocol === "https:" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      if (!isSecure) {
+        setCoords(URUGUAIANA_COORDS);
+        setGeoLoading(false);
+        if (!silent) {
+          toast({
+            title: "Conexão Não Segura (HTTP)",
+            description: "No celular via navegador, a localização exige HTTPS. No app instalado funciona nativamente.",
+          });
+        }
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setGeoLoading(false);
+          if (!silent) toast({ title: "Localização ativada!", description: "Mostrando serviços próximos à sua posição." });
+        },
+        (err) => {
+          setGeoLoading(false);
+          setCoords(URUGUAIANA_COORDS);
+          if (!silent) {
+            let desc = "Não foi possível obter GPS. Usando Uruguaiana - RS como referência.";
+            if (err.code === err.PERMISSION_DENIED) {
+              desc = "Permissão de GPS negada. Permita o acesso nas configurações do celular.";
+            } else if (err.code === err.POSITION_UNAVAILABLE) {
+              desc = "Sinal de GPS indisponível. Verifique se o GPS está ativado no celular.";
+            } else if (err.code === err.TIMEOUT) {
+              desc = "Tempo limite para obter localização excedido. Tente novamente.";
+            }
+            toast({
+              title: "Localização Padrão Ativada",
+              description: desc,
+            });
+          }
+        },
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 5 * 60 * 1000 }
+      );
+    } catch (err) {
+      setGeoLoading(false);
       setCoords(URUGUAIANA_COORDS);
       if (!silent) {
         toast({
-          title: "Conexão Não Segura (HTTP)",
-          description: "No celular, o navegador exige conexão segura (HTTPS) para acessar o GPS. Usando Uruguaiana - RS.",
+          title: "Localização Padrão Ativada",
+          description: "Não foi possível acessar a localização nativa. Usando Uruguaiana - RS.",
         });
       }
-      return;
     }
-
-    setGeoLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setGeoLoading(false);
-        if (!silent) toast({ title: "Localização ativada!", description: "Mostrando serviços próximos à sua posição." });
-      },
-      (err) => {
-        setGeoLoading(false);
-        // Fallback automático para Uruguaiana em caso de erro/bloqueio
-        setCoords(URUGUAIANA_COORDS);
-        if (!silent) {
-          let desc = "Não foi possível obter GPS. Usando Uruguaiana - RS como referência.";
-          if (err.code === err.PERMISSION_DENIED) {
-            desc = "Permissão de GPS negada. Permita o acesso à localização nas configurações do navegador/celular.";
-          } else if (err.code === err.POSITION_UNAVAILABLE) {
-            desc = "Sinal de GPS indisponível. Verifique se a Localização/GPS está ativada no celular.";
-          } else if (err.code === err.TIMEOUT) {
-            desc = "Tempo limite para obter localização excedido. Tente novamente.";
-          }
-          toast({
-            title: "Localização Padrão Ativada",
-            description: desc,
-          });
-        }
-      },
-      { enableHighAccuracy: false, timeout: 15000, maximumAge: 5 * 60 * 1000 }
-    );
   };
 
   // Auto-tenta uma vez ao montar (silencioso)
