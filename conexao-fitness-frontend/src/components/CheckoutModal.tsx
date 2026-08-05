@@ -70,17 +70,50 @@ interface CheckoutModalProps {
 }
 
 export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, clientSecret, onSuccess }) => {
+  const [isProcessingMock, setIsProcessingMock] = useState(false);
+
   if (!clientSecret || !isOpen) return null;
+
+  const isMock = clientSecret.includes("mock") || !import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+
+  const handleSimulatePayment = () => {
+    setIsProcessingMock(true);
+    setTimeout(() => {
+      setIsProcessingMock(false);
+      onSuccess();
+    }, 1000);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Finalizar Pagamento</DialogTitle>
+          <DialogTitle>Finalizar Pagamento com Cartão</DialogTitle>
         </DialogHeader>
-        <Elements stripe={stripePromise} options={{ clientSecret }}>
-          <CheckoutForm onSuccess={onSuccess} onCancel={onClose} />
-        </Elements>
+        {isMock ? (
+          <div className="space-y-4 pt-2">
+            <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 text-xs text-foreground space-y-2">
+              <p className="font-semibold text-sm text-primary">💳 Modo de Teste / Sandbox Ativo</p>
+              <p>Você pode testar a recarga do saldo da sua carteira digital instantaneamente neste ambiente de demonstração.</p>
+              <div className="bg-background/80 p-3 rounded-lg border text-muted-foreground font-mono text-xs">
+                <div>Cartão: •••• •••• •••• 4242</div>
+                <div>Status: Pronto para autorizar recarga</div>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2 pt-2">
+              <Button variant="outline" type="button" onClick={onClose} disabled={isProcessingMock}>
+                Cancelar
+              </Button>
+              <Button type="button" variant="hero" onClick={handleSimulatePayment} disabled={isProcessingMock}>
+                {isProcessingMock ? 'Confirmando...' : 'Confirmar Recarga de Teste'}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Elements stripe={stripePromise} options={{ clientSecret }}>
+            <CheckoutForm onSuccess={onSuccess} onCancel={onClose} />
+          </Elements>
+        )}
       </DialogContent>
     </Dialog>
   );

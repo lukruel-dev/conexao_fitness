@@ -54,8 +54,10 @@ export default function AgendaProfissional() {
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
       <main className="flex-1 pt-24 pb-16 container mx-auto px-4 max-w-4xl">
-        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-2 flex items-center gap-2.5 pl-1 overflow-visible">
-          <Users className="w-7 h-7 sm:w-8 sm:h-8 text-primary shrink-0 flex-shrink-0" />
+        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3 pl-1 overflow-visible">
+          <div className="p-2 sm:p-2.5 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <Users className="w-6 h-6 sm:w-8 sm:h-8" />
+          </div>
           <span>Meus <span className="gradient-text">Alunos</span></span>
         </h1>
         <p className="text-muted-foreground mb-6">Acompanhe os agendamentos recebidos e converse com seus alunos.</p>

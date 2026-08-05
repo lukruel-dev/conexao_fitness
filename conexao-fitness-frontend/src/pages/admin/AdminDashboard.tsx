@@ -48,6 +48,11 @@ export default function AdminDashboard() {
               </Link>
             </Button>
             <Button asChild variant="outline">
+              <Link to="/admin/servicos">
+                Serviços dos Profissionais
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
               <Link to="/admin/assinaturas">
                 Assinaturas
               </Link>

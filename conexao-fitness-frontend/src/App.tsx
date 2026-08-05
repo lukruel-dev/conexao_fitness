@@ -19,6 +19,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminBookings from "./pages/admin/AdminBookings";
 import MeusServicos from "./pages/MeusServicos";
 import AdminCatalog from "./pages/admin/AdminCatalog";
+import AdminServices from "./pages/admin/AdminServices";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 import Carteira from "./pages/Carteira";
 import AgendaProfissional from "./pages/AgendaProfissional";
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="/admin/usuarios" element={<AdminUsers />} />
               <Route path="/admin/agendamentos" element={<AdminBookings />} />
               <Route path="/admin/catalogo" element={<AdminCatalog />} />
+              <Route path="/admin/servicos" element={<AdminServices />} />
               <Route path="/admin/assinaturas" element={<AdminSubscriptions />} />
               <Route path="/carteira" element={<Carteira />} />
               <Route path="/agenda-profissional" element={<AgendaProfissional />} />
