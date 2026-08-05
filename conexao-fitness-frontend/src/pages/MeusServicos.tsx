@@ -44,10 +44,12 @@ export default function MeusServicos() {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user?.role !== "PERSONAL" && user?.role !== "ACADEMIA") return <Navigate to="/" replace />;
 
-  const { data: myServices = [], isLoading: isLoadingMyServices } = useQuery({
+  const { data: allServices = [], isLoading: isLoadingMyServices } = useQuery({
     queryKey: ["my-services", user.id],
-    queryFn: () => listServices({ providerType: user.role, q: "" }), // Adjust to fetch only this user's
+    queryFn: () => listServices({ providerType: user.role as "PERSONAL" | "ACADEMIA", q: "" }),
   });
+
+  const myOwnServices = allServices.filter((s: any) => s.providerId === user.id);
 
   const { data: catalog = [], isLoading: isLoadingCatalog } = useQuery({
     queryKey: ["service-catalog"],
@@ -93,8 +95,9 @@ export default function MeusServicos() {
     });
   };
 
-  // Filtrar o catálogo para mostrar apenas serviços que o usuário ainda não possui
-  const availableCatalog = catalog.filter(c => !myServices.some(ms => ms.name === c.name));
+  // Filtrar o catálogo para mostrar apenas serviços que ESTE usuário ainda não possui no portfólio dele
+  const unaddedCatalog = catalog.filter(c => !myOwnServices.some(ms => ms.name === c.name));
+  const availableCatalog = unaddedCatalog.length > 0 ? unaddedCatalog : catalog;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -102,7 +105,7 @@ export default function MeusServicos() {
       <main className="flex-1 container mx-auto px-4 pt-28 pb-16">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold font-display text-primary">Meus Serviços</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-display text-primary pl-1">Meus Serviços</h1>
             <p className="text-muted-foreground mt-2">
               Gerencie os serviços que você oferece e defina seus preços.
             </p>
@@ -126,7 +129,7 @@ export default function MeusServicos() {
                   <label className="text-sm font-medium">Serviço Base</label>
                   <Select value={selectedCatalogId} onValueChange={setSelectedCatalogId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione um serviço" />
+                      <SelectValue placeholder={isLoadingCatalog ? "Carregando serviços..." : "Selecione um serviço"} />
                     </SelectTrigger>
                     <SelectContent>
                       {availableCatalog.map(c => (
@@ -175,14 +178,14 @@ export default function MeusServicos() {
                     <Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" />
                   </TableCell>
                 </TableRow>
-              ) : myServices.length === 0 ? (
+              ) : myOwnServices.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                     Você ainda não cadastrou nenhum serviço.
                   </TableCell>
                 </TableRow>
               ) : (
-                myServices.map((service) => (
+                myOwnServices.map((service: any) => (
                   <TableRow key={service.id}>
                     <TableCell className="font-medium">{service.name}</TableCell>
                     <TableCell>{service.modality}</TableCell>

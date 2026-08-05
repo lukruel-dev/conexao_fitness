@@ -54,8 +54,9 @@ export default function AgendaProfissional() {
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
       <main className="flex-1 pt-24 pb-16 container mx-auto px-4 max-w-4xl">
-        <h1 className="font-display text-3xl md:text-4xl font-bold mb-2 flex items-center gap-2">
-          <Users className="w-8 h-8 text-primary" /> Meus <span className="gradient-text">Alunos</span>
+        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-2 flex items-center gap-2.5 pl-1 overflow-visible">
+          <Users className="w-7 h-7 sm:w-8 sm:h-8 text-primary shrink-0 flex-shrink-0" />
+          <span>Meus <span className="gradient-text">Alunos</span></span>
         </h1>
         <p className="text-muted-foreground mb-6">Acompanhe os agendamentos recebidos e converse com seus alunos.</p>
 
@@ -93,7 +94,7 @@ export default function AgendaProfissional() {
           </div>
         ) : (
           <div className="space-y-3">
-            {bookings.map((b) => (
+            {bookings.map((b: any) => (
               <div
                 key={b.id}
                 className="bg-card border border-border rounded-2xl p-5 flex flex-col md:flex-row md:items-center gap-4 shadow-sm"
