@@ -132,7 +132,27 @@ export default function Carteira() {
             </h3>
             <form onSubmit={handleAddFunds} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Valor (R$)</label>
+                <label className="text-xs sm:text-sm font-medium text-muted-foreground">Recarga rápida:</label>
+                <div className="grid grid-cols-4 gap-2 mb-1">
+                  {[20, 50, 100, 200].map((quickAmount) => (
+                    <button
+                      key={quickAmount}
+                      type="button"
+                      onClick={() => setAmount(quickAmount.toString())}
+                      className={`py-2 px-2 rounded-xl text-xs font-semibold border transition-all ${
+                        amount === quickAmount.toString()
+                          ? "bg-primary text-primary-foreground border-primary shadow-sm scale-105"
+                          : "bg-muted/60 border-border text-foreground hover:bg-muted"
+                      }`}
+                    >
+                      + R$ {quickAmount}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Outro Valor (R$)</label>
                 <div className="relative flex items-center">
                   <span className="absolute left-3.5 text-muted-foreground font-medium text-sm">R$</span>
                   <Input 

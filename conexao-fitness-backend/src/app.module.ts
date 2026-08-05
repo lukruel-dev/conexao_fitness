@@ -32,6 +32,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { Notification } from './modules/notifications/entities/notification.entity';
 import { AvailabilityModule } from './modules/availability/availability.module';
 import { ProviderAvailability } from './modules/availability/entities/provider-availability.entity';
+import { ServiceCatalog } from './modules/service-catalog/entities/service-catalog.entity';
 import { ServiceCatalogModule } from './modules/service-catalog/service-catalog.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 import { WalletAccount } from './modules/wallet/entities/wallet-account.entity';
@@ -67,6 +68,7 @@ const isDev = process.env.NODE_ENV !== 'production';
               Message,
               Notification,
               ProviderAvailability,
+              ServiceCatalog,
               WalletAccount,
               PaymentIntent,
             ],
@@ -94,6 +96,7 @@ const isDev = process.env.NODE_ENV !== 'production';
               Message,
               Notification,
               ProviderAvailability,
+              ServiceCatalog,
               WalletAccount,
               PaymentIntent,
             ],

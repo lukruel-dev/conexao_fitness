@@ -9,6 +9,7 @@ import { User, UserRole, UserStatus } from './modules/users/entities/user.entity
 import { PersonalProfile } from './modules/users/entities/personal-profile.entity';
 import { AlunoProfile } from './modules/users/entities/aluno-profile.entity';
 import { AcademiaProfile } from './modules/users/entities/academia-profile.entity';
+import { ServiceCatalog } from './modules/service-catalog/entities/service-catalog.entity';
 import { Service as AppService, ProviderType, ServiceType } from './modules/services/entities/service.entity';
 import { ScheduleSlot } from './modules/services/entities/schedule-slot.entity';
 import { ScheduleSlotStatus } from './modules/services/enums/schedule-slot-status.enum';
@@ -22,6 +23,7 @@ async function bootstrap() {
   const academiaRepo = app.get<Repository<AcademiaProfile>>(getRepositoryToken(AcademiaProfile));
   const servicesRepo = app.get<Repository<AppService>>(getRepositoryToken(AppService));
   const slotsRepo = app.get<Repository<ScheduleSlot>>(getRepositoryToken(ScheduleSlot));
+  const catalogRepo = app.get<Repository<ServiceCatalog>>(getRepositoryToken(ServiceCatalog));
 
   const passwordHash = await bcrypt.hash('123456', 10);
   console.log('🚀 Iniciando Seeding do Banco de Dados Conexão Fitness...');
@@ -328,7 +330,55 @@ async function bootstrap() {
     console.log(`✅ ${slotsToInsert.length} horários criados nas agendas!`);
   }
 
-  console.log('🎉 Seeding e horários das agendas concluídos com sucesso!');
+  // 9. Populando o Catálogo Base de Serviços
+  console.log('📚 Populando Catálogo Base de Serviços...');
+  const baseCatalogItems = [
+    { name: 'Treino Personalizado de Musculação (Hipertrofia/Força)', modality: 'Musculação', durationMinutes: 60, type: ServiceType.SESSAO, description: 'Acompanhamento individual focado em hipertrofia, biomecânica dos exercícios e controle de cargas.' },
+    { name: 'Avaliação Física Completa + Bioimpedância', modality: 'Musculação', durationMinutes: 45, type: ServiceType.SESSAO, description: 'Medição de dobras cutâneas, percentual de gordura, massa magra e teste de carga máxima.' },
+    { name: 'Montagem de Ficha & Prescrição de Treino Individual', modality: 'Musculação', durationMinutes: 60, type: ServiceType.SESSAO, description: 'Elaboração de rotina semanal de treinos personalizada de acordo com seu objetivo e nível de experiência.' },
+    { name: 'Consultoria de Treino Presencial + Acompanhamento', modality: 'Musculação', durationMinutes: 60, type: ServiceType.SESSAO, description: 'Orientação postural e correção da execução de movimentos complexos (agachamento, terra, supino).' },
+
+    { name: 'Treinamento Funcional de Alta Intensidade (HIIT)', modality: 'Funcional', durationMinutes: 50, type: ServiceType.SESSAO, description: 'Circuito dinâmico focado em queima calórica, agilidade, mobilidade e condicionamento cardiorrespiratório.' },
+    { name: 'Sessão Individual de CrossFit / WOD Personalizado', modality: 'CrossFit', durationMinutes: 60, type: ServiceType.SESSAO, description: 'Treino focado em técnicas de LPO (Levantamento de Peso Olímpico), ginásticos e WOD intenso adaptado.' },
+    { name: 'Treino de Mobilidade e Estabilidade Articular', modality: 'Funcional', durationMinutes: 45, type: ServiceType.SESSAO, description: 'Exercícios focados em amplitude de movimento, prevenção de lesões e fortalecimento do core.' },
+
+    { name: 'Aula de Hatha Yoga & Meditação Guiada', modality: 'Yoga', durationMinutes: 60, type: ServiceType.SESSAO, description: 'Prática restaurativa de posturas (asanas), exercícios respiratórios (pranayamas) e relaxamento profundo.' },
+    { name: 'Vinyasa Flow Yoga (Fortalecimento & Flexibilidade)', modality: 'Yoga', durationMinutes: 60, type: ServiceType.SESSAO, description: 'Sequência fluida e dinâmica conectando movimento e respiração para ganho de resistência muscular.' },
+    { name: 'Pilates Solo (Mat Pilates & Acessórios)', modality: 'Pilates', durationMinutes: 50, type: ServiceType.SESSAO, description: 'Fortalecimento do powerhouse (core), alinhamento postural e controle muscular utilizando bola e elásticos.' },
+    { name: 'Pilates Clínico / Aparelhos (Reformer & Cadillac)', modality: 'Pilates', durationMinutes: 50, type: ServiceType.SESSAO, description: 'Sessão em aparelhos especializados para reabilitação postural, dores na coluna e ganho de força profunda.' },
+
+    { name: 'Consulta Nutricional Esportiva + Plano Alimentar', modality: 'Nutrição', durationMinutes: 60, type: ServiceType.SESSAO, description: 'Plano nutricional focado em ganho de massa, definição muscular ou alta performance com cálculo de macros.' },
+    { name: 'Avaliação Nutricional por Bioimpedância Tetrapolar', modality: 'Nutrição', durationMinutes: 30, type: ServiceType.SESSAO, description: 'Análise detalhada de gordura corporal, massa muscular, água corporal total e taxa metabólica basal.' },
+    { name: 'Acompanhamento Nutricional Mensal (Revisão & Ajuste)', modality: 'Nutrição', durationMinutes: 45, type: ServiceType.SESSAO, description: 'Retorno para acompanhamento de resultados, evolução de medidas e ajustes no cardápio diário.' },
+
+    { name: 'Sessão de Fisioterapia Desportiva / Reabilitação', modality: 'Fisioterapia', durationMinutes: 50, type: ServiceType.SESSAO, description: 'Tratamento de lesões articulares (joelho, ombro, tornozelo), analgesia e retorno seguro ao esporte.' },
+    { name: 'Liberação Miofascial Instrumental & Manual (Recovery)', modality: 'Fisioterapia', durationMinutes: 45, type: ServiceType.SESSAO, description: 'Alívio de pontos gatilho (trigger points), redução de nós de tensão muscular e aceleração na recuperação.' },
+    { name: 'Ventosaterapia & Terapia de Alívio de Dores', modality: 'Fisioterapia', durationMinutes: 45, type: ServiceType.SESSAO, description: 'Melhoria da circulação sanguínea local, oxigenação dos tecidos musculares e relaxamento profundo.' },
+
+    { name: 'Massagem Desportiva Pré / Pós-Treino', modality: 'Massoterapia', durationMinutes: 60, type: ServiceType.SESSAO, description: 'Massagem profunda para ativação pré-competitiva ou redução de fadiga e ácido lático pós-treino.' },
+    { name: 'Massagem Relaxante & Terapêutica', modality: 'Massoterapia', durationMinutes: 60, type: ServiceType.SESSAO, description: 'Redução de estresse, tensão muscular acumulada nas costas, pescoço e ombros com óleos essenciais.' },
+
+    { name: 'Day Pass (Passe Diário) - Musculação & Vestiário', modality: 'Academia', durationMinutes: 1440, type: ServiceType.DIARIA, description: 'Acesso total durante 1 dia completo aos equipamentos de musculação, ergometria e infraestrutura.' },
+    { name: 'Passe Semanal (7 Dias Livre Acesso)', modality: 'Academia', durationMinutes: 10080, type: ServiceType.PLANO_MENSAL, description: 'Acesso ilimitado por 7 dias corridos a todas as áreas da academia.' },
+  ];
+
+  for (const item of baseCatalogItems) {
+    const existing = await catalogRepo.findOne({ where: { name: item.name } });
+    if (!existing) {
+      const catalogEntry = catalogRepo.create({
+        name: item.name,
+        modality: item.modality,
+        durationMinutes: item.durationMinutes,
+        type: item.type,
+        description: item.description,
+        isActive: true,
+      });
+      await catalogRepo.save(catalogEntry);
+    }
+  }
+  console.log(`✅ ${baseCatalogItems.length} itens do Catálogo Base processados no banco!`);
+
+  console.log('🎉 Seeding, Catálogo Base e horários das agendas concluídos com sucesso!');
   await app.close();
 }
 
