@@ -59,11 +59,22 @@ const Buscar = () => {
         }
 
         if (permStatus.location === "granted" || permStatus.coarseLocation === "granted") {
-          const position = await Geolocation.getCurrentPosition({
-            enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 5 * 60 * 1000,
-          });
+          let position;
+          try {
+            position = await Geolocation.getCurrentPosition({
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 5 * 60 * 1000,
+            });
+          } catch (highAccErr) {
+            // Fallback: se alta precisão (GPS de satélite) falhar/expirar em ambiente fechado, usa rede/Wi-Fi
+            position = await Geolocation.getCurrentPosition({
+              enableHighAccuracy: false,
+              timeout: 12000,
+              maximumAge: 5 * 60 * 1000,
+            });
+          }
+
           setCoords({ lat: position.coords.latitude, lng: position.coords.longitude });
           setGeoLoading(false);
           if (!silent) toast({ title: "Localização ativada!", description: "Mostrando serviços próximos à sua posição." });
@@ -74,7 +85,7 @@ const Buscar = () => {
           if (!silent) {
             toast({
               title: "Permissão de GPS Negada",
-              description: "Para usar sua localização, aceite a permissão no pop-up do Android ou ative nas Configurações do celular.",
+              description: "Para usar sua localização, permita o acesso no celular ou ative nas Configurações.",
             });
           }
           return;

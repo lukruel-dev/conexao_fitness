@@ -35,16 +35,9 @@ jobs:
         working-directory: conexao-fitness-frontend
         run: npm run build
 
-      - name: Remove stale Android platform and re-sync
+      - name: Sync Capacitor Android assets
         working-directory: conexao-fitness-frontend
         run: |
-          # Remove the existing android dir (it was committed from Windows and may have stale paths)
-          rm -rf android
-
-          # Re-create the native Android project from scratch
-          npx cap add android
-
-          # Sync web assets + plugins into native project
           npx cap sync android
 
           # Debug: verify capacitor AAR libs exist
