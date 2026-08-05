@@ -72,7 +72,12 @@ const Login = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="password">Senha</Label>
+                <Link to="/recuperar-senha" className="text-xs text-primary hover:underline font-medium">
+                  Esqueceu a senha?
+                </Link>
+              </div>
               <PasswordInput
                 id="password"
                 required

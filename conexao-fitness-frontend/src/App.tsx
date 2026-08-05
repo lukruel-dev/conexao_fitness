@@ -12,6 +12,7 @@ import ServicoDetalhe from "./pages/ServicoDetalhe";
 import MeusAgendamentos from "./pages/MeusAgendamentos";
 import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
+import RecuperarSenha from "./pages/RecuperarSenha";
 import Perfil from "./pages/Perfil";
 import MinhaAgenda from "./pages/MinhaAgenda";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -59,6 +60,7 @@ const App = () => (
               <Route path="/meus-agendamentos" element={<MeusAgendamentos />} />
               <Route path="/meus-servicos" element={<MeusServicos />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/recuperar-senha" element={<RecuperarSenha />} />
               <Route path="/cadastro" element={<Cadastro />} />
               <Route path="/perfil" element={<Perfil />} />
               <Route path="/minha-agenda" element={<MinhaAgenda />} />

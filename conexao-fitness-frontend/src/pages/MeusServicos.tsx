@@ -96,8 +96,7 @@ export default function MeusServicos() {
   };
 
   // Filtrar o catálogo para mostrar apenas serviços que ESTE usuário ainda não possui no portfólio dele
-  const unaddedCatalog = catalog.filter(c => !myOwnServices.some(ms => ms.name === c.name));
-  const availableCatalog = unaddedCatalog.length > 0 ? unaddedCatalog : catalog;
+  const availableCatalog = catalog.filter(c => !myOwnServices.some(ms => ms.name === c.name));
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
