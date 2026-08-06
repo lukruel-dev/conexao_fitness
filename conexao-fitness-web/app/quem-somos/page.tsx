@@ -22,7 +22,7 @@ import {
 
 export const metadata = {
   title: 'Quem Somos | Conexão Fitness',
-  description: 'Conheça o Conexão Fitness: o hub multidisciplinar que integra academias, personal trainers, fisioterapeutas, nutricionistas e médicos do esporte em todo o Brasil.',
+  description: 'Conheça o Conexão Fitness: o hub multidisciplinar que integra academias, Profissionais, fisioterapeutas, nutricionistas e médicos do esporte em todo o Brasil.',
 };
 
 export default function QuemSomosPage() {
@@ -46,7 +46,7 @@ export default function QuemSomosPage() {
           </h1>
 
           <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            O <strong>Conexão Fitness</strong> conecta você às melhores academias, personal trainers, <strong>fisioterapeutas, nutricionistas e médicos do esporte</strong> do Brasil em uma só plataforma.
+            O <strong>Conexão Fitness</strong> conecta você às melhores academias, Profissionais, <strong>fisioterapeutas, nutricionistas e médicos do esporte</strong> do Brasil em uma só plataforma.
           </p>
 
           <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
@@ -98,7 +98,7 @@ export default function QuemSomosPage() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
             <Dumbbell className="w-8 h-8 text-cyan-400" />
-            <h3 className="text-xl font-bold text-white">Personal Trainers</h3>
+            <h3 className="text-xl font-bold text-white">Profissionais</h3>
             <p className="text-slate-400 text-sm leading-relaxed">Treinos presenciais e consultorias esportivas com profissionais registrados no CREF.</p>
           </div>
 

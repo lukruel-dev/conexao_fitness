@@ -13,7 +13,7 @@ services:
         value: production
 
   - type: static
-    name: conexao-fitness-web
+    name: conexao-fitness-frontend
     plan: free
     region: oregon
     rootDir: conexao-fitness-frontend
@@ -23,3 +23,15 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+
+  - type: web
+    name: conexao-fitness-web
+    env: node
+    plan: free
+    region: oregon
+    rootDir: conexao-fitness-web
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production

@@ -7,7 +7,7 @@ import { ArrowLeft, Check, Zap, Star, Crown } from 'lucide-react';
 export default function PlanosPage() {
   const [activeTab, setActiveTab] = useState<'personal' | 'academia'>('personal');
 
-  const planosPersonal = [
+  const planosProfissional = [
     {
       name: 'Bronze',
       price: '49.90',
@@ -107,7 +107,7 @@ export default function PlanosPage() {
     }
   ];
 
-  const planos = activeTab === 'personal' ? planosPersonal : planosAcademia;
+  const planos = activeTab === 'personal' ? planosProfissional : planosAcademia;
 
   return (
     <div className="min-h-screen bg-[#191d29] flex flex-col">
@@ -138,7 +138,7 @@ export default function PlanosPage() {
               activeTab === 'personal' ? 'bg-[#14b8a6] text-white shadow-lg' : 'text-slate-400 hover:text-slate-300'
             }`}
           >
-            Personal Trainer
+            Profissional
           </button>
           <button 
             onClick={() => setActiveTab('academia')}

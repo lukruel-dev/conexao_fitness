@@ -47,7 +47,7 @@ export default function SearchPage() {
     },
     {
       id: 4,
-      type: 'Personal',
+      type: 'Profissional',
       isPremium: false,
       name: 'Ricardo Santos',
       category: 'Musculação e Hipertrofia',
@@ -61,7 +61,7 @@ export default function SearchPage() {
     },
     {
       id: 5,
-      type: 'Personal',
+      type: 'Profissional',
       isPremium: false,
       name: 'Juliana Costa',
       category: 'Treino Funcional',
@@ -82,7 +82,7 @@ export default function SearchPage() {
         <div className="max-w-4xl mx-auto text-center space-y-8">
           <div className="space-y-4">
             <h1 className="text-4xl md:text-5xl font-bold text-white">Encontre Seu Parceiro Fitness</h1>
-            <p className="text-slate-400 text-lg">Conecte-se com academias e personal trainers em qualquer lugar que você esteja</p>
+            <p className="text-slate-400 text-lg">Conecte-se com academias e Profissionais em qualquer lugar que você esteja</p>
           </div>
 
           <div className="bg-[#1e2330] p-2 rounded-2xl md:rounded-full border border-slate-700/50 shadow-xl max-w-3xl mx-auto">
@@ -106,7 +106,7 @@ export default function SearchPage() {
               Academias
             </button>
             <button className="bg-[#232736] hover:bg-slate-700 text-slate-300 px-6 py-2.5 rounded-lg font-medium transition-colors border border-slate-700">
-              Personal Trainers
+              Profissionais
             </button>
             <button className="bg-[#232736] hover:bg-slate-700 text-slate-300 px-6 py-2.5 rounded-lg font-medium transition-colors border border-slate-700 flex items-center gap-2">
               <MapPin className="w-4 h-4" /> Mais Próximos
