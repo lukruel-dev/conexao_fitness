@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Users, TrendingUp, Calendar, DollarSign, BadgeCheck, BarChart3 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const personalFeatures = [
   { icon: BadgeCheck, text: "Perfil verificado com CREF" },
@@ -55,8 +56,10 @@ const ForProfessionalsSection = () => {
               ))}
             </ul>
 
-            <Button variant="hero" className="w-full h-auto py-3.5 whitespace-normal leading-normal text-sm sm:text-base">
-              Cadastrar como Profissional
+            <Button asChild variant="hero" className="w-full h-auto py-3.5 whitespace-normal leading-normal text-sm sm:text-base">
+              <Link to="/cadastro?type=profissional">
+                Cadastrar como Profissional
+              </Link>
             </Button>
           </div>
 
@@ -83,8 +86,10 @@ const ForProfessionalsSection = () => {
               ))}
             </ul>
 
-            <Button variant="success" className="w-full">
-              Cadastrar Academia
+            <Button asChild variant="success" className="w-full h-auto py-3.5 whitespace-normal leading-normal text-sm sm:text-base">
+              <Link to="/cadastro?type=academia">
+                Cadastrar Academia
+              </Link>
             </Button>
           </div>
         </div>

@@ -11,6 +11,9 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   const isProvider = isAuthenticated && (user?.role === "PERSONAL" || user?.role === "ACADEMIA");
 
@@ -53,14 +56,16 @@ const Header = () => {
               </>
             ) : (
               <>
-                <Link to="/buscar" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
-                  Buscar
-                </Link>
+                {!isAdminRoute && (
+                  <Link to="/buscar" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                    Buscar
+                  </Link>
+                )}
                 <Link to="/quem-somos" className="text-foreground font-semibold hover:text-primary transition-colors flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/20">
                   <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                   Quem somos
                 </Link>
-                {isAuthenticated && (
+                {isAuthenticated && !isAdminRoute && (
                   <Link to="/meus-agendamentos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                     Meus agendamentos
                   </Link>
@@ -80,9 +85,11 @@ const Header = () => {
                     Admin
                   </Link>
                 )}
-                <Link to="/#planos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
-                  Planos
-                </Link>
+                {!isAdminRoute && (
+                  <Link to="/#planos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                    Planos
+                  </Link>
+                )}
               </>
             )}
           </nav>
@@ -146,14 +153,16 @@ const Header = () => {
                 </>
               ) : (
                 <>
-                  <Link to="/buscar" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
-                    Buscar
-                  </Link>
+                  {!isAdminRoute && (
+                    <Link to="/buscar" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                      Buscar
+                    </Link>
+                  )}
                   <Link to="/quem-somos" onClick={() => setIsMenuOpen(false)} className="text-primary font-semibold hover:text-primary/80 transition-colors py-2 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-primary" />
                     Quem somos
                   </Link>
-                  {isAuthenticated && (
+                  {isAuthenticated && !isAdminRoute && (
                     <Link to="/meus-agendamentos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
                       Meus agendamentos
                     </Link>
@@ -173,9 +182,11 @@ const Header = () => {
                       Admin
                     </Link>
                   )}
-                  <Link to="/#planos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
-                    Planos
-                  </Link>
+                  {!isAdminRoute && (
+                    <Link to="/#planos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                      Planos
+                    </Link>
+                  )}
                 </>
               )}
 
