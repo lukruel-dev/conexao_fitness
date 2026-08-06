@@ -222,7 +222,7 @@ export default function Home() {
                 ))}
               </ul>
               
-              <Link href="https://conexao-fitness-frontend.onrender.com/cadastro?type=profissional" target="_blank" className="w-full bg-[#06b6d4] hover:bg-cyan-500 text-white font-bold py-3.5 rounded-lg transition-colors flex justify-center">
+              <Link href="https://conexao-fitness-web.onrender.com/cadastro?type=profissional" target="_blank" className="w-full h-14 bg-[#06b6d4] hover:bg-cyan-500 text-white font-bold rounded-lg transition-colors flex items-center justify-center mt-auto">
                 Cadastrar como Profissional
               </Link>
             </div>
@@ -254,7 +254,7 @@ export default function Home() {
                 ))}
               </ul>
               
-              <Link href="https://conexao-fitness-frontend.onrender.com/cadastro?type=academia" target="_blank" className="w-full bg-brand-green hover:bg-green-600 text-white font-bold py-3.5 rounded-lg transition-colors flex justify-center">
+              <Link href="https://conexao-fitness-web.onrender.com/cadastro?type=academia" target="_blank" className="w-full h-14 bg-brand-green hover:bg-green-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center mt-auto">
                 Cadastrar Academia
               </Link>
             </div>
@@ -425,10 +425,10 @@ export default function Home() {
             Junte-se a milhares de pessoas que já encontram academias e profissionais de forma rápida e prática com a Conexão Fitness.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href="https://conexao-fitness-frontend.onrender.com/cadastro" target="_blank" className="bg-[#06b6d4] hover:bg-cyan-500 text-white px-8 py-3.5 rounded-lg font-bold transition-all shadow-lg shadow-cyan-500/20">
+            <Link href="https://conexao-fitness-web.onrender.com/cadastro" target="_blank" className="h-14 bg-[#06b6d4] hover:bg-cyan-500 text-white px-8 rounded-lg font-bold transition-all shadow-lg shadow-cyan-500/20 flex items-center justify-center">
               Começar Agora &rarr;
             </Link>
-            <a href="https://wa.me/5551999999999" target="_blank" rel="noreferrer" className="bg-transparent hover:bg-slate-800 border border-[#06b6d4] text-white px-8 py-3.5 rounded-lg font-bold transition-all flex items-center justify-center">
+            <a href="https://wa.me/5551999999999" target="_blank" rel="noreferrer" className="h-14 bg-transparent hover:bg-slate-800 border border-[#06b6d4] text-white px-8 rounded-lg font-bold transition-all flex items-center justify-center">
               Falar com Especialista
             </a>
           </div>
