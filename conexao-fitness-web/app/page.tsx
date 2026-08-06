@@ -23,7 +23,7 @@ export default function Home() {
           </h1>
           
           <p className="text-lg sm:text-xl text-slate-400 max-w-2xl leading-relaxed">
-            O marketplace que conecta você às melhores academias e personal trainers. Busque por localização, compare preços e agende direto pelo app.
+            O marketplace que conecta você às melhores academias e profissionais. Busque por localização, compare preços e agende direto pelo app.
           </p>
 
           <div className="pt-6">
@@ -53,7 +53,7 @@ export default function Home() {
               <div className="w-12 h-12 rounded-full bg-brand-green flex items-center justify-center font-bold text-white shadow-[0_0_15px_rgba(34,197,94,0.4)]">
                 100+
               </div>
-              <span className="text-slate-400 font-medium">Personal trainers</span>
+              <span className="text-slate-400 font-medium">Profissionais</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-yellow-400">
@@ -76,7 +76,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
             {[
-              { num: '1', title: 'Busque por localização', desc: 'Use seu GPS ou digite o CEP para encontrar academias e personal trainers próximos.', icon: MapPin, color: 'bg-[#06b6d4]' },
+              { num: '1', title: 'Busque por localização', desc: 'Use seu GPS ou digite o CEP para encontrar academias e profissionais próximos.', icon: MapPin, color: 'bg-[#06b6d4]' },
               { num: '2', title: 'Escolha e agende', desc: 'Compare preços, avaliações e disponibilidade. Reserve o horário que melhor funciona.', icon: Calendar, color: 'bg-brand-green' },
               { num: '3', title: 'Pague com segurança', desc: 'Pix ou cartão de crédito. Transação segura com recibo automático.', icon: CreditCard, color: 'bg-[#06b6d4]' },
               { num: '4', title: 'Treine e avalie', desc: 'Após o treino, deixe sua avaliação e ajude outros a encontrar os melhores profissionais.', icon: Star, color: 'bg-brand-green' }
@@ -114,7 +114,7 @@ export default function Home() {
                 { title: 'Geolocalização', desc: 'Encontre opções próximas onde você estiver, ideal para viagens.', icon: Map },
                 { title: 'Agendamento Fácil', desc: 'Veja horários disponíveis e reserve em segundos.', icon: Calendar },
                 { title: 'Avaliações Reais', desc: 'Leia opiniões de outros alunos antes de escolher.', icon: Star },
-                { title: 'Chat Direto', desc: 'Converse com academias e personals antes de reservar.', icon: MessageCircle },
+                { title: 'Chat Direto', desc: 'Converse com academias e profissionais antes de reservar.', icon: MessageCircle },
                 { title: 'Pagamento Seguro', desc: 'Pix e cartão com proteção total dos seus dados.', icon: ShieldCheck }
               ].map((feature, i) => (
                 <div key={i} className="flex gap-4">
@@ -130,7 +130,7 @@ export default function Home() {
             </div>
 
             <Link href="/search" className="bg-brand-green hover:bg-green-600 text-white px-8 py-3.5 rounded-lg font-bold transition-all mt-4 inline-block">
-              Buscar Academias e Personals
+              Buscar Academias e Profissionais
             </Link>
           </div>
 
@@ -162,7 +162,7 @@ export default function Home() {
                 <div className="bg-[#232730] rounded-xl p-5 border border-slate-700 hover:border-slate-500 transition-colors cursor-pointer">
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h4 className="text-white font-bold text-lg">Personal João Silva</h4>
+                      <h4 className="text-white font-bold text-lg">Profissional João Silva</h4>
                       <p className="text-slate-400 text-sm">Personal Trainer</p>
                     </div>
                     <div className="flex items-center gap-1 text-yellow-400 font-bold">
@@ -190,7 +190,7 @@ export default function Home() {
             <h3 className="text-[#06b6d4] font-bold tracking-widest text-sm uppercase">PARA PROFISSIONAIS</h3>
             <h2 className="text-4xl sm:text-5xl font-bold text-white">Cresça com a <span className="text-brand-green">Conexão Fitness</span></h2>
             <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-              Seja personal trainer ou dono de academia, conecte-se com novos alunos e expanda seus negócios.
+              Seja profissional de educação física, fisioterapeuta, nutricionista ou dono de academia, conecte-se com novos alunos e expanda seus negócios.
             </p>
           </div>
 
@@ -201,7 +201,7 @@ export default function Home() {
               <div className="w-16 h-16 rounded-xl bg-[#06b6d4] flex items-center justify-center mb-6">
                 <Users className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">Personal Trainers</h3>
+              <h3 className="text-2xl font-bold text-white mb-4">Profissionais</h3>
               <p className="text-slate-400 mb-8 leading-relaxed">
                 Crie seu perfil verificado, defina seus serviços e preços, e seja encontrado por alunos na sua região.
               </p>
@@ -276,7 +276,7 @@ export default function Home() {
           <div className="space-y-24">
             {/* Planos Personal */}
             <div>
-              <h3 className="text-2xl font-bold text-white text-center mb-10">Para Personal Trainers</h3>
+              <h3 className="text-2xl font-bold text-white text-center mb-10">Para Profissionais</h3>
               <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
                 <div className="bg-[#12151c] rounded-2xl border border-slate-800 p-8 flex flex-col">
                   <h4 className="text-xl font-bold text-white text-center">Basic</h4>
@@ -422,7 +422,7 @@ export default function Home() {
             Pronto para <span className="text-brand-green">transformar</span> sua rotina de treinos?
           </h2>
           <p className="text-slate-400 text-lg mb-10">
-            Junte-se a milhares de pessoas que já encontram academias e personal trainers de forma rápida e prática com a Conexão Fitness.
+            Junte-se a milhares de pessoas que já encontram academias e profissionais de forma rápida e prática com a Conexão Fitness.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link href="https://conexao-fitness-frontend.onrender.com/cadastro" target="_blank" className="bg-[#06b6d4] hover:bg-cyan-500 text-white px-8 py-3.5 rounded-lg font-bold transition-all shadow-lg shadow-cyan-500/20">
@@ -450,7 +450,7 @@ export default function Home() {
                 <span className="font-bold text-lg text-white">Conexão <span className="text-brand-green">Fitness</span></span>
               </div>
               <p className="text-slate-500 text-sm max-w-sm">
-                Conectando você às melhores academias e personal trainers do Brasil.
+                Conectando você às melhores academias e profissionais do Brasil.
               </p>
             </div>
             
