@@ -51,7 +51,7 @@ const ChatModal = ({ open, onOpenChange, bookingId, title }: ChatModalProps) => 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg p-0 gap-0 flex flex-col h-[85dvh] sm:h-[600px] w-[95vw] sm:w-full">
+      <DialogContent className="max-w-lg p-0 gap-0 flex flex-col h-[60dvh] sm:h-[600px] w-[95vw] sm:w-full mt-auto mb-4 sm:my-auto">
         <DialogHeader className="p-4 pr-12 border-b border-border">
           <DialogTitle className="leading-snug">Chat {title ? `· ${title}` : ""}</DialogTitle>
           <DialogDescription className="text-xs">

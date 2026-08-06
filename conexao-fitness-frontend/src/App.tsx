@@ -22,6 +22,7 @@ import MeusServicos from "./pages/MeusServicos";
 import AdminCatalog from "./pages/admin/AdminCatalog";
 import AdminServices from "./pages/admin/AdminServices";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
+import AdminProfessions from "./pages/admin/AdminProfessions";
 import Carteira from "./pages/Carteira";
 import AgendaProfissional from "./pages/AgendaProfissional";
 import QuemSomos from "./pages/QuemSomos";
@@ -70,6 +71,7 @@ const App = () => (
               <Route path="/admin/catalogo" element={<AdminCatalog />} />
               <Route path="/admin/servicos" element={<AdminServices />} />
               <Route path="/admin/assinaturas" element={<AdminSubscriptions />} />
+              <Route path="/admin/profissoes" element={<AdminProfessions />} />
               <Route path="/carteira" element={<Carteira />} />
               <Route path="/agenda-profissional" element={<AgendaProfissional />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

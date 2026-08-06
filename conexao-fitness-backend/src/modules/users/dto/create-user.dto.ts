@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
 import type { UserRole } from '../entities/user.entity';
 
 export class CreateUserDto {
@@ -14,4 +14,8 @@ export class CreateUserDto {
 
   @IsEnum(['STUDENT', 'PERSONAL', 'ACADEMIA', 'ADMIN'])
   role: UserRole;
+
+  @IsString()
+  @IsOptional()
+  professionTitle?: string;
 }

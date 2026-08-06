@@ -33,7 +33,18 @@ export class UsersService {
       status: 'PENDENTE_KYC',
     });
 
-    return this.usersRepo.save(user);
+    const savedUser = await this.usersRepo.save(user);
+
+    if (dto.role === 'PERSONAL' && dto.professionTitle) {
+      const profile = this.personalProfileRepo.create({
+        userId: savedUser.id,
+        publicName: dto.name,
+        professionTitle: dto.professionTitle,
+      });
+      await this.personalProfileRepo.save(profile);
+    }
+
+    return savedUser;
   }
 
   async updateAvatar(userId: string, avatarUrl: string): Promise<User> {

@@ -38,6 +38,8 @@ import { WalletModule } from './modules/wallet/wallet.module';
 import { WalletAccount } from './modules/wallet/entities/wallet-account.entity';
 import { PaymentIntent } from './modules/wallet/entities/payment-intent.entity';
 import { QRModule as QrModule } from './modules/qr/qr.module';
+import { ProfessionsModule } from './modules/professions/professions.module';
+import { Profession } from './modules/professions/entities/profession.entity';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -71,6 +73,7 @@ const isDev = process.env.NODE_ENV !== 'production';
               ServiceCatalog,
               WalletAccount,
               PaymentIntent,
+              Profession,
             ],
             synchronize: true,
             logging: ['error'],
@@ -99,6 +102,7 @@ const isDev = process.env.NODE_ENV !== 'production';
               ServiceCatalog,
               WalletAccount,
               PaymentIntent,
+              Profession,
             ],
             synchronize: isDev,
             migrationsRun: !isDev,
@@ -120,6 +124,7 @@ const isDev = process.env.NODE_ENV !== 'production';
     AvailabilityModule,
     ServiceCatalogModule,
     WalletModule,
+    ProfessionsModule,
   ],
 })
 export class AppModule {}

@@ -9,12 +9,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { UserRole } from "@/types/api";
 
 import { ArrowLeft } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { listProfessions } from "@/services/professions";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import logo from "@/assets/logo.jpeg";
 
 const roleOptions: { value: UserRole; label: string; desc: string }[] = [
   { value: "STUDENT", label: "Aluno", desc: "Buscar e reservar treinos" },
-  { value: "PERSONAL", label: "Personal", desc: "Oferecer meus serviços" },
+  { value: "PERSONAL", label: "Profissional", desc: "Oferecer meus serviços" },
   { value: "ACADEMIA", label: "Academia", desc: "Cadastrar minha academia" },
 ];
 
@@ -25,11 +28,23 @@ const Cadastro = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("STUDENT");
+  const [professionTitle, setProfessionTitle] = useState("");
+
+  const { data: professions } = useQuery({
+    queryKey: ["professions"],
+    queryFn: listProfessions,
+  });
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (role === "PERSONAL" && !professionTitle) {
+      toast.error("Por favor, selecione sua profissão");
+      return;
+    }
+
     try {
-      const newUser = await register({ name, email, password, role });
+      const newUser = await register({ name, email, password, role, professionTitle });
       toast.success("Conta criada com sucesso!");
       if (newUser?.role === "ADMIN") {
         navigate("/admin");
@@ -90,6 +105,24 @@ const Cadastro = () => {
                 ))}
               </div>
             </div>
+
+            {role === "PERSONAL" && (
+              <div className="space-y-2">
+                <Label htmlFor="profession">Sua Profissão</Label>
+                <Select value={professionTitle} onValueChange={setProfessionTitle}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Selecione sua profissão" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {professions?.map((p) => (
+                      <SelectItem key={p.id} value={p.title}>
+                        {p.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="name">Nome completo</Label>

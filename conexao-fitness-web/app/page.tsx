@@ -222,9 +222,9 @@ export default function Home() {
                 ))}
               </ul>
               
-              <button className="w-full bg-[#06b6d4] hover:bg-cyan-500 text-white font-bold py-3.5 rounded-lg transition-colors">
-                Cadastrar como Personal
-              </button>
+              <Link href="https://conexao-fitness-frontend.onrender.com/cadastro?type=profissional" target="_blank" className="w-full bg-[#06b6d4] hover:bg-cyan-500 text-white font-bold py-3.5 rounded-lg transition-colors flex justify-center">
+                Cadastrar como Profissional
+              </Link>
             </div>
 
             {/* Card Academia */}
@@ -254,9 +254,9 @@ export default function Home() {
                 ))}
               </ul>
               
-              <button className="w-full bg-brand-green hover:bg-green-600 text-white font-bold py-3.5 rounded-lg transition-colors">
+              <Link href="https://conexao-fitness-frontend.onrender.com/cadastro?type=academia" target="_blank" className="w-full bg-brand-green hover:bg-green-600 text-white font-bold py-3.5 rounded-lg transition-colors flex justify-center">
                 Cadastrar Academia
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -425,12 +425,12 @@ export default function Home() {
             Junte-se a milhares de pessoas que já encontram academias e personal trainers de forma rápida e prática com a Conexão Fitness.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href="/cadastro" className="bg-[#06b6d4] hover:bg-cyan-500 text-white px-8 py-3.5 rounded-lg font-bold transition-all shadow-lg shadow-cyan-500/20">
+            <Link href="https://conexao-fitness-frontend.onrender.com/cadastro" target="_blank" className="bg-[#06b6d4] hover:bg-cyan-500 text-white px-8 py-3.5 rounded-lg font-bold transition-all shadow-lg shadow-cyan-500/20">
               Começar Agora &rarr;
             </Link>
-            <button className="bg-transparent hover:bg-slate-800 border border-[#06b6d4] text-white px-8 py-3.5 rounded-lg font-bold transition-all">
+            <a href="https://wa.me/5551999999999" target="_blank" rel="noreferrer" className="bg-transparent hover:bg-slate-800 border border-[#06b6d4] text-white px-8 py-3.5 rounded-lg font-bold transition-all flex items-center justify-center">
               Falar com Especialista
-            </button>
+            </a>
           </div>
           <div className="flex flex-wrap justify-center gap-6 mt-8 text-sm text-slate-500">
             <span className="flex items-center gap-2"><Check className="w-4 h-4" /> Cadastro gratuito</span>

@@ -43,6 +43,11 @@ export default function AdminDashboard() {
           </div>
           <div className="flex gap-2 flex-wrap">
             <Button asChild variant="outline">
+              <Link to="/admin/profissoes">
+                Profissões
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
               <Link to="/admin/catalogo">
                 Catálogo Base
               </Link>

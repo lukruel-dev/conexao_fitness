@@ -125,6 +125,7 @@ export interface RegisterDto {
   email: string;
   password: string;
   role: UserRole;
+  professionTitle?: string;
 }
 
 export interface AuthResponse {

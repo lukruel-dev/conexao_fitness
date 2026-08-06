@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, MapPin, Calendar, Star, MessageCircle, Shield } from "lucide-react";
 
@@ -65,9 +66,11 @@ const ForStudentsSection = () => {
             </div>
 
             <div className="flex justify-center sm:justify-start">
-              <Button variant="success" size="lg" className="w-full sm:w-auto h-auto py-3.5 px-5 whitespace-normal leading-snug text-center text-sm sm:text-base">
-                Buscar Academias e Profissionais
-              </Button>
+              <Link to="/buscar" className="w-full sm:w-auto">
+                <Button variant="success" size="lg" className="w-full h-auto py-3.5 px-5 whitespace-normal leading-snug text-center text-sm sm:text-base">
+                  Buscar Academias e Profissionais
+                </Button>
+              </Link>
             </div>
           </div>
 
