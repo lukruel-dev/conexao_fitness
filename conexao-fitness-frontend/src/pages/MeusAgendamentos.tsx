@@ -195,9 +195,9 @@ const MeusAgendamentos = () => {
                         </span>
                       </div>
                       <h3 className="font-display font-bold text-foreground">
-                        {service?.name ?? "Serviço"}
+                        {service?.providerName ?? "Profissional não identificado"}
                       </h3>
-                      <p className="text-sm text-muted-foreground">{service?.providerName}</p>
+                      <p className="text-sm text-muted-foreground">{service?.name ?? "Serviço"}</p>
                       <div className="flex flex-wrap items-center gap-4 mt-2 text-xs text-muted-foreground">
                         {slot && (
                           <span className="flex items-center gap-1">

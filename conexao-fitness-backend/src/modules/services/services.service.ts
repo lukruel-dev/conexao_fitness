@@ -107,6 +107,8 @@ export class ServicesService {
     // Select Provider rating fields
     qb.addSelect('provider.averageRating', 'averageRating');
     qb.addSelect('provider.totalReviews', 'totalReviews');
+    qb.addSelect('provider.name', 'providerName');
+    qb.addSelect('provider.avatarUrl', 'providerAvatar');
 
     if (query?.lat !== undefined && query?.lng !== undefined) {
       const haversine = `(6371 * acos(cos(radians(:lat)) * cos(radians(COALESCE(provider.lastLat, -29.7578))) * cos(radians(COALESCE(provider.lastLng, -57.0872)) - radians(:lng)) + sin(radians(:lat)) * sin(radians(COALESCE(provider.lastLat, -29.7578)))))`;
@@ -140,6 +142,8 @@ export class ServicesService {
       
       return {
         ...entity,
+        providerName: rawData.providerName,
+        providerAvatar: rawData.providerAvatar,
         distance: rawData.distance !== undefined && rawData.distance !== null ? parseFloat(rawData.distance) : null,
         boostScore: uruguaiana + premium,
         isPremium: premium > 0,
