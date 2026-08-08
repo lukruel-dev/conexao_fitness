@@ -97,7 +97,7 @@ const NotificationsBell = () => {
               disabled={markAllAsReadMutation.isPending}
               className="text-xs text-primary hover:underline"
             >
-              Marcar lidas
+              Marcar como lidas
             </button>
           )}
         </div>
