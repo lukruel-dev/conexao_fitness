@@ -105,12 +105,14 @@ const ServicoDetalhe = () => {
       <Header />
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 ml-6 sm:ml-0"
-          >
-            <ArrowLeft className="w-4 h-4" /> Voltar
-          </button>
+          <div className="pl-[env(safe-area-inset-left,16px)] sm:pl-0">
+            <button
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6"
+            >
+              <ArrowLeft className="w-4 h-4" /> Voltar
+            </button>
+          </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main */}

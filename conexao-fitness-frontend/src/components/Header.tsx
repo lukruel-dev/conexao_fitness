@@ -118,6 +118,11 @@ const Header = () => {
           </div>
 
           <div className="md:hidden flex items-center gap-1">
+            {isAuthenticated && (
+              <span className="text-sm text-muted-foreground mr-1 font-medium truncate max-w-[80px]">
+                Olá, {user?.name?.split(" ")[0] ?? ""}
+              </span>
+            )}
             <ThemeToggle />
             {isAuthenticated && <NotificationsBell />}
             <button
