@@ -26,4 +26,12 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   professionTitle?: string;
+
+  @IsString()
+  @IsOptional()
+  professionalRegistrationId?: string;
+
+  @IsString()
+  @IsOptional()
+  professionalDocumentUrl?: string;
 }

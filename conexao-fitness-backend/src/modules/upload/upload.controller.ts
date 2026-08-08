@@ -4,7 +4,6 @@ import { UploadService } from './upload.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @Controller('upload')
-@UseGuards(JwtAuthGuard)
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
@@ -19,6 +18,7 @@ export class UploadController {
   }
 
   @Post('avatar')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadAvatar(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
@@ -29,6 +29,7 @@ export class UploadController {
   }
 
   @Post('portfolio')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadPortfolio(@UploadedFile() file: Express.Multer.File) {
     if (!file) {

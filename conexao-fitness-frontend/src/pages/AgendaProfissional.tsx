@@ -108,9 +108,11 @@ export default function AgendaProfissional() {
                     </span>
                   </div>
                   <h3 className="font-display font-bold text-foreground">
-                    {b.service?.name ?? "Serviço"}
+                    {b.student?.name ?? "Aluno não identificado"}
                   </h3>
-                  <p className="text-sm text-muted-foreground">Aluno: <span className="font-medium text-foreground">{b.student?.name}</span></p>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    {b.service?.name ?? "Serviço"}
+                  </p>
                   <div className="flex flex-wrap items-center gap-4 mt-2 text-xs text-muted-foreground">
                     {b.slot && (
                       <span className="flex items-center gap-1">
@@ -121,11 +123,16 @@ export default function AgendaProfissional() {
                   </div>
                 </div>
                 {b.status === "CONFIRMED" && (
-                  <div className="flex flex-col md:flex-row gap-2 mt-4 md:mt-0">
+                  <div className="flex flex-col md:flex-row items-center gap-3 mt-4 md:mt-0">
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-medium animate-pulse border border-primary/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      Nova mensagem?
+                    </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setChatBooking({ id: b.id, name: `${b.service?.name} (${b.student?.name})` })}
+                      className="w-full md:w-auto"
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Abrir Chat

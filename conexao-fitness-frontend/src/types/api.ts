@@ -97,6 +97,10 @@ export interface AdminUser {
   role: UserRole;
   status: UserStatus;
   createdAt?: string;
+  personalProfile?: {
+    cref?: string;
+    documentUrl?: string;
+  };
 }
 
 export interface AdminDashboardMetrics {
@@ -130,6 +134,8 @@ export interface RegisterDto {
   professionTitle?: string;
   cpf?: string;
   phone?: string;
+  professionalRegistrationId?: string;
+  professionalDocumentUrl?: string;
 }
 
 export interface AuthResponse {

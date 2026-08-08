@@ -64,6 +64,17 @@ export class BookingsController {
   }
 
   /**
+   * POST /bookings/:bookingId/simulate-success
+   * Simula o sucesso do pagamento no modo teste.
+   */
+  @Post(':bookingId/simulate-success')
+  simulateSuccess(
+    @Param('bookingId', ParseUUIDPipe) bookingId: string,
+  ) {
+    return this.bookingsService.confirmBooking(bookingId);
+  }
+
+  /**
    * PATCH /bookings/:bookingId/cancel
    * Cancela uma reserva existente.
    */

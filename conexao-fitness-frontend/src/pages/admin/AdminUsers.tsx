@@ -92,6 +92,7 @@ export default function AdminUsers() {
   const [search, setSearch] = useState("");
   const [rejectTarget, setRejectTarget] = useState<AdminUser | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [kycReviewTarget, setKycReviewTarget] = useState<AdminUser | null>(null);
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user?.role !== "ADMIN") return <Navigate to="/" replace />;
@@ -257,11 +258,18 @@ export default function AdminUsers() {
                             <>
                               <Button
                                 size="sm"
+                                variant="outline"
+                                onClick={() => setKycReviewTarget(u)}
+                              >
+                                Ver Documentos
+                              </Button>
+                              <Button
+                                size="sm"
                                 variant="success"
                                 onClick={() => approveMut.mutate(u.id)}
                                 disabled={approveMut.isPending}
                               >
-                                <CheckCircle2 className="w-4 h-4" /> Aprovar KYC
+                                <CheckCircle2 className="w-4 h-4" /> Aprovar
                               </Button>
                               <Button
                                 size="sm"
@@ -330,6 +338,73 @@ export default function AdminUsers() {
               }
             >
               Confirmar rejeição
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!kycReviewTarget} onOpenChange={(o) => !o && setKycReviewTarget(null)}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Revisão de Documento (KYC)</DialogTitle>
+            <DialogDescription>
+              Dados profissionais informados por {kycReviewTarget?.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 my-2">
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground">Número de Registro Profissional</p>
+              <p className="text-lg font-medium">{kycReviewTarget?.personalProfile?.cref || "Não informado"}</p>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground mb-2">Comprovante</p>
+              {kycReviewTarget?.personalProfile?.documentUrl ? (
+                kycReviewTarget.personalProfile.documentUrl.toLowerCase().endsWith('.pdf') ? (
+                  <a 
+                    href={kycReviewTarget.personalProfile.documentUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline text-sm flex items-center gap-2"
+                  >
+                    Abrir documento PDF em nova guia
+                  </a>
+                ) : (
+                  <div className="rounded-xl overflow-hidden border border-border bg-muted flex items-center justify-center min-h-[200px]">
+                    <img 
+                      src={kycReviewTarget.personalProfile.documentUrl} 
+                      alt="Documento" 
+                      className="max-h-[400px] object-contain"
+                    />
+                  </div>
+                )
+              ) : (
+                <p className="text-sm text-destructive">Nenhum documento anexado.</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => setKycReviewTarget(null)}>Fechar</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectTarget(kycReviewTarget);
+                setRejectReason("");
+                setKycReviewTarget(null);
+              }}
+            >
+              <XCircle className="w-4 h-4 mr-2" /> Rejeitar
+            </Button>
+            <Button
+              variant="success"
+              disabled={approveMut.isPending}
+              onClick={() => {
+                if (kycReviewTarget) {
+                  approveMut.mutate(kycReviewTarget.id);
+                  setKycReviewTarget(null);
+                }
+              }}
+            >
+              <CheckCircle2 className="w-4 h-4 mr-2" /> Aprovar KYC
             </Button>
           </DialogFooter>
         </DialogContent>

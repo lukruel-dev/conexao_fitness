@@ -12,8 +12,8 @@ import { ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { listProfessions } from "@/services/professions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
 import logo from "@/assets/logo.jpeg";
+import { uploadDocument } from "@/services/uploads";
 
 const roleOptions: { value: UserRole; label: string; desc: string }[] = [
   { value: "STUDENT", label: "Aluno", desc: "Buscar e reservar treinos" },
@@ -31,14 +31,26 @@ const Cadastro = () => {
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState<UserRole>("STUDENT");
   const [professionTitle, setProfessionTitle] = useState("");
+  const [professionalRegistrationId, setProfessionalRegistrationId] = useState("");
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const formatCpf = (value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d{1,2})/, "$1-$2")
-      .replace(/(-\d{2})\d+?$/, "$1");
+  const formatCpfCnpj = (value: string) => {
+    const numbers = value.replace(/\D/g, "");
+    if (numbers.length <= 11) {
+      return numbers
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+        .replace(/(-\d{2})\d+?$/, "$1");
+    } else {
+      return numbers
+        .replace(/(\d{2})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1/$2")
+        .replace(/(\d{4})(\d{1,2})/, "$1-$2")
+        .replace(/(-\d{2})\d+?$/, "$1");
+    }
   };
 
   const formatPhone = (value: string) => {
@@ -57,13 +69,48 @@ const Cadastro = () => {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (role === "PERSONAL" && !professionTitle) {
-      toast.error("Por favor, selecione sua profissão");
-      return;
+    if (role === "PERSONAL") {
+      if (!professionTitle) {
+        toast.error("Por favor, selecione sua profissão");
+        return;
+      }
+      if (!professionalRegistrationId) {
+        toast.error("Por favor, preencha seu número de registro profissional");
+        return;
+      }
+      if (!documentFile) {
+        toast.error("Por favor, anexe seu comprovante de registro");
+        return;
+      }
     }
 
     try {
-      const newUser = await register({ name, email, password, role, professionTitle, cpf, phone });
+      let professionalDocumentUrl = undefined;
+
+      if (role === "PERSONAL" && documentFile) {
+        setIsUploading(true);
+        try {
+          const res = await uploadDocument(documentFile);
+          professionalDocumentUrl = res.url;
+        } catch (err) {
+          toast.error("Erro ao enviar documento", { description: (err as Error).message });
+          setIsUploading(false);
+          return;
+        }
+        setIsUploading(false);
+      }
+
+      const newUser = await register({ 
+        name, 
+        email, 
+        password, 
+        role, 
+        professionTitle, 
+        cpf, 
+        phone,
+        professionalRegistrationId: role === "PERSONAL" ? professionalRegistrationId : undefined,
+        professionalDocumentUrl
+      });
       toast.success("Conta criada com sucesso!");
       if (newUser?.role === "ADMIN") {
         navigate("/admin");
@@ -74,6 +121,7 @@ const Cadastro = () => {
       }
     } catch (err) {
       toast.error("Erro no cadastro", { description: (err as Error).message });
+      setIsUploading(false);
     }
   };
 
@@ -126,37 +174,78 @@ const Cadastro = () => {
             </div>
 
             {role === "PERSONAL" && (
-              <div className="space-y-2">
-                <Label htmlFor="profession">Sua Profissão</Label>
-                <Select value={professionTitle} onValueChange={setProfessionTitle}>
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Selecione sua profissão" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {professions?.map((p) => (
-                      <SelectItem key={p.id} value={p.title}>
-                        {p.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="profession">Sua Profissão</Label>
+                  <Select value={professionTitle} onValueChange={setProfessionTitle}>
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Selecione sua profissão" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {professions?.map((p) => (
+                        <SelectItem key={p.id} value={p.title}>
+                          {p.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="professionalRegistrationId">
+                    {professionTitle === "Educador Físico" 
+                      ? "Número do CREF" 
+                      : professionTitle === "Fisioterapeuta" 
+                      ? "Número do CREFITO" 
+                      : professionTitle === "Nutricionista" 
+                      ? "Número do CRN" 
+                      : "Número do Registro Profissional (ex: CREF, CRN)"}
+                  </Label>
+                  <Input
+                    id="professionalRegistrationId"
+                    required
+                    className="h-12"
+                    value={professionalRegistrationId}
+                    onChange={(e) => setProfessionalRegistrationId(e.target.value)}
+                    placeholder="Ex: 000000-G/SP"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="documentFile">Comprovante de Registro (Foto/PDF)</Label>
+                  <Input
+                    id="documentFile"
+                    type="file"
+                    required
+                    accept="image/*,.pdf"
+                    className="h-12 pt-3"
+                    onChange={(e) => setDocumentFile(e.target.files?.[0] || null)}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Anexe uma foto da sua carteira profissional ou documento do conselho para validação.
+                  </p>
+                </div>
+              </>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="name">Nome completo</Label>
+              <Label htmlFor="name">
+                {role === "ACADEMIA" || role === "PERSONAL" ? "Nome ou Razão Social" : "Nome completo"}
+              </Label>
               <Input id="name" required className="h-12" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="cpf">CPF</Label>
+              <Label htmlFor="cpf">
+                {role === "ACADEMIA" || role === "PERSONAL" ? "CPF ou CNPJ" : "CPF"}
+              </Label>
               <Input 
                 id="cpf" 
                 required 
                 className="h-12" 
-                placeholder="000.000.000-00"
+                placeholder={role === "ACADEMIA" || role === "PERSONAL" ? "000.000.000-00 ou 00.000.000/0000-00" : "000.000.000-00"}
                 value={cpf} 
-                onChange={(e) => setCpf(formatCpf(e.target.value))} 
+                onChange={(e) => setCpf(formatCpfCnpj(e.target.value))} 
               />
             </div>
 
@@ -194,8 +283,8 @@ const Cadastro = () => {
               />
             </div>
 
-            <Button type="submit" variant="hero" className="w-full h-12 text-base mt-2" disabled={loading}>
-              {loading ? "Criando..." : "Criar conta"}
+            <Button type="submit" variant="hero" className="w-full h-12 text-base mt-2" disabled={loading || isUploading}>
+              {loading || isUploading ? "Criando..." : "Criar conta"}
             </Button>
           </form>
 

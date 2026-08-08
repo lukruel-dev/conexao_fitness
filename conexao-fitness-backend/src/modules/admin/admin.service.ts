@@ -52,7 +52,9 @@ export class AdminService {
   }
 
   async findAllUsers(role?: UserRole, status?: UserStatus): Promise<User[]> {
-    const query = this.usersRepo.createQueryBuilder('user');
+    const query = this.usersRepo.createQueryBuilder('user')
+      .leftJoinAndSelect('user.personalProfile', 'personalProfile')
+      .leftJoinAndSelect('user.academiaProfile', 'academiaProfile');
     
     if (role) {
       query.andWhere('user.role = :role', { role });

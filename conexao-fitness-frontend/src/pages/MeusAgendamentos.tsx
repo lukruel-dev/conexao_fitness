@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { listBookingsByStudent, cancelBooking, retryBookingPayment, payBookingWithWallet } from "@/services/bookings";
+import { listBookingsByStudent, cancelBooking, retryBookingPayment, payBookingWithWallet, simulateBookingSuccess } from "@/services/bookings";
 import { getMyBalance } from "@/services/wallet";
 import { listServices } from "@/services/services";
 import { listSlotsByService } from "@/services/slots";
@@ -39,12 +39,14 @@ const MeusAgendamentos = () => {
   const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
   const [chatBooking, setChatBooking] = useState<{ id: string; name?: string } | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [currentBookingId, setCurrentBookingId] = useState<string | null>(null);
 
   const retryMutation = useMutation({
     mutationFn: (bookingId: string) => retryBookingPayment(bookingId),
-    onSuccess: (data) => {
+    onSuccess: (data, bookingId) => {
       if (data.clientSecret) {
         setClientSecret(data.clientSecret);
+        setCurrentBookingId(bookingId);
       } else {
         toast.error("Erro ao gerar pagamento.");
       }
@@ -301,12 +303,29 @@ const MeusAgendamentos = () => {
       )}
       <CheckoutModal
         isOpen={!!clientSecret}
-        onClose={() => setClientSecret(null)}
+        onClose={() => {
+          setClientSecret(null);
+          setCurrentBookingId(null);
+        }}
         clientSecret={clientSecret}
         onSuccess={() => {
-          toast.success("Pagamento concluído!");
+          if (currentBookingId) {
+            toast.promise(
+              simulateBookingSuccess(currentBookingId).then(() => {
+                qc.invalidateQueries({ queryKey: ["slots"] });
+                qc.invalidateQueries({ queryKey: ["my-bookings"] });
+              }),
+              {
+                loading: 'Confirmando pagamento...',
+                success: 'Pagamento concluído com sucesso!',
+                error: 'Erro ao confirmar pagamento.',
+              }
+            );
+          } else {
+            toast.success("Pagamento concluído!");
+          }
           setClientSecret(null);
-          qc.invalidateQueries({ queryKey: ["my-bookings"] });
+          setCurrentBookingId(null);
         }}
       />
       <Footer />

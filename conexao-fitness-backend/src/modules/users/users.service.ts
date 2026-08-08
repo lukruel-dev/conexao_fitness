@@ -42,6 +42,8 @@ export class UsersService {
         userId: savedUser.id,
         publicName: dto.name,
         professionTitle: dto.professionTitle,
+        cref: dto.professionalRegistrationId,
+        documentUrl: dto.professionalDocumentUrl,
       });
       await this.personalProfileRepo.save(profile);
     }

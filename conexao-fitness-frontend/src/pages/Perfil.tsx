@@ -7,58 +7,11 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { onboardProvider, createSubscription } from "@/services/payments";
 import { uploadAvatar, updateMyAvatar } from "@/services/uploads";
-import { CreditCard, ShieldCheck, User, Crown, CalendarDays, Camera } from "lucide-react";
+import { CreditCard, User, Crown, CalendarDays, Camera, ChevronRight, Users, List, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
-import { CheckoutModal } from "@/components/CheckoutModal";
+import { useRef } from "react";
 
-const PREMIUM_PRICE_ID =
-  (import.meta.env.VITE_STRIPE_PREMIUM_PRICE_ID as string | undefined) ?? "price_premium_default";
 
-const Perfil = () => {
-  const { user, isAuthenticated, logout, setUser } = useAuth();
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!isAuthenticated) navigate("/login");
-  }, [isAuthenticated, navigate]);
-
-  useEffect(() => {
-    if (searchParams.get("subscription_success") === "true") {
-      toast.success("Assinatura ativada com sucesso! Você agora é Premium!");
-      searchParams.delete("subscription_success");
-      setSearchParams(searchParams, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
-
-  const onboardMutation = useMutation({
-    mutationFn: () => onboardProvider(),
-    onSuccess: (res) => {
-      if (res?.url) {
-        toast.info("Redirecionando para o Stripe...");
-        window.location.href = res.url;
-      } else {
-        toast.error("URL de onboarding não recebida.");
-      }
-    },
-    onError: (err: Error) =>
-      toast.error("Não foi possível iniciar a configuração", { description: err.message }),
-  });
-
-  const subscribeMutation = useMutation({
-    mutationFn: () => createSubscription(PREMIUM_PRICE_ID),
-    onSuccess: (res) => {
-      if (res?.clientSecret) {
-        setClientSecret(res.clientSecret);
-      } else {
-        toast.error("Secret de pagamento não recebido.");
-      }
-    },
-    onError: (err: Error) =>
-      toast.error("Não foi possível iniciar a assinatura", { description: err.message }),
-  });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const avatarMutation = useMutation({
@@ -85,7 +38,33 @@ const Perfil = () => {
     e.target.value = "";
   };
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-24 pb-16 flex flex-col items-center justify-center min-h-[70vh]">
+          <div className="container mx-auto px-4 max-w-md text-center">
+            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <User className="w-10 h-10 text-primary" />
+            </div>
+            <h1 className="font-display text-2xl font-bold mb-3">Bem-vindo ao Conexão Fitness!</h1>
+            <p className="text-muted-foreground mb-8">
+              Faça login ou cadastre-se para gerenciar seu perfil, agendamentos e carteira.
+            </p>
+            <div className="flex flex-col gap-4">
+              <Button variant="hero" className="w-full h-12 text-base" asChild>
+                <Link to="/cadastro">Cadastrar agora</Link>
+              </Button>
+              <Button variant="outline" className="w-full h-12 text-base" asChild>
+                <Link to="/login">Já tenho conta</Link>
+              </Button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   const isProvider = user.role === "PERSONAL" || user.role === "ACADEMIA";
 
@@ -145,95 +124,70 @@ const Perfil = () => {
             </div>
           </div>
 
-          {isProvider && (
-            <>
-              <div className="bg-card border border-border rounded-2xl p-6 mb-6">
-                <div className="flex items-start gap-3 mb-4">
-                  <CreditCard className="w-6 h-6 text-secondary mt-0.5" />
-                  <div>
-                    <h3 className="font-display font-bold text-lg">Recebimentos</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Configure sua conta no Stripe para receber repasses automáticos das suas reservas.
-                      Os pagamentos são divididos automaticamente entre a plataforma e você.
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="hero"
-                  className="w-full md:w-auto h-auto min-h-[40px] py-2.5 px-5 whitespace-normal sm:whitespace-nowrap flex items-center justify-center gap-2 text-center max-w-full"
-                  onClick={() => onboardMutation.mutate()}
-                  disabled={onboardMutation.isPending}
-                >
-                  <ShieldCheck className="w-4 h-4 shrink-0" />
-                  <span>{onboardMutation.isPending ? "Redirecionando..." : "Configurar Recebimentos (Stripe)"}</span>
-                </Button>
+          <div className="flex flex-col gap-2">
+            <Link to="/carteira" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <CreditCard className="w-5 h-5 text-muted-foreground" />
+                <span className="font-medium text-foreground">Carteira</span>
               </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </Link>
+            
+            {isProvider && (
+              <>
+                <Link to="/agenda-profissional" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Users className="w-5 h-5 text-muted-foreground" />
+                    <span className="font-medium text-foreground">Meus alunos</span>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                </Link>
+                <Link to="/meus-servicos" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <List className="w-5 h-5 text-muted-foreground" />
+                    <span className="font-medium text-foreground">Meus serviços</span>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                </Link>
+              </>
+            )}
 
-              <div className="relative bg-card border-2 border-yellow-400 rounded-2xl p-6 mb-6 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/5 to-amber-500/10 pointer-events-none" />
-                <div className="relative">
-                  <div className="flex items-start gap-3 mb-4">
-                    <Crown className="w-6 h-6 text-yellow-500 mt-0.5" />
-                    <div>
-                      <h3 className="font-display font-bold text-lg flex items-center gap-2">
-                        Meu Plano
-                        <span className="text-[10px] font-bold bg-gradient-to-r from-yellow-400 to-amber-500 text-black px-2 py-0.5 rounded-full">
-                          PREMIUM
-                        </span>
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        Apareça em destaque no topo das buscas, ganhe um selo exclusivo e atraia mais alunos.
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="hero"
-                    className="w-full md:w-auto bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-black"
-                    onClick={() => subscribeMutation.mutate()}
-                    disabled={subscribeMutation.isPending}
-                  >
-                    <Crown className="w-4 h-4" />
-                    {subscribeMutation.isPending ? "Processando..." : "Assinar Plano Premium"}
-                  </Button>
+            {!isProvider && (
+              <Link to="/meus-agendamentos" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <CalendarDays className="w-5 h-5 text-muted-foreground" />
+                  <span className="font-medium text-foreground">Meus agendamentos</span>
                 </div>
-              </div>
-              <div className="bg-card border border-border rounded-2xl p-6 mb-6">
-                <div className="flex items-start gap-3 mb-4">
-                  <CalendarDays className="w-6 h-6 text-primary mt-0.5" />
-                  <div>
-                    <h3 className="font-display font-bold text-lg">Minha agenda</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Configure seus dias e horários de trabalho e gere as vagas dos seus serviços automaticamente.
-                    </p>
-                  </div>
-                </div>
-                <Button asChild variant="hero" className="w-full md:w-auto">
-                  <Link to="/minha-agenda">
-                    <CalendarDays className="w-4 h-4" />
-                    Gerenciar agenda
-                  </Link>
-                </Button>
-              </div>
-            </>
-          )}
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+              </Link>
+            )}
 
-          <Button variant="outline" onClick={() => { logout(); navigate("/"); }}>
-            Sair da conta
-          </Button>
+            <Link to="/perfil" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <User className="w-5 h-5 text-muted-foreground" />
+                <span className="font-medium text-foreground">Perfil</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </Link>
+            
+            <Link to="/#planos" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <Crown className="w-5 h-5 text-muted-foreground" />
+                <span className="font-medium text-foreground">Planos</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </Link>
+
+            <button onClick={() => { logout(); navigate("/"); }} className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-destructive/5 transition-colors group mt-4">
+              <div className="flex items-center gap-3">
+                <LogOut className="w-5 h-5 text-destructive group-hover:text-destructive/80" />
+                <span className="font-medium text-destructive group-hover:text-destructive/80">Sair da conta</span>
+              </div>
+            </button>
+          </div>
         </div>
       </main>
       <Footer />
-      <CheckoutModal
-        isOpen={!!clientSecret}
-        onClose={() => setClientSecret(null)}
-        clientSecret={clientSecret}
-        onSuccess={() => {
-          toast.success("Assinatura concluída com sucesso!");
-          setClientSecret(null);
-          // Atualizar o estado do usuário ou recarregar
-          window.location.reload();
-        }}
-      />
     </div>
   );
 };

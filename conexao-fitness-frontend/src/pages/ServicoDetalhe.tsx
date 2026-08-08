@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { getServiceById } from "@/services/services";
 import { listSlotsByService } from "@/services/slots";
-import { createBooking } from "@/services/bookings";
+import { createBooking, simulateBookingSuccess } from "@/services/bookings";
 import { formatBRL, formatDateLong, formatTime } from "@/lib/format";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Clock, MapPin, Star } from "lucide-react";
@@ -20,6 +20,7 @@ const ServicoDetalhe = () => {
   const qc = useQueryClient();
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [currentBookingId, setCurrentBookingId] = useState<string | null>(null);
 
   const { data: service, isLoading: loadingService } = useQuery({
     queryKey: ["service", id],
@@ -56,6 +57,7 @@ const ServicoDetalhe = () => {
       qc.invalidateQueries({ queryKey: ["my-bookings"] });
       if (res?.clientSecret) {
         setClientSecret(res.clientSecret);
+        setCurrentBookingId(res.id);
         return;
       }
       toast.success("Reserva criada!", {
@@ -103,7 +105,7 @@ const ServicoDetalhe = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="pt-24 pb-16">
+      <main className="pt-28 md:pt-32 pb-16">
         <div className="container mx-auto px-4">
           <div className="pl-[env(safe-area-inset-left,16px)] sm:pl-0">
             <button
@@ -250,11 +252,29 @@ const ServicoDetalhe = () => {
       <Footer />
       <CheckoutModal
         isOpen={!!clientSecret}
-        onClose={() => setClientSecret(null)}
+        onClose={() => {
+          setClientSecret(null);
+          setCurrentBookingId(null);
+        }}
         clientSecret={clientSecret}
         onSuccess={() => {
-          toast.success("Pagamento concluído com sucesso!");
+          if (currentBookingId) {
+            toast.promise(
+              simulateBookingSuccess(currentBookingId).then(() => {
+                qc.invalidateQueries({ queryKey: ["slots", id] });
+                qc.invalidateQueries({ queryKey: ["my-bookings"] });
+              }),
+              {
+                loading: 'Confirmando pagamento...',
+                success: 'Pagamento concluído com sucesso!',
+                error: 'Erro ao confirmar pagamento.',
+              }
+            );
+          } else {
+            toast.success("Pagamento concluído com sucesso!");
+          }
           setClientSecret(null);
+          setCurrentBookingId(null);
           navigate("/meus-agendamentos");
         }}
       />

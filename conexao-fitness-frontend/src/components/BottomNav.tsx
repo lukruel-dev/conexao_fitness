@@ -28,9 +28,9 @@ const BottomNav = () => {
         <span className="text-[10px] font-medium">Buscar</span>
       </Link>
       
-      <Link to={user ? "/perfil" : "/login"} className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${["/perfil", "/login"].includes(location.pathname) ? "text-primary" : "text-muted-foreground"}`}>
+      <Link to="/perfil" className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${location.pathname === "/perfil" ? "text-primary" : "text-muted-foreground"}`}>
         <User className="w-6 h-6" />
-        <span className="text-[10px] font-medium">{user ? "Perfil" : "Entrar"}</span>
+        <span className="text-[10px] font-medium">Perfil</span>
       </Link>
     </div>
   );

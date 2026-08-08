@@ -23,6 +23,12 @@ export async function payBookingWithWallet(bookingId: string): Promise<Booking> 
     method: "POST",
   });
 }
+
+export async function simulateBookingSuccess(bookingId: string): Promise<Booking> {
+  return apiRequest<Booking>(`/bookings/${bookingId}/simulate-success`, {
+    method: "POST",
+  });
+}
 export async function adminListBookings(status?: BookingStatus): Promise<Booking[]> {
   return apiRequest<Booking[]>(`/admin/bookings`, { query: { status } });
 }
