@@ -9,7 +9,8 @@ export default function PlanosPage() {
 
   const planosProfissional = [
     {
-      name: 'Bronze',
+      name: 'Plano Flow',
+      description: 'Fluidez, constância, equilíbrio no treino e na vida.',
       price: '49.90',
       icon: Zap,
       iconColor: 'bg-orange-500',
@@ -23,13 +24,14 @@ export default function PlanosPage() {
       buttonStyle: 'bg-slate-700 hover:bg-slate-600 text-white'
     },
     {
-      name: 'Silver',
+      name: 'Plano Groove',
+      description: 'Consistência, estilo próprio, evolução.',
       price: '99.90',
       icon: Star,
       iconColor: 'bg-slate-400',
       isPopular: true,
       features: [
-        'Tudo do plano Bronze',
+        'Tudo do Plano Flow',
         'Prioridade máxima nas buscas',
         'Até 10 fotos no perfil',
         'Vídeo de apresentação',
@@ -40,12 +42,13 @@ export default function PlanosPage() {
       buttonStyle: 'bg-brand-green hover:bg-green-600 text-white'
     },
     {
-      name: 'Gold',
+      name: 'Plano Vibe',
+      description: 'Experiência completa, conexão com a cultura fitness.',
       price: '199.90',
       icon: Crown,
       iconColor: 'bg-yellow-500',
       features: [
-        'Tudo do plano Silver',
+        'Tudo do Plano Groove',
         'Fotos ilimitadas',
         'Múltiplos vídeos',
         'Sistema de agendamento integrado',
@@ -59,7 +62,8 @@ export default function PlanosPage() {
 
   const planosAcademia = [
     {
-      name: 'Bronze',
+      name: 'Plano Flow',
+      description: 'Fluidez, constância, equilíbrio no treino e na vida.',
       price: '99.90',
       icon: Zap,
       iconColor: 'bg-orange-500',
@@ -73,13 +77,14 @@ export default function PlanosPage() {
       buttonStyle: 'bg-slate-700 hover:bg-slate-600 text-white'
     },
     {
-      name: 'Silver',
+      name: 'Plano Groove',
+      description: 'Consistência, estilo próprio, evolução.',
       price: '199.90',
       icon: Star,
       iconColor: 'bg-slate-400',
       isPopular: true,
       features: [
-        'Tudo do plano Bronze',
+        'Tudo do Plano Flow',
         'Prioridade máxima nas buscas',
         'Até 20 fotos da academia',
         'Tour virtual 360°',
@@ -90,12 +95,13 @@ export default function PlanosPage() {
       buttonStyle: 'bg-brand-green hover:bg-green-600 text-white'
     },
     {
-      name: 'Gold',
+      name: 'Plano Vibe',
+      description: 'Experiência completa, conexão com a cultura fitness.',
       price: '399.90',
       icon: Crown,
       iconColor: 'bg-yellow-500',
       features: [
-        'Tudo do plano Silver',
+        'Tudo do Plano Groove',
         'Fotos e vídeos ilimitados',
         'Galeria de aulas coletivas',
         'Sistema de agendamento integrado',
@@ -171,7 +177,8 @@ export default function PlanosPage() {
                 </div>
               </div>
               
-              <h3 className="text-2xl font-bold text-white text-center mb-2">{plano.name}</h3>
+              <h3 className="text-2xl font-bold text-white text-center mb-1">{plano.name}</h3>
+              <p className="text-sm text-slate-400 text-center mb-6 px-2">{plano.description}</p>
               <div className="text-center mb-8 pb-8 border-b border-slate-700/50">
                 <span className="text-4xl font-extrabold text-white">R$ {plano.price}</span>
                 <span className="text-slate-500 text-sm">/mês</span>

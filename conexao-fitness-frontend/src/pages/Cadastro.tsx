@@ -13,7 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { listProfessions } from "@/services/professions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import logo from "@/assets/logo.jpeg";
-import { uploadDocument } from "@/services/uploads";
+import { uploadDocument, uploadAvatar } from "@/services/uploads";
 
 const roleOptions: { value: UserRole; label: string; desc: string }[] = [
   { value: "STUDENT", label: "Aluno", desc: "Buscar e reservar treinos" },
@@ -33,6 +33,7 @@ const Cadastro = () => {
   const [professionTitle, setProfessionTitle] = useState("");
   const [professionalRegistrationId, setProfessionalRegistrationId] = useState("");
   const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
   const formatCpfCnpj = (value: string) => {
@@ -111,6 +112,18 @@ const Cadastro = () => {
         professionalRegistrationId: role === "PERSONAL" ? professionalRegistrationId : undefined,
         professionalDocumentUrl
       });
+
+      if (avatarFile && (role === "PERSONAL" || role === "ACADEMIA")) {
+        try {
+          import("@/services/uploads").then(async (m) => {
+            const avatarRes = await m.uploadAvatar(avatarFile);
+            await m.updateMyAvatar(avatarRes.url);
+          });
+        } catch (err) {
+          toast.error("Conta criada, mas falhou ao salvar foto", { description: (err as Error).message });
+        }
+      }
+
       toast.success("Conta criada com sucesso!");
       if (newUser?.role === "ADMIN") {
         navigate("/admin");
@@ -226,6 +239,22 @@ const Cadastro = () => {
                   </p>
                 </div>
               </>
+            )}
+
+            {(role === "PERSONAL" || role === "ACADEMIA") && (
+              <div className="space-y-2">
+                <Label htmlFor="avatarFile">Foto de Perfil (Opcional)</Label>
+                <Input
+                  id="avatarFile"
+                  type="file"
+                  accept="image/*"
+                  className="h-12 pt-3"
+                  onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Selecione uma foto para o seu perfil profissional.
+                </p>
+              </div>
             )}
 
             <div className="space-y-2">
