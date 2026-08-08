@@ -1,6 +1,21 @@
 import { Button } from "@/components/ui/button";
-import { MapPin, Search } from "lucide-react";
+import { MapPin, Search, Star } from "lucide-react";
 import heroImage from "@/assets/hero-gym.jpg";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+
+const featuredAcademies = [
+  { id: 1, name: "FitLife Gym", desc: "Equipamentos de Ponta", image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400&auto=format&fit=crop" },
+  { id: 2, name: "PowerHouse Center", desc: "Aulas Exclusivas", image: "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=400&auto=format&fit=crop" },
+  { id: 3, name: "Zenith Yoga & Pilates", desc: "Aulas Exclusivas", image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=400&auto=format&fit=crop" },
+  { id: 4, name: "Iron Forge Fitness", desc: "Aulas Exclusivas", image: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=400&auto=format&fit=crop" },
+  { id: 5, name: "Apex Athletics", desc: "Aulas Exclusivas", image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=400&auto=format&fit=crop" },
+];
 
 const HeroSection = () => {
   return (
@@ -28,17 +43,43 @@ const HeroSection = () => {
           </div>
 
           {/* Headline */}
-          <h1 className="font-display text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-            Encontre seu{" "}
-            <span className="gradient-text">treino ideal</span>{" "}
-            onde você estiver
+          <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-bold mb-4 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+            Conheça Nossas <span className="gradient-text">Academias Parceiras</span> de Destaque
           </h1>
 
           {/* Subheadline */}
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-2xl animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
-            O marketplace que conecta você às melhores academias e profissionais do mundo fitness.
+          <p className="text-base sm:text-lg text-muted-foreground mb-6 max-w-2xl animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+            O marketplace que conecta você às melhores academias e profissionais.
             Busque por localização, compare preços e agende direto pelo app.
           </p>
+
+          {/* Featured Academies Carousel */}
+          <div className="w-full max-w-full mb-8 animate-fade-in-up" style={{ animationDelay: "0.25s" }}>
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {featuredAcademies.map((academy) => (
+                  <CarouselItem key={academy.id} className="pl-2 md:pl-4 basis-[80%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
+                    <div className="relative group overflow-hidden rounded-2xl border border-white/10 aspect-[4/3]">
+                      <img src={academy.image} alt={academy.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                      <div className="absolute bottom-0 left-0 p-4">
+                        <h3 className="text-white font-semibold text-lg leading-tight">{academy.name}</h3>
+                        <p className="text-white/70 text-sm">{academy.desc}</p>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden sm:flex -left-4 bg-background/50 backdrop-blur-md border-white/20 hover:bg-background/80 text-white" />
+              <CarouselNext className="hidden sm:flex -right-4 bg-background/50 backdrop-blur-md border-white/20 hover:bg-background/80 text-white" />
+            </Carousel>
+          </div>
 
           {/* Search Bar */}
           <div className="bg-card/80 backdrop-blur-sm rounded-2xl p-2.5 sm:p-3 border border-border shadow-card max-w-xl animate-fade-in-up mb-6 sm:mb-8" style={{ animationDelay: "0.3s" }}>

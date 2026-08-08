@@ -115,48 +115,62 @@ const ServicoDetalhe = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="bg-card border border-border rounded-2xl p-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      service.providerType === "ACADEMIA"
-                        ? "bg-primary/10 text-primary"
-                        : "bg-secondary/10 text-secondary"
-                    }`}
-                  >
-                    {service.providerType === "ACADEMIA"
-                      ? "Academia"
-                      : service.professionTitle || "Profissional"}
-                  </span>
-                  <span className="text-xs text-muted-foreground">{service.modality}</span>
-                </div>
-                <h1 className="font-display text-2xl md:text-3xl font-bold mb-1">{service.name}</h1>
-                <p className="text-muted-foreground">
-                  {service.providerName}
-                  {service.providerType === "PERSONAL" && service.professionTitle ? ` • ${service.professionTitle}` : ""}
-                </p>
-
-                <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-muted-foreground">
-                  {service.rating && (
-                    <span className="flex items-center gap-1">
-                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      <span className="text-foreground font-semibold">{service.rating}</span>
-                      <span>({service.reviewsCount} avaliações)</span>
-                    </span>
-                  )}
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" /> {service.durationMinutes} min
-                  </span>
-                  {service.city && (
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" /> {service.city}
-                    </span>
-                  )}
+              <div className="bg-card border border-border rounded-2xl p-6 flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+                {/* Provider Image */}
+                <div className="shrink-0">
+                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-full p-[3px] bg-gradient-to-tr from-primary to-secondary shadow-[0_0_15px_rgba(45,212,191,0.5)]">
+                    <img 
+                      src={service.providerAvatar || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=400&auto=format&fit=crop"} 
+                      alt={service.providerName || "Profissional"} 
+                      className="w-full h-full rounded-full object-cover border-4 border-background"
+                    />
+                  </div>
                 </div>
 
-                {service.description && (
-                  <p className="mt-6 text-foreground/90 leading-relaxed">{service.description}</p>
-                )}
+                {/* Content */}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        service.providerType === "ACADEMIA"
+                          ? "bg-primary/10 text-primary"
+                          : "bg-secondary/10 text-secondary"
+                      }`}
+                    >
+                      {service.providerType === "ACADEMIA"
+                        ? "Academia"
+                        : service.professionTitle || "Profissional"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{service.modality}</span>
+                  </div>
+                  <h1 className="font-display text-2xl md:text-3xl font-bold mb-1">{service.name}</h1>
+                  <p className="text-muted-foreground">
+                    {service.providerName}
+                    {service.providerType === "PERSONAL" && service.professionTitle ? ` • ${service.professionTitle}` : ""}
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-muted-foreground">
+                    {service.rating && (
+                      <span className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                        <span className="text-foreground font-semibold">{service.rating}</span>
+                        <span>({service.reviewsCount} avaliações)</span>
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" /> {service.durationMinutes} min
+                    </span>
+                    {service.city && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" /> {service.city}
+                      </span>
+                    )}
+                  </div>
+
+                  {service.description && (
+                    <p className="mt-4 text-foreground/90 leading-relaxed text-sm md:text-base">{service.description}</p>
+                  )}
+                </div>
               </div>
 
               {/* Slots */}

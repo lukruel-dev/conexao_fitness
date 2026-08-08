@@ -113,6 +113,8 @@ export interface AuthUser {
   role: UserRole;
   avatarUrl?: string | null;
   professionTitle?: string | null;
+  cpf?: string | null;
+  phone?: string | null;
 }
 
 export interface LoginDto {
@@ -126,6 +128,8 @@ export interface RegisterDto {
   password: string;
   role: UserRole;
   professionTitle?: string;
+  cpf?: string;
+  phone?: string;
 }
 
 export interface AuthResponse {

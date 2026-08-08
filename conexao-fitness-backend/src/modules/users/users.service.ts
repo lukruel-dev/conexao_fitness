@@ -31,6 +31,8 @@ export class UsersService {
       passwordHash: hashedPassword,
       role: dto.role,
       status: 'PENDENTE_KYC',
+      cpf: dto.cpf,
+      phone: dto.phone,
     });
 
     const savedUser = await this.usersRepo.save(user);

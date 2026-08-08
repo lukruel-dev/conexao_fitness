@@ -27,8 +27,27 @@ const Cadastro = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [phone, setPhone] = useState("");
   const [role, setRole] = useState<UserRole>("STUDENT");
   const [professionTitle, setProfessionTitle] = useState("");
+
+  const formatCpf = (value: string) => {
+    return value
+      .replace(/\D/g, "")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+      .replace(/(-\d{2})\d+?$/, "$1");
+  };
+
+  const formatPhone = (value: string) => {
+    return value
+      .replace(/\D/g, "")
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2")
+      .replace(/(-\d{4})\d+?$/, "$1");
+  };
 
   const { data: professions } = useQuery({
     queryKey: ["professions"],
@@ -44,7 +63,7 @@ const Cadastro = () => {
     }
 
     try {
-      const newUser = await register({ name, email, password, role, professionTitle });
+      const newUser = await register({ name, email, password, role, professionTitle, cpf, phone });
       toast.success("Conta criada com sucesso!");
       if (newUser?.role === "ADMIN") {
         navigate("/admin");
@@ -127,6 +146,30 @@ const Cadastro = () => {
             <div className="space-y-2">
               <Label htmlFor="name">Nome completo</Label>
               <Input id="name" required className="h-12" value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="cpf">CPF</Label>
+              <Input 
+                id="cpf" 
+                required 
+                className="h-12" 
+                placeholder="000.000.000-00"
+                value={cpf} 
+                onChange={(e) => setCpf(formatCpf(e.target.value))} 
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Número de Telefone</Label>
+              <Input 
+                id="phone" 
+                required 
+                className="h-12" 
+                placeholder="(00) 00000-0000"
+                value={phone} 
+                onChange={(e) => setPhone(formatPhone(e.target.value))} 
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>

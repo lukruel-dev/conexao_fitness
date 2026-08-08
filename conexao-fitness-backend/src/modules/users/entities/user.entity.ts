@@ -29,6 +29,9 @@ export class User {
   @Column({ nullable: true, unique: true })
   phone?: string;
 
+  @Column({ nullable: true, unique: true })
+  cpf?: string;
+
   @Column()
   passwordHash: string;
 

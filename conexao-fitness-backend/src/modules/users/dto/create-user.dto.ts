@@ -12,6 +12,14 @@ export class CreateUserDto {
   @MinLength(8, { message: 'A senha deve ter no mínimo 8 caracteres' })
   password: string;
 
+  @IsString()
+  @IsOptional()
+  cpf?: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
   @IsEnum(['STUDENT', 'PERSONAL', 'ACADEMIA', 'ADMIN'])
   role: UserRole;
 
