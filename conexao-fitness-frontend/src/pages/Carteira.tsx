@@ -106,7 +106,7 @@ export default function Carteira() {
               <div className="h-12 w-32 bg-muted animate-pulse rounded-lg mb-2"></div>
             ) : (
               <p className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-foreground">
-                R$ {(balance?.current_balance || 0).toFixed(2).replace(".", ",")}
+                R$ {(balance?.current_balance || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             )}
             
@@ -114,7 +114,7 @@ export default function Carteira() {
               <div className="mt-4 pt-4 border-t border-border/50 w-full flex flex-col items-center">
                 <h3 className="text-xs font-medium text-muted-foreground">Saldo Pendente (Aulas Futuras)</h3>
                 <p className="text-lg font-bold text-yellow-500 mt-1">
-                  R$ {(balance?.pending_balance || 0).toFixed(2).replace(".", ",")}
+                  R$ {(balance?.pending_balance || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
                 <p className="text-[10px] text-muted-foreground mt-1 max-w-[250px]">
                   O saldo pendente é retido até que a aula seja concluída (liberação automática a cada hora).
