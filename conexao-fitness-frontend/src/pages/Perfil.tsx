@@ -12,6 +12,9 @@ import { Link } from "react-router-dom";
 import { useRef } from "react";
 
 
+const Perfil = () => {
+  const { user, logout, setUser } = useAuth();
+  const navigate = useNavigate();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const avatarMutation = useMutation({
