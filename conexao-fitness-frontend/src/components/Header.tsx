@@ -36,7 +36,16 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {isProvider ? (
+            {user?.role === "ADMIN" ? (
+              <>
+                <Link to="/perfil" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                  Perfil
+                </Link>
+                <Link to="/admin" className="text-secondary font-semibold hover:text-secondary/80 transition-colors font-medium">
+                  Admin
+                </Link>
+              </>
+            ) : isProvider ? (
               <>
                 <Link to="/carteira" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                   Carteira
@@ -56,16 +65,14 @@ const Header = () => {
               </>
             ) : (
               <>
-                {!isAdminRoute && (
-                  <Link to="/buscar" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
-                    Buscar
-                  </Link>
-                )}
+                <Link to="/buscar" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                  Buscar
+                </Link>
                 <Link to="/quem-somos" className="text-foreground font-semibold hover:text-primary transition-colors flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/20">
                   <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                   Quem somos
                 </Link>
-                {isAuthenticated && !isAdminRoute && (
+                {isAuthenticated && (
                   <Link to="/meus-agendamentos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                     Meus agendamentos
                   </Link>
@@ -80,16 +87,9 @@ const Header = () => {
                     Perfil
                   </Link>
                 )}
-                {user?.role === "ADMIN" && (
-                  <Link to="/admin" className="text-secondary font-semibold hover:text-secondary/80 transition-colors font-medium">
-                    Admin
-                  </Link>
-                )}
-                {!isAdminRoute && (
-                  <Link to="/#planos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
-                    Planos
-                  </Link>
-                )}
+                <Link to="/#planos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                  Planos
+                </Link>
               </>
             )}
           </nav>
@@ -138,7 +138,16 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-border/50 animate-fade-in">
             <nav className="flex flex-col gap-4">
-              {isProvider ? (
+              {user?.role === "ADMIN" ? (
+                <>
+                  <Link to="/perfil" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                    Perfil
+                  </Link>
+                  <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="text-secondary font-semibold py-2">
+                    Admin
+                  </Link>
+                </>
+              ) : isProvider ? (
                 <>
                   <Link to="/carteira" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
                     Carteira
@@ -158,16 +167,14 @@ const Header = () => {
                 </>
               ) : (
                 <>
-                  {!isAdminRoute && (
-                    <Link to="/buscar" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
-                      Buscar
-                    </Link>
-                  )}
+                  <Link to="/buscar" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                    Buscar
+                  </Link>
                   <Link to="/quem-somos" onClick={() => setIsMenuOpen(false)} className="text-primary font-semibold hover:text-primary/80 transition-colors py-2 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-primary" />
                     Quem somos
                   </Link>
-                  {isAuthenticated && !isAdminRoute && (
+                  {isAuthenticated && (
                     <Link to="/meus-agendamentos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
                       Meus agendamentos
                     </Link>
@@ -182,16 +189,9 @@ const Header = () => {
                       Perfil
                     </Link>
                   )}
-                  {user?.role === "ADMIN" && (
-                    <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="text-secondary font-semibold py-2">
-                      Admin
-                    </Link>
-                  )}
-                  {!isAdminRoute && (
-                    <Link to="/#planos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
-                      Planos
-                    </Link>
-                  )}
+                  <Link to="/#planos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                    Planos
+                  </Link>
                 </>
               )}
 

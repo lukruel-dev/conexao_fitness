@@ -23,7 +23,7 @@ const Login = () => {
       const loggedUser = await login({ email, password });
       toast.success("Bem-vindo de volta!");
       if (loggedUser?.role === "ADMIN") {
-        navigate("/admin");
+        navigate("/perfil");
       } else if (loggedUser?.role === "PERSONAL" || loggedUser?.role === "ACADEMIA") {
         navigate("/agenda-profissional");
       } else {

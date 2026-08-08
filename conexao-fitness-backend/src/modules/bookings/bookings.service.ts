@@ -133,17 +133,27 @@ export class BookingsService {
         return { createdBooking: savedBooking, serviceData: service };
       });
 
-      // 8. Após a transação concluída com sucesso, cria a intenção de pagamento no Stripe
-      const paymentInfo = await this.paymentsService.createPaymentIntentForBooking(
-        createdBooking.id,
-        Number(serviceData.price),
-        serviceData.providerId,
-      );
+      // 8. Após a transação concluída com sucesso, tenta criar a intenção de pagamento no Stripe
+      let clientSecret = null;
+      let paymentIntentId = null;
+      
+      try {
+        const paymentInfo = await this.paymentsService.createPaymentIntentForBooking(
+          createdBooking.id,
+          Number(serviceData.price),
+          serviceData.providerId,
+        );
+        clientSecret = paymentInfo.clientSecret;
+        paymentIntentId = paymentInfo.paymentIntentId;
+      } catch (paymentErr) {
+        this.logger.warn(`Failed to create Stripe PaymentIntent for booking ${createdBooking.id}: ${paymentErr.message}`);
+        // Não lançamos o erro para permitir o pagamento via saldo da carteira como fallback
+      }
 
       return {
         ...createdBooking,
-        clientSecret: paymentInfo.clientSecret,
-        paymentIntentId: paymentInfo.paymentIntentId,
+        clientSecret,
+        paymentIntentId,
       };
     } catch (err) {
       // L4: captura violação do unique partial index UQ_bookings_slot_active
