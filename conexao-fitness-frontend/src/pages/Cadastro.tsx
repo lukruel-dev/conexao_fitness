@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,13 +23,22 @@ const roleOptions: { value: UserRole; label: string; desc: string }[] = [
 
 const Cadastro = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { register, loading } = useAuth();
+  
+  const [role, setRole] = useState<UserRole>(() => {
+    const params = new URLSearchParams(location.search);
+    const type = params.get("type");
+    if (type === "profissional") return "PERSONAL";
+    if (type === "academia") return "ACADEMIA";
+    return "STUDENT";
+  });
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [cpf, setCpf] = useState("");
   const [phone, setPhone] = useState("");
-  const [role, setRole] = useState<UserRole>("STUDENT");
   const [professionTitle, setProfessionTitle] = useState("");
   const [professionalRegistrationId, setProfessionalRegistrationId] = useState("");
   const [documentFile, setDocumentFile] = useState<File | null>(null);
