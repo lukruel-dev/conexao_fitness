@@ -38,6 +38,7 @@ const MeusAgendamentos = () => {
   const [reviewBooking, setReviewBooking] = useState<{ id: string; name?: string } | null>(null);
   const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
   const [chatBooking, setChatBooking] = useState<{ id: string; name?: string } | null>(null);
+  const [readChats, setReadChats] = useState<Set<string>>(new Set());
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [currentBookingId, setCurrentBookingId] = useState<string | null>(null);
 
@@ -214,13 +215,22 @@ const MeusAgendamentos = () => {
                       </div>
                     </div>
                     {b.status === "CONFIRMED" && (
-                      <div className="flex flex-col md:flex-row gap-2">
+                      <div className="flex flex-col md:flex-row items-center gap-3 mt-4 md:mt-0">
+                        {!readChats.has(b.id) && (
+                          <div className="flex items-center gap-1.5 px-2 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-medium animate-pulse border border-primary/20">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                            Nova mensagem
+                          </div>
+                        )}
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setChatBooking({ id: b.id, name: service?.name })}
+                          onClick={() => {
+                            setChatBooking({ id: b.id, name: service?.name });
+                            setReadChats(prev => new Set(prev).add(b.id));
+                          }}
                         >
-                          <MessageCircle className="w-4 h-4" />
+                          <MessageCircle className="w-4 h-4 mr-2" />
                           Chat
                         </Button>
                         {slot && new Date(slot.endsAt) < new Date() ? (

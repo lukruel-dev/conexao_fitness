@@ -28,6 +28,7 @@ export default function AgendaProfissional() {
   const { user, isAuthenticated } = useAuth();
   const [status, setStatus] = useState<BookingStatus | "">("");
   const [chatBooking, setChatBooking] = useState<{ id: string; name?: string } | null>(null);
+  const [readChats, setReadChats] = useState<Set<string>>(new Set());
   const [searchParams, setSearchParams] = useSearchParams();
 
   const isProvider = user?.role === "PERSONAL" || user?.role === "ACADEMIA";
@@ -124,14 +125,19 @@ export default function AgendaProfissional() {
                 </div>
                 {b.status === "CONFIRMED" && (
                   <div className="flex flex-col md:flex-row items-center gap-3 mt-4 md:mt-0">
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-medium animate-pulse border border-primary/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                      Nova mensagem?
-                    </div>
+                    {!readChats.has(b.id) && (
+                      <div className="flex items-center gap-1.5 px-2 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-medium animate-pulse border border-primary/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                        Nova mensagem
+                      </div>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setChatBooking({ id: b.id, name: `${b.service?.name} (${b.student?.name})` })}
+                      onClick={() => {
+                        setChatBooking({ id: b.id, name: `${b.service?.name} (${b.student?.name})` });
+                        setReadChats(prev => new Set(prev).add(b.id));
+                      }}
                       className="w-full md:w-auto"
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
