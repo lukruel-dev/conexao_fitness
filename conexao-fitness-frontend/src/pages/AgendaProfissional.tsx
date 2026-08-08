@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Navigate, useSearchParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,25 @@ export default function AgendaProfissional() {
     enabled: !!user && isProvider,
   });
 
+  const sortedBookings = useMemo(() => {
+    if (!bookings) return [];
+    
+    return [...bookings].sort((a: any, b: any) => {
+      const getPriority = (booking: any) => {
+        if (booking.status === "CONFIRMED") {
+          const hasUnreadChat = notifications?.some(n => !n.isRead && n.type === "CHAT" && n.referenceId === booking.id);
+          if (hasUnreadChat && !readChats.has(booking.id)) return 1; // Com mensagens não lidas
+          return 2; // Sem mensagens não lidas
+        }
+        if (booking.status === "PENDING") return 3;
+        if (booking.status === "CANCELLED") return 4;
+        return 5;
+      };
+
+      return getPriority(a) - getPriority(b);
+    });
+  }, [bookings, notifications, readChats]);
+
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user && !isProvider) return <Navigate to="/" replace />;
 
@@ -91,7 +110,7 @@ export default function AgendaProfissional() {
               <div key={i} className="h-28 rounded-2xl bg-muted animate-pulse" />
             ))}
           </div>
-        ) : !bookings || bookings.length === 0 ? (
+        ) : !sortedBookings || sortedBookings.length === 0 ? (
           <div className="bg-card border border-border rounded-2xl p-12 text-center shadow-sm">
             <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
             <p className="text-muted-foreground mb-2">
@@ -103,7 +122,7 @@ export default function AgendaProfissional() {
           </div>
         ) : (
           <div className="space-y-3">
-            {bookings.map((b: any) => (
+            {sortedBookings.map((b: any) => (
               <div
                 key={b.id}
                 className="bg-card border border-border rounded-2xl p-5 flex flex-col md:flex-row md:items-center gap-4 shadow-sm"
