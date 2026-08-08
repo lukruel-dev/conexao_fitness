@@ -107,7 +107,7 @@ const ServicoDetalhe = () => {
         <div className="container mx-auto px-4">
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 ml-2 md:ml-0"
           >
             <ArrowLeft className="w-4 h-4" /> Voltar
           </button>

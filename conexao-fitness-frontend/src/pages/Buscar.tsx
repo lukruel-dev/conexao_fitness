@@ -307,22 +307,35 @@ const Buscar = () => {
                     </span>
                   )}
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                            s.providerType === "ACADEMIA"
-                              ? "bg-primary/10 text-primary"
-                              : "bg-secondary/10 text-secondary"
-                          }`}
-                        >
-                          {s.providerType === "ACADEMIA"
-                            ? "Academia"
-                            : s.professionTitle || "Profissional"}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{s.modality}</span>
+                    <div className="flex gap-4 flex-1">
+                      {/* Provider Image */}
+                      <div className="shrink-0 flex items-start mt-1">
+                        <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-primary to-secondary shadow-[0_0_10px_rgba(45,212,191,0.3)]">
+                          <img 
+                            src={s.providerAvatar || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=400&auto=format&fit=crop"} 
+                            alt={s.providerName || "Profissional"} 
+                            className="w-full h-full rounded-full object-cover border-2 border-background"
+                          />
+                        </div>
                       </div>
-                      <h3 className="font-display font-bold text-lg text-foreground">{s.name}</h3>
+
+                      {/* Content */}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                              s.providerType === "ACADEMIA"
+                                ? "bg-primary/10 text-primary"
+                                : "bg-secondary/10 text-secondary"
+                            }`}
+                          >
+                            {s.providerType === "ACADEMIA"
+                              ? "Academia"
+                              : s.professionTitle || "Profissional"}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{s.modality}</span>
+                        </div>
+                        <h3 className="font-display font-bold text-lg text-foreground">{s.name}</h3>
                       <p className="text-sm text-muted-foreground mt-0.5">
                         {s.providerName}
                         {s.providerType === "PERSONAL" && s.professionTitle ? ` • ${s.professionTitle}` : ""}
@@ -354,6 +367,7 @@ const Buscar = () => {
                           ) : null;
                         })()}
                       </div>
+                    </div>
                     </div>
                     <div className="flex md:flex-col items-end justify-between md:justify-center gap-2">
                       <div className="text-right">
