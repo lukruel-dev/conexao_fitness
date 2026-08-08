@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WalletAccount } from './entities/wallet-account.entity';
@@ -140,7 +140,7 @@ export class WalletService {
   async deductBalance(userId: string, amount: number) {
     const balanceInfo = await this.getMyBalance(userId);
     if (balanceInfo.current_balance < amount) {
-      throw new Error('Saldo insuficiente na carteira');
+      throw new BadRequestException('Saldo insuficiente na carteira');
     }
 
     const wallet = await this.walletRepo.findOneOrFail({

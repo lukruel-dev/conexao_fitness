@@ -349,21 +349,23 @@ export class BookingsService {
     // Repassa o saldo para o profissional como pendente (escrow) independentemente de como pagou
     await this.walletService.addBalance(booking.service.providerId, Number(booking.service.price), { type: 'PENDING' });
 
-    // Notifica as partes
-    try {
-      const provider = await this.userRepo.findOneBy({ id: booking.service.providerId });
-      if (provider && booking.student) {
-        // Notifica Aluno
-        await this.notificationsService.create(booking.student.id, 'Reserva Confirmada!', `Sua reserva para ${booking.service.name} está confirmada.`, NotificationType.BOOKING);
-        await this.emailService.sendEmail(booking.student.email, 'Reserva Confirmada', `<p>Parabéns, sua reserva para <strong>${booking.service.name}</strong> foi confirmada!</p>`);
-        
-        // Notifica Profissional
-        await this.notificationsService.create(provider.id, 'Nova Reserva Confirmada', `Você tem uma nova reserva confirmada de ${booking.student.name} para ${booking.service.name}.`, NotificationType.BOOKING);
-        await this.emailService.sendEmail(provider.email, 'Nova Reserva Confirmada', `<p>O aluno <strong>${booking.student.name}</strong> acabou de confirmar uma reserva para <strong>${booking.service.name}</strong>!</p>`);
+    // Notifica as partes de forma assíncrona para não travar a requisição
+    setTimeout(async () => {
+      try {
+        const provider = await this.userRepo.findOneBy({ id: booking.service.providerId });
+        if (provider && booking.student) {
+          // Notifica Aluno
+          await this.notificationsService.create(booking.student.id, 'Reserva Confirmada!', `Sua reserva para ${booking.service.name} está confirmada.`, NotificationType.BOOKING);
+          await this.emailService.sendEmail(booking.student.email, 'Reserva Confirmada', `<p>Parabéns, sua reserva para <strong>${booking.service.name}</strong> foi confirmada!</p>`);
+          
+          // Notifica Profissional
+          await this.notificationsService.create(provider.id, 'Nova Reserva Confirmada', `Você tem uma nova reserva confirmada de ${booking.student.name} para ${booking.service.name}.`, NotificationType.BOOKING);
+          await this.emailService.sendEmail(provider.email, 'Nova Reserva Confirmada', `<p>O aluno <strong>${booking.student.name}</strong> acabou de confirmar uma reserva para <strong>${booking.service.name}</strong>!</p>`);
+        }
+      } catch (e) {
+        console.error('Erro ao enviar notificacao de confirmacao', e);
       }
-    } catch (e) {
-      console.error('Erro ao enviar notificacao de confirmacao', e);
-    }
+    }, 0);
 
     return savedBooking;
   }
