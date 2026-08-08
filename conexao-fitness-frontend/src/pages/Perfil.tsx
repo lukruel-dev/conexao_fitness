@@ -152,13 +152,6 @@ const Perfil = () => {
                   </div>
                   <ChevronRight className="w-5 h-5 text-muted-foreground" />
                 </Link>
-                <Link to="/planos" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <Crown className="w-5 h-5 text-muted-foreground" />
-                    <span className="font-medium text-foreground">Planos</span>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                </Link>
               </>
             )}
 
@@ -179,8 +172,14 @@ const Perfil = () => {
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </Link>
-            
 
+            <Link to="/planos" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <Crown className="w-5 h-5 text-muted-foreground" />
+                <span className="font-medium text-foreground">Planos</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </Link>
 
             <button onClick={() => { logout(); navigate("/"); }} className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-destructive/5 transition-colors group mt-4">
               <div className="flex items-center gap-3">
