@@ -134,8 +134,8 @@ export class BookingsService {
       });
 
       // 8. Após a transação concluída com sucesso, tenta criar a intenção de pagamento no Stripe
-      let clientSecret = null;
-      let paymentIntentId = null;
+      let clientSecret: string | null = null;
+      let paymentIntentId: string | null = null;
       
       try {
         const paymentInfo = await this.paymentsService.createPaymentIntentForBooking(
@@ -146,7 +146,7 @@ export class BookingsService {
         clientSecret = paymentInfo.clientSecret;
         paymentIntentId = paymentInfo.paymentIntentId;
       } catch (paymentErr) {
-        this.logger.warn(`Failed to create Stripe PaymentIntent for booking ${createdBooking.id}: ${paymentErr.message}`);
+        console.warn(`Failed to create Stripe PaymentIntent for booking ${createdBooking.id}: ${paymentErr.message}`);
         // Não lançamos o erro para permitir o pagamento via saldo da carteira como fallback
       }
 
