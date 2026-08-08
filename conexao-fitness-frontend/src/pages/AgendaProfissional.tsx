@@ -48,6 +48,12 @@ export default function AgendaProfissional() {
     enabled: !!user && isProvider,
   });
 
+  const { data: notifications } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => import("@/services/notifications").then(m => m.listNotifications()),
+    enabled: !!user && isProvider,
+  });
+
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user && !isProvider) return <Navigate to="/" replace />;
 
@@ -125,12 +131,15 @@ export default function AgendaProfissional() {
                 </div>
                 {b.status === "CONFIRMED" && (
                   <div className="flex flex-col md:flex-row items-center gap-3 mt-4 md:mt-0">
-                    {!readChats.has(b.id) && (
-                      <div className="flex items-center gap-1.5 px-2 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-medium animate-pulse border border-primary/20">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                        Nova mensagem
-                      </div>
-                    )}
+                    {(() => {
+                      const hasUnreadChat = notifications?.some(n => !n.isRead && n.type === "CHAT" && n.referenceId === b.id);
+                      return hasUnreadChat && !readChats.has(b.id) ? (
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-medium animate-pulse border border-primary/20">
+                          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                          Nova mensagem
+                        </div>
+                      ) : null;
+                    })()}
                     <Button
                       variant="outline"
                       size="sm"

@@ -29,9 +29,29 @@ const ChatModal = ({ open, onOpenChange, bookingId, title }: ChatModalProps) => 
     refetchInterval: open ? 4000 : false,
   });
 
+  const { data: notifications } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => import("@/services/notifications").then(m => m.listNotifications()),
+    enabled: open,
+  });
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (open && notifications) {
+      const unreadChatNotifs = notifications.filter(n => !n.isRead && n.type === "CHAT" && n.referenceId === bookingId);
+      if (unreadChatNotifs.length > 0) {
+        import("@/services/notifications").then(m => {
+          Promise.all(unreadChatNotifs.map(n => m.markNotificationRead(n.id))).then(() => {
+            qc.invalidateQueries({ queryKey: ["notifications"] });
+            qc.invalidateQueries({ queryKey: ["unread-notifications"] });
+          });
+        });
+      }
+    }
+  }, [open, notifications, bookingId, qc]);
 
   const sendMutation = useMutation({
     mutationFn: (text: string) => sendChatMessage(bookingId, text),
