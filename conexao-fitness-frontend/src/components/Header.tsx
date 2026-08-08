@@ -59,7 +59,7 @@ const Header = () => {
                 <Link to="/perfil" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                   Perfil
                 </Link>
-                <Link to="/#planos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                <Link to="/planos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                   Planos
                 </Link>
               </>
@@ -87,7 +87,7 @@ const Header = () => {
                     Perfil
                   </Link>
                 )}
-                <Link to="/#planos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                <Link to={isAuthenticated ? "/planos" : "/#planos"} className="text-muted-foreground hover:text-foreground transition-colors font-medium">
                   Planos
                 </Link>
               </>
@@ -161,7 +161,7 @@ const Header = () => {
                   <Link to="/perfil" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
                     Perfil
                   </Link>
-                  <Link to="/#planos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                  <Link to="/planos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
                     Planos
                   </Link>
                 </>
@@ -189,7 +189,7 @@ const Header = () => {
                       Perfil
                     </Link>
                   )}
-                  <Link to="/#planos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                  <Link to={isAuthenticated ? "/planos" : "/#planos"} onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
                     Planos
                   </Link>
                 </>

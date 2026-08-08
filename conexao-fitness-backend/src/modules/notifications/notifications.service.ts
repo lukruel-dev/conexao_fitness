@@ -39,9 +39,16 @@ export class NotificationsService {
       where: { id, userId },
     });
     if (!notification) {
-      throw new NotFoundException('Notification not found');
+      throw new NotFoundException('Notificação não encontrada');
     }
     notification.isRead = true;
     return this.notificationRepo.save(notification);
+  }
+
+  async markAllAsRead(userId: string) {
+    await this.notificationRepo.update(
+      { userId, isRead: false },
+      { isRead: true }
+    );
   }
 }

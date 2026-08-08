@@ -26,6 +26,7 @@ import AdminProfessions from "./pages/admin/AdminProfessions";
 import Carteira from "./pages/Carteira";
 import AgendaProfissional from "./pages/AgendaProfissional";
 import QuemSomos from "./pages/QuemSomos";
+import Planos from "./pages/Planos";
 import BottomNav from "@/components/BottomNav";
 
 import { useEffect } from "react";
@@ -56,6 +57,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/index.html" element={<Index />} />
               <Route path="/quem-somos" element={<QuemSomos />} />
+              <Route path="/planos" element={<Planos />} />
               <Route path="/buscar" element={<Buscar />} />
               <Route path="/servico/:id" element={<ServicoDetalhe />} />
               <Route path="/meus-agendamentos" element={<MeusAgendamentos />} />

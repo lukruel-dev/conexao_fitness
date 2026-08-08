@@ -11,6 +11,7 @@ import {
   getUnreadCount,
   listNotifications,
   markNotificationRead,
+  markAllAsRead,
   type Notification,
 } from "@/services/notifications";
 import { useAuth } from "@/contexts/AuthContext";
@@ -57,6 +58,14 @@ const NotificationsBell = () => {
     },
   });
 
+  const markAllAsReadMutation = useMutation({
+    mutationFn: () => markAllAsRead(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications", "unread-count"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", "list"] });
+    },
+  });
+
   if (!isAuthenticated) return null;
 
   const unread = unreadQuery.data?.unread ?? 0;
@@ -80,8 +89,17 @@ const NotificationsBell = () => {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
-        <div className="px-4 py-3 border-b border-border">
+        <div className="px-4 py-3 border-b border-border flex items-center justify-between">
           <p className="font-semibold">Notificações</p>
+          {unread > 0 && (
+            <button
+              onClick={() => markAllAsReadMutation.mutate()}
+              disabled={markAllAsReadMutation.isPending}
+              className="text-xs text-primary hover:underline"
+            >
+              Marcar lidas
+            </button>
+          )}
         </div>
         <ScrollArea className="h-72">
           {listQuery.isLoading ? (

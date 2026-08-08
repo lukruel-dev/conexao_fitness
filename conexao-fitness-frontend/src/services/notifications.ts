@@ -22,3 +22,7 @@ export function getUnreadCount() {
 export function markNotificationRead(id: string) {
   return apiRequest<Notification>(`/notifications/${id}/read`, { method: "PATCH" });
 }
+
+export function markAllAsRead() {
+  return apiRequest<{ success: boolean }>(`/notifications/read/all`, { method: "PATCH" });
+}
