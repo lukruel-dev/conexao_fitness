@@ -274,18 +274,19 @@ export default function Home() {
           </div>
 
           <div className="space-y-24">
-            {/* Planos Personal */}
+            {/* Planos Usuários */}
             <div>
-              <h3 className="text-2xl font-bold text-white text-center mb-10">Para Profissionais</h3>
-              <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              <h3 className="text-2xl font-bold text-white text-center mb-10">Para Usuários</h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
                 <div className="bg-[#12151c] rounded-2xl border border-slate-800 p-8 flex flex-col">
-                  <h4 className="text-xl font-bold text-white text-center">Basic</h4>
-                  <p className="text-slate-500 text-center text-sm mb-6">Para começar</p>
+                  <h4 className="text-xl font-bold text-white text-center">Gratuito</h4>
+                  <p className="text-slate-500 text-center text-sm mb-6">Comece agora</p>
                   <div className="text-center mb-8">
-                    <span className="text-4xl font-extrabold text-white">Grátis</span>
+                    <span className="text-4xl font-extrabold text-white">R$ 0</span>
+                    <span className="text-slate-500">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    {['Perfil verificado', 'Até 10 leads/mês', 'Chat com alunos', 'Avaliações públicas'].map((item, i) => (
+                    {['Sem saldo pré-carregado', 'Busca e reservas avulsas', 'Pague com cartão/PIX'].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
                         <Check className="w-4 h-4 text-[#06b6d4]" /> {item}
                       </li>
@@ -296,18 +297,123 @@ export default function Home() {
                   </button>
                 </div>
 
+                <div className="bg-[#12151c] rounded-2xl border border-slate-800 p-8 flex flex-col">
+                  <h4 className="text-xl font-bold text-white text-center">Start</h4>
+                  <p className="text-slate-500 text-center text-sm mb-6">Para iniciantes</p>
+                  <div className="text-center mb-8">
+                    <span className="text-4xl font-extrabold text-white">R$ 99,90</span>
+                    <span className="text-slate-500">/mês</span>
+                  </div>
+                  <ul className="space-y-4 mb-8 flex-1">
+                    {['R$ 89,91 em créditos', '~6 treinos em academias a R$ 15', '~3 treinos em academias a R$ 30'].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
+                        <Check className="w-4 h-4 text-[#06b6d4]" /> {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <button className="w-full bg-transparent border border-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg transition-colors">
+                    Assinar Start
+                  </button>
+                </div>
+
+                <div className="bg-[#12151c] rounded-2xl border-2 border-[#06b6d4] p-8 flex flex-col relative shadow-[0_0_30px_rgba(6,182,212,0.15)] transform md:-translate-y-4">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#06b6d4] text-white text-xs font-bold px-4 py-1.5 rounded-full">
+                    Recomendado
+                  </div>
+                  <h4 className="text-xl font-bold text-white text-center mt-2">Plus</h4>
+                  <p className="text-slate-500 text-center text-sm mb-6">Mais flexibilidade</p>
+                  <div className="text-center mb-8">
+                    <span className="text-4xl font-extrabold text-white">R$ 179,90</span>
+                    <span className="text-slate-500">/mês</span>
+                  </div>
+                  <ul className="space-y-4 mb-8 flex-1">
+                    {['R$ 161,91 em créditos', '~10,8 treinos em academias a R$ 15', '~5,4 treinos em academias a R$ 30'].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
+                        <Check className="w-4 h-4 text-[#06b6d4]" /> {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <button className="w-full bg-[#06b6d4] hover:bg-cyan-500 text-white font-bold py-3 rounded-lg transition-colors shadow-lg shadow-cyan-500/20">
+                    Assinar Plus
+                  </button>
+                </div>
+
+                <div className="bg-[#12151c] rounded-2xl border border-slate-800 p-8 flex flex-col relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-1 h-full bg-[#06b6d4]" />
+                  <h4 className="text-xl font-bold text-white text-center">Premium</h4>
+                  <p className="text-slate-500 text-center text-sm mb-6">Treino todos os dias</p>
+                  <div className="text-center mb-8">
+                    <span className="text-4xl font-extrabold text-white">R$ 299,90</span>
+                    <span className="text-slate-500">/mês</span>
+                  </div>
+                  <ul className="space-y-4 mb-8 flex-1">
+                    {['R$ 269,91 em créditos', '~18 treinos em academias a R$ 15', '~9 treinos em academias a R$ 30'].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
+                        <Check className="w-4 h-4 text-[#06b6d4]" /> {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <button className="w-full bg-transparent border border-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg transition-colors">
+                    Assinar Premium
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Planos Profissionais */}
+            <div>
+              <h3 className="text-2xl font-bold text-white text-center mb-10">Para Profissionais</h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+                <div className="bg-[#12151c] rounded-2xl border border-slate-800 p-8 flex flex-col">
+                  <h4 className="text-xl font-bold text-white text-center">Gratuito</h4>
+                  <p className="text-slate-500 text-center text-sm mb-6">Para começar</p>
+                  <div className="text-center mb-8">
+                    <span className="text-4xl font-extrabold text-white">R$ 0</span>
+                    <span className="text-slate-500">/mês</span>
+                  </div>
+                  <ul className="space-y-4 mb-8 flex-1">
+                    {['20% a 22% de comissão', 'Perfil básico', 'Aparece na busca padrão', 'Sem prioridade'].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
+                        <Check className="w-4 h-4 text-[#06b6d4]" /> {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <button className="w-full bg-transparent border border-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg transition-colors">
+                    Começar Grátis
+                  </button>
+                </div>
+
+                <div className="bg-[#12151c] rounded-2xl border border-slate-800 p-8 flex flex-col">
+                  <h4 className="text-xl font-bold text-white text-center">Start</h4>
+                  <p className="text-slate-500 text-center text-sm mb-6">Melhor visibilidade</p>
+                  <div className="text-center mb-8">
+                    <span className="text-4xl font-extrabold text-white">R$ 49,90</span>
+                    <span className="text-slate-500">/mês</span>
+                  </div>
+                  <ul className="space-y-4 mb-8 flex-1">
+                    {['15% a 18% de comissão', 'Perfil completo', 'Leve melhora de posição na busca'].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
+                        <Check className="w-4 h-4 text-[#06b6d4]" /> {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <button className="w-full bg-transparent border border-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg transition-colors">
+                    Assinar Start
+                  </button>
+                </div>
+
                 <div className="bg-[#12151c] rounded-2xl border-2 border-[#06b6d4] p-8 flex flex-col relative shadow-[0_0_30px_rgba(6,182,212,0.15)] transform md:-translate-y-4">
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#06b6d4] text-white text-xs font-bold px-4 py-1.5 rounded-full">
                     Mais Popular
                   </div>
                   <h4 className="text-xl font-bold text-white text-center mt-2">Pro</h4>
-                  <p className="text-slate-500 text-center text-sm mb-6">Mais visibilidade</p>
+                  <p className="text-slate-500 text-center text-sm mb-6">Destaque na plataforma</p>
                   <div className="text-center mb-8">
-                    <span className="text-4xl font-extrabold text-white">R$ 79</span>
+                    <span className="text-4xl font-extrabold text-white">R$ 149,90</span>
                     <span className="text-slate-500">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    {['Tudo do Basic', 'Leads ilimitados', 'Destaque nas buscas', 'Analytics avançado', 'Cupons promocionais'].map((item, i) => (
+                    {['10% a 12% de comissão', 'Posição destacada na busca', 'Selo de verificado', 'Agenda integrada com prioridade'].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
                         <Check className="w-4 h-4 text-[#06b6d4]" /> {item}
                       </li>
@@ -323,11 +429,11 @@ export default function Home() {
                   <h4 className="text-xl font-bold text-white text-center">Elite</h4>
                   <p className="text-slate-500 text-center text-sm mb-6">Máxima performance</p>
                   <div className="text-center mb-8">
-                    <span className="text-4xl font-extrabold text-white">R$ 149</span>
+                    <span className="text-4xl font-extrabold text-white">R$ 299,90</span>
                     <span className="text-slate-500">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    {['Tudo do Pro', 'Prioridade no ranking', 'Comissão reduzida', 'Página personalizada', 'Suporte prioritário'].map((item, i) => (
+                    {['5% a 7% de comissão', 'Topo nas buscas da região', 'Selo premium', 'Destaque em campanhas'].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
                         <Check className="w-4 h-4 text-[#06b6d4]" /> {item}
                       </li>
@@ -343,68 +449,88 @@ export default function Home() {
             {/* Planos Academia */}
             <div>
               <h3 className="text-2xl font-bold text-white text-center mb-10">Para Academias</h3>
-              <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                {/* Bronze */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+                {/* Gratuito */}
                 <div className="bg-[#12151c] rounded-2xl border border-slate-800 p-8 flex flex-col">
-                  <h4 className="text-xl font-bold text-white text-center">Bronze</h4>
-                  <p className="text-slate-500 text-center text-sm mb-6">1 unidade</p>
+                  <h4 className="text-xl font-bold text-white text-center">Gratuito</h4>
+                  <p className="text-slate-500 text-center text-sm mb-6">Presença básica</p>
                   <div className="text-center mb-8">
-                    <span className="text-4xl font-extrabold text-white">R$ 149</span>
+                    <span className="text-4xl font-extrabold text-white">R$ 0</span>
                     <span className="text-slate-500">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    {['Perfil verificado', 'Day pass digital', 'Até 50 reservas/mês', 'Dashboard básico'].map((item, i) => (
+                    {['Perfil na plataforma', 'Recebimento via créditos/PIX', 'Sem elegibilidade ao freepass'].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
                         <Check className="w-4 h-4 text-brand-green" /> {item}
                       </li>
                     ))}
                   </ul>
                   <button className="w-full bg-transparent border border-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg transition-colors">
-                    Começar Bronze
+                    Começar Grátis
                   </button>
                 </div>
 
-                {/* Prata */}
+                {/* Essencial */}
+                <div className="bg-[#12151c] rounded-2xl border border-slate-800 p-8 flex flex-col">
+                  <h4 className="text-xl font-bold text-white text-center">Essencial</h4>
+                  <p className="text-slate-500 text-center text-sm mb-6">Acesso ao ecossistema</p>
+                  <div className="text-center mb-8">
+                    <span className="text-4xl font-extrabold text-white">R$ 99,90</span>
+                    <span className="text-slate-500">/mês</span>
+                  </div>
+                  <ul className="space-y-4 mb-8 flex-1">
+                    {['Elegibilidade ao freepass', 'Recebimento via créditos/PIX', 'Presença básica em buscas'].map((item, i) => (
+                      <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
+                        <Check className="w-4 h-4 text-brand-green" /> {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <button className="w-full bg-transparent border border-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg transition-colors">
+                    Assinar Essencial
+                  </button>
+                </div>
+
+                {/* Destaque */}
                 <div className="bg-[#12151c] rounded-2xl border-2 border-brand-green p-8 flex flex-col relative shadow-[0_0_30px_rgba(34,197,94,0.15)] transform md:-translate-y-4">
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-brand-green text-white text-xs font-bold px-4 py-1.5 rounded-full">
                     Recomendado
                   </div>
-                  <h4 className="text-xl font-bold text-white text-center mt-2">Prata</h4>
-                  <p className="text-slate-500 text-center text-sm mb-6">Até 3 unidades</p>
+                  <h4 className="text-xl font-bold text-white text-center mt-2">Destaque</h4>
+                  <p className="text-slate-500 text-center text-sm mb-6">Mais visibilidade</p>
                   <div className="text-center mb-8">
-                    <span className="text-4xl font-extrabold text-white">R$ 299</span>
+                    <span className="text-4xl font-extrabold text-white">R$ 249,90</span>
                     <span className="text-slate-500">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    {['Tudo do Bronze', 'Reservas ilimitadas', 'Destaque regional', 'Analytics completo', 'Equipe de profissionais'].map((item, i) => (
+                    {['Tudo do Essencial', 'Melhor posicionamento em buscas', 'Selo de destaque', 'Perfil com mais fotos'].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
                         <Check className="w-4 h-4 text-brand-green" /> {item}
                       </li>
                     ))}
                   </ul>
                   <button className="w-full bg-brand-green hover:bg-green-600 text-white font-bold py-3 rounded-lg transition-colors shadow-lg shadow-brand-green/20">
-                    Assinar Prata
+                    Assinar Destaque
                   </button>
                 </div>
 
-                {/* Ouro */}
+                {/* Elite */}
                 <div className="bg-[#12151c] rounded-2xl border border-slate-800 p-8 flex flex-col relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-1 h-full bg-[#06b6d4]" />
-                  <h4 className="text-xl font-bold text-white text-center">Ouro</h4>
-                  <p className="text-slate-500 text-center text-sm mb-6">Unidades ilimitadas</p>
+                  <h4 className="text-xl font-bold text-white text-center">Elite</h4>
+                  <p className="text-slate-500 text-center text-sm mb-6">Para os maiores</p>
                   <div className="text-center mb-8">
-                    <span className="text-4xl font-extrabold text-white">R$ 499</span>
+                    <span className="text-4xl font-extrabold text-white">R$ 449,90</span>
                     <span className="text-slate-500">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    {['Tudo do Prata', 'Prioridade máxima', 'Campanhas segmentadas', 'API de integração', 'Gerente de conta'].map((item, i) => (
+                    {['Tudo do Destaque', 'Topo nas buscas', 'Selo premium', 'Participação em campanhas', 'Prioridade máxima de exibição'].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
                         <Check className="w-4 h-4 text-brand-green" /> {item}
                       </li>
                     ))}
                   </ul>
                   <button className="w-full bg-transparent border border-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg transition-colors">
-                    Assinar Ouro
+                    Assinar Elite
                   </button>
                 </div>
               </div>
