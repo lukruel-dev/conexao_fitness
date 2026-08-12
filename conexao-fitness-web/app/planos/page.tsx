@@ -2,59 +2,114 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Check, Zap, Star, Crown } from 'lucide-react';
+import { ArrowLeft, Check, Zap, Star, Crown, Heart } from 'lucide-react';
 
 export default function PlanosPage() {
-  const [activeTab, setActiveTab] = useState<'personal' | 'academia'>('personal');
+  const [activeTab, setActiveTab] = useState<'usuario' | 'personal' | 'academia'>('usuario');
 
-  const planosProfissional = [
+  const planosUsuario = [
     {
-      name: 'Plano Flow',
-      description: 'Fluidez, constância, equilíbrio no treino e na vida.',
-      price: '49.90',
-      icon: Zap,
-      iconColor: 'bg-orange-500',
+      name: 'Gratuito',
+      description: 'Acesso básico ao ecossistema.',
+      price: '0.00',
+      icon: Heart,
+      iconColor: 'bg-slate-500',
       features: [
-        'Perfil destacado nas buscas',
-        'Badge Premium no perfil',
-        'Até 3 fotos no perfil',
-        'Especialidades em destaque',
-        'Suporte por email'
+        'Busca de profissionais',
+        'Reserva de aulas avulsas',
+        'Visualização de conteúdos públicos'
       ],
       buttonStyle: 'bg-slate-700 hover:bg-slate-600 text-white'
     },
     {
-      name: 'Plano Groove',
-      description: 'Consistência, estilo próprio, evolução.',
+      name: 'Start',
+      description: 'Ideal para começar sua rotina.',
       price: '99.90',
-      icon: Star,
-      iconColor: 'bg-slate-400',
-      isPopular: true,
+      icon: Zap,
+      iconColor: 'bg-purple-400',
       features: [
-        'Tudo do Plano Flow',
-        'Prioridade máxima nas buscas',
-        'Até 10 fotos no perfil',
-        'Vídeo de apresentação',
-        'Estatísticas de visualizações',
-        'Certificações em destaque',
-        'Suporte prioritário'
+        '~6 treinos (R$15)',
+        '~3 treinos (R$30)'
       ],
-      buttonStyle: 'bg-brand-green hover:bg-green-600 text-white'
+      buttonStyle: 'bg-slate-700 hover:bg-slate-600 text-white'
     },
     {
-      name: 'Plano Vibe',
-      description: 'Experiência completa, conexão com a cultura fitness.',
-      price: '199.90',
+      name: 'Plus',
+      description: 'Para quem quer mais opções.',
+      price: '179.90',
+      icon: Star,
+      iconColor: 'bg-purple-500',
+      isPopular: true,
+      features: [
+        '~10 treinos (R$15)',
+        '~5 treinos (R$30)'
+      ],
+      buttonStyle: 'bg-purple-600 hover:bg-purple-700 text-white'
+    },
+    {
+      name: 'Premium',
+      description: 'Acesso ilimitado e premium.',
+      price: '299.90',
+      icon: Crown,
+      iconColor: 'bg-purple-600',
+      features: [
+        '~18 treinos (R$15)',
+        '~9 treinos (R$30)'
+      ],
+      buttonStyle: 'bg-transparent border border-slate-700 hover:bg-slate-800 text-white'
+    }
+  ];
+
+  const planosProfissional = [
+    {
+      name: 'Gratuito',
+      description: 'Para quem está começando.',
+      price: '0.00',
+      icon: Heart,
+      iconColor: 'bg-slate-500',
+      features: [
+        'Comissão de 20% a 22%',
+        'Perfil listado'
+      ],
+      buttonStyle: 'bg-slate-700 hover:bg-slate-600 text-white'
+    },
+    {
+      name: 'Start',
+      description: 'Fluidez, constância, equilíbrio.',
+      price: '49.90',
+      icon: Zap,
+      iconColor: 'bg-orange-500',
+      features: [
+        'Comissão de 15% a 18%',
+        'Perfil verificado',
+        'Até 10 leads/mês'
+      ],
+      buttonStyle: 'bg-slate-700 hover:bg-slate-600 text-white'
+    },
+    {
+      name: 'Pro',
+      description: 'Consistência, estilo próprio.',
+      price: '149.90',
+      icon: Star,
+      iconColor: 'bg-[#14b8a6]',
+      isPopular: true,
+      features: [
+        'Comissão de 10% a 12%',
+        'Leads ilimitados',
+        'Destaque nas buscas'
+      ],
+      buttonStyle: 'bg-[#14b8a6] hover:bg-teal-600 text-white'
+    },
+    {
+      name: 'Elite',
+      description: 'Experiência completa.',
+      price: '299.90',
       icon: Crown,
       iconColor: 'bg-yellow-500',
       features: [
-        'Tudo do Plano Groove',
-        'Fotos ilimitadas',
-        'Múltiplos vídeos',
-        'Sistema de agendamento integrado',
-        'Planos de treino em anexo',
-        'Suporte 24/7',
-        'Destaque em campanhas promocionais'
+        'Comissão de 5% a 7%',
+        'Prioridade máxima',
+        'Página personalizada'
       ],
       buttonStyle: 'bg-transparent border border-slate-700 hover:bg-slate-800 text-white'
     }
@@ -62,58 +117,68 @@ export default function PlanosPage() {
 
   const planosAcademia = [
     {
-      name: 'Plano Flow',
-      description: 'Fluidez, constância, equilíbrio no treino e na vida.',
-      price: '99.90',
-      icon: Zap,
-      iconColor: 'bg-orange-500',
+      name: 'Gratuito',
+      description: 'Para conhecer a plataforma.',
+      price: '0.00',
+      icon: Heart,
+      iconColor: 'bg-slate-500',
       features: [
-        'Perfil destacado nas buscas',
-        'Badge Premium no perfil',
-        'Até 5 fotos da academia',
-        'Horários de funcionamento',
-        'Suporte por email'
+        'Acesso básico',
+        'Perfil listado'
       ],
       buttonStyle: 'bg-slate-700 hover:bg-slate-600 text-white'
     },
     {
-      name: 'Plano Groove',
-      description: 'Consistência, estilo próprio, evolução.',
-      price: '199.90',
+      name: 'Essencial',
+      description: 'Para academias em crescimento.',
+      price: '99.90',
+      icon: Zap,
+      iconColor: 'bg-orange-500',
+      features: [
+        'Perfil verificado',
+        'Day pass digital'
+      ],
+      buttonStyle: 'bg-slate-700 hover:bg-slate-600 text-white'
+    },
+    {
+      name: 'Destaque',
+      description: 'Para atrair mais alunos.',
+      price: '249.90',
       icon: Star,
-      iconColor: 'bg-slate-400',
+      iconColor: 'bg-brand-green',
       isPopular: true,
       features: [
-        'Tudo do Plano Flow',
-        'Prioridade máxima nas buscas',
-        'Até 20 fotos da academia',
-        'Tour virtual 360°',
-        'Estatísticas de visualizações',
-        'Destaque na homepage',
-        'Suporte prioritário'
+        'Tudo do Essencial',
+        'Reservas ilimitadas',
+        'Destaque regional'
       ],
       buttonStyle: 'bg-brand-green hover:bg-green-600 text-white'
     },
     {
-      name: 'Plano Vibe',
-      description: 'Experiência completa, conexão com a cultura fitness.',
-      price: '399.90',
+      name: 'Elite',
+      description: 'Para grandes redes.',
+      price: '449.90',
       icon: Crown,
       iconColor: 'bg-yellow-500',
       features: [
-        'Tudo do Plano Groove',
-        'Fotos e vídeos ilimitados',
-        'Galeria de aulas coletivas',
-        'Sistema de agendamento integrado',
-        'Gestão de múltiplos profissionais',
-        'Campanhas promocionais destacadas',
-        'Suporte 24/7 com gestor dedicado'
+        'Tudo do Destaque',
+        'Prioridade máxima',
+        'API de integração'
       ],
       buttonStyle: 'bg-transparent border border-slate-700 hover:bg-slate-800 text-white'
     }
   ];
 
-  const planos = activeTab === 'personal' ? planosProfissional : planosAcademia;
+  const getPlanos = () => {
+    switch (activeTab) {
+      case 'usuario': return planosUsuario;
+      case 'personal': return planosProfissional;
+      case 'academia': return planosAcademia;
+      default: return planosUsuario;
+    }
+  };
+
+  const planos = getPlanos();
 
   return (
     <div className="min-h-screen bg-[#191d29] flex flex-col">
@@ -130,14 +195,22 @@ export default function PlanosPage() {
         </div>
       </div>
 
-      <div className="flex-1 max-w-7xl mx-auto px-4 py-16 w-full flex flex-col items-center">
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 text-center">Planos Premium</h1>
+      <div className="flex-1 max-w-[90rem] mx-auto px-4 py-16 w-full flex flex-col items-center">
+        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 text-center">Planos Flexíveis</h1>
         <p className="text-slate-400 text-lg mb-10 text-center max-w-2xl">
-          Destaque seu perfil e receba mais clientes com nossos planos de assinatura
+          Escolha o plano ideal para você no nosso ecossistema
         </p>
 
         {/* Tabs */}
         <div className="flex p-1 bg-[#1e2330] rounded-xl border border-slate-800 mb-16 inline-flex shadow-inner">
+          <button 
+            onClick={() => setActiveTab('usuario')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-sm transition-all ${
+              activeTab === 'usuario' ? 'bg-[#14b8a6] text-white shadow-lg' : 'text-slate-400 hover:text-slate-300'
+            }`}
+          >
+            Usuário
+          </button>
           <button 
             onClick={() => setActiveTab('personal')}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-sm transition-all ${
@@ -157,12 +230,12 @@ export default function PlanosPage() {
         </div>
 
         {/* Cards Grid */}
-        <div className="grid md:grid-cols-3 gap-8 w-full max-w-5xl">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 w-full">
           {planos.map((plano, idx) => (
             <div 
               key={idx} 
               className={`bg-[#1e2330] rounded-2xl p-8 flex flex-col relative transition-all ${
-                plano.isPopular ? 'border-2 border-[#14b8a6] shadow-[0_0_30px_rgba(20,184,166,0.15)] transform md:-translate-y-4' : 'border border-slate-800'
+                plano.isPopular ? 'border-2 border-[#14b8a6] shadow-[0_0_30px_rgba(20,184,166,0.15)] transform lg:-translate-y-4' : 'border border-slate-800'
               }`}
             >
               {plano.isPopular && (
@@ -178,10 +251,10 @@ export default function PlanosPage() {
               </div>
               
               <h3 className="text-2xl font-bold text-white text-center mb-1">{plano.name}</h3>
-              <p className="text-sm text-slate-400 text-center mb-6 px-2">{plano.description}</p>
+              <p className="text-sm text-slate-400 text-center mb-6 px-2 min-h-[40px]">{plano.description}</p>
               <div className="text-center mb-8 pb-8 border-b border-slate-700/50">
                 <span className="text-4xl font-extrabold text-white">R$ {plano.price}</span>
-                <span className="text-slate-500 text-sm">/mês</span>
+                <span className="text-slate-500 text-sm block mt-1">/mês</span>
               </div>
               
               <ul className="space-y-4 mb-10 flex-1">

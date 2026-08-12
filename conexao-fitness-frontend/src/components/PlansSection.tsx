@@ -1,97 +1,162 @@
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
+const userPlans = [
+  {
+    name: "Gratuito",
+    price: "R$ 0",
+    period: "/mês",
+    description: "Acesso básico ao ecossistema",
+    features: [
+      "Busca de profissionais",
+      "Reserva de aulas avulsas",
+      "Visualização de conteúdos públicos",
+    ],
+    highlight: false,
+    cta: "Começar",
+  },
+  {
+    name: "Start",
+    price: "R$ 99,90",
+    period: "/mês",
+    description: "Ideal para começar sua rotina",
+    features: [
+      "~6 treinos (R$15)",
+      "~3 treinos (R$30)",
+    ],
+    highlight: false,
+    cta: "Assinar Start",
+  },
+  {
+    name: "Plus",
+    price: "R$ 179,90",
+    period: "/mês",
+    description: "Para quem quer mais opções",
+    features: [
+      "~10 treinos (R$15)",
+      "~5 treinos (R$30)",
+    ],
+    highlight: true,
+    cta: "Assinar Plus",
+  },
+  {
+    name: "Premium",
+    price: "R$ 299,90",
+    period: "/mês",
+    description: "Acesso ilimitado e premium",
+    features: [
+      "~18 treinos (R$15)",
+      "~9 treinos (R$30)",
+    ],
+    highlight: false,
+    cta: "Assinar Premium",
+  },
+];
+
 const personalPlans = [
   {
-    name: "Plano Flow",
-    price: "R$ 49",
+    name: "Gratuito",
+    price: "R$ 0",
+    period: "/mês",
+    description: "Para quem está começando",
+    features: [
+      "Comissão de 20% a 22%",
+      "Perfil listado",
+    ],
+    highlight: false,
+    cta: "Começar",
+  },
+  {
+    name: "Start",
+    price: "R$ 49,90",
     period: "/mês",
     description: "Fluidez, constância, equilíbrio",
     features: [
+      "Comissão de 15% a 18%",
       "Perfil verificado",
       "Até 10 leads/mês",
-      "Chat com alunos",
-      "Avaliações públicas",
     ],
     highlight: false,
-    cta: "Assinar Flow",
+    cta: "Assinar Start",
   },
   {
-    name: "Plano Groove",
-    price: "R$ 99",
+    name: "Pro",
+    price: "R$ 149,90",
     period: "/mês",
     description: "Consistência, estilo próprio",
     features: [
-      "Tudo do Flow",
+      "Comissão de 10% a 12%",
       "Leads ilimitados",
       "Destaque nas buscas",
-      "Analytics avançado",
-      "Cupons promocionais",
     ],
     highlight: true,
-    cta: "Assinar Groove",
+    cta: "Assinar Pro",
   },
   {
-    name: "Plano Vibe",
-    price: "R$ 199",
+    name: "Elite",
+    price: "R$ 299,90",
     period: "/mês",
     description: "Experiência completa",
     features: [
-      "Tudo do Groove",
-      "Prioridade no ranking",
-      "Comissão reduzida",
+      "Comissão de 5% a 7%",
+      "Prioridade máxima",
       "Página personalizada",
-      "Suporte prioritário",
     ],
     highlight: false,
-    cta: "Assinar Vibe",
+    cta: "Assinar Elite",
   },
 ];
 
 const gymPlans = [
   {
-    name: "Plano Flow",
-    price: "R$ 99",
+    name: "Gratuito",
+    price: "R$ 0",
     period: "/mês",
-    description: "Fluidez, constância, equilíbrio",
+    description: "Para conhecer a plataforma",
+    features: [
+      "Acesso básico",
+      "Perfil listado",
+    ],
+    highlight: false,
+    cta: "Começar",
+  },
+  {
+    name: "Essencial",
+    price: "R$ 99,90",
+    period: " / A partir de",
+    description: "Para academias em crescimento",
     features: [
       "Perfil verificado",
       "Day pass digital",
-      "Até 50 reservas/mês",
-      "Dashboard básico",
     ],
     highlight: false,
-    cta: "Assinar Flow",
+    cta: "Assinar Essencial",
   },
   {
-    name: "Plano Groove",
-    price: "R$ 199",
-    period: "/mês",
-    description: "Consistência, estilo próprio",
+    name: "Destaque",
+    price: "R$ 249,90",
+    period: " / A partir de",
+    description: "Para atrair mais alunos",
     features: [
-      "Tudo do Flow",
+      "Tudo do Essencial",
       "Reservas ilimitadas",
       "Destaque regional",
-      "Analytics completo",
-      "Equipe de profissionais",
     ],
     highlight: true,
-    cta: "Assinar Groove",
+    cta: "Assinar Destaque",
   },
   {
-    name: "Plano Vibe",
-    price: "R$ 399",
-    period: "/mês",
-    description: "Experiência completa",
+    name: "Elite",
+    price: "R$ 449,90",
+    period: " / A partir de",
+    description: "Para grandes redes",
     features: [
-      "Tudo do Groove",
+      "Tudo do Destaque",
       "Prioridade máxima",
-      "Campanhas segmentadas",
       "API de integração",
-      "Gerente de conta",
     ],
     highlight: false,
-    cta: "Assinar Vibe",
+    cta: "Assinar Elite",
   },
 ];
 
@@ -106,8 +171,55 @@ const PlansSection = () => {
             Escolha seu <span className="gradient-text">plano</span>
           </h2>
           <p className="text-muted-foreground text-base sm:text-lg">
-            Planos flexíveis para profissionais e academias de todos os tamanhos.
+            Planos flexíveis para usuários, profissionais e academias.
           </p>
+        </div>
+
+        {/* User Plans */}
+        <div className="mb-20">
+          <h3 className="font-display text-2xl font-bold text-center mb-8 text-foreground">
+            Para Usuários
+          </h3>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            {userPlans.map((plan) => (
+              <div
+                key={plan.name}
+                className={`relative rounded-2xl p-6 transition-all duration-300 ${
+                  plan.highlight
+                    ? "bg-card border-2 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.3)] scale-105"
+                    : "bg-card border border-border hover:border-purple-500/30"
+                }`}
+              >
+                {plan.highlight && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-xs font-semibold text-white">
+                    Mais Popular
+                  </div>
+                )}
+                <div className="text-center mb-6">
+                  <h4 className="font-display font-bold text-lg text-foreground">{plan.name}</h4>
+                  <p className="text-muted-foreground text-sm">{plan.description}</p>
+                  <div className="mt-4">
+                    <span className="text-3xl font-bold text-foreground">{plan.price}</span>
+                    <span className="text-muted-foreground block text-xs mt-1">{plan.period}</span>
+                  </div>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-center gap-2 text-sm text-foreground">
+                      <Check className="w-4 h-4 text-purple-500" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  variant={plan.highlight ? "default" : "outline"}
+                  className={`w-full ${plan.highlight ? 'bg-purple-600 hover:bg-purple-700 text-white' : ''}`}
+                >
+                  {plan.cta}
+                </Button>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Personal Plans */}
@@ -115,7 +227,7 @@ const PlansSection = () => {
           <h3 className="font-display text-2xl font-bold text-center mb-8 text-foreground">
             Para Profissionais
           </h3>
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {personalPlans.map((plan) => (
               <div
                 key={plan.name}
@@ -135,7 +247,7 @@ const PlansSection = () => {
                   <p className="text-muted-foreground text-sm">{plan.description}</p>
                   <div className="mt-4">
                     <span className="text-3xl font-bold text-foreground">{plan.price}</span>
-                    <span className="text-muted-foreground">{plan.period}</span>
+                    <span className="text-muted-foreground block text-xs mt-1">{plan.period}</span>
                   </div>
                 </div>
                 <ul className="space-y-3 mb-6">
@@ -162,7 +274,7 @@ const PlansSection = () => {
           <h3 className="font-display text-2xl font-bold text-center mb-8 text-foreground">
             Para Academias
           </h3>
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {gymPlans.map((plan) => (
               <div
                 key={plan.name}
@@ -182,7 +294,7 @@ const PlansSection = () => {
                   <p className="text-muted-foreground text-sm">{plan.description}</p>
                   <div className="mt-4">
                     <span className="text-3xl font-bold text-foreground">{plan.price}</span>
-                    <span className="text-muted-foreground">{plan.period}</span>
+                    <span className="text-muted-foreground block text-xs mt-1">{plan.period}</span>
                   </div>
                 </div>
                 <ul className="space-y-3 mb-6">
