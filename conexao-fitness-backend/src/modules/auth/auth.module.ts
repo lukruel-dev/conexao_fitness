@@ -5,11 +5,13 @@ import { UsersModule } from '../users/users.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
-
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Subscription } from '../payments/entities/subscription.entity';
 @Module({
   imports: [
     UsersModule,
     PassportModule,
+    TypeOrmModule.forFeature([Subscription]),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'SECRET_KEY_PROVISORIO',
       signOptions: { expiresIn: '7d' },

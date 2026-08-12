@@ -119,6 +119,7 @@ export interface AuthUser {
   professionTitle?: string | null;
   cpf?: string | null;
   phone?: string | null;
+  planName?: string;
 }
 
 export interface LoginDto {

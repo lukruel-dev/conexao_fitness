@@ -11,6 +11,11 @@ import { CreditCard, User, Crown, CalendarDays, Camera, ChevronRight, Users, Lis
 import { Link } from "react-router-dom";
 import { useRef } from "react";
 
+const getMaxPlan = (role: string) => {
+  if (role === 'STUDENT') return 'Premium';
+  if (role === 'PERSONAL' || role === 'ACADEMIA') return 'Elite';
+  return 'Premium';
+};
 
 const Perfil = () => {
   const { user, logout, setUser } = useAuth();
@@ -70,6 +75,8 @@ const Perfil = () => {
   }
 
   const isProvider = user.role === "PERSONAL" || user.role === "ACADEMIA";
+  const planName = user.planName || "Gratuito";
+  const isMaxPlan = planName === getMaxPlan(user.role);
 
   return (
     <div className="min-h-screen bg-background">
@@ -111,15 +118,29 @@ const Perfil = () => {
               <div className="min-w-0 flex-1">
                 <h2 className="font-display font-bold text-lg truncate">{user.name}</h2>
                 <p className="text-sm text-muted-foreground truncate">{user.email}</p>
-                <span className="text-xs px-2 py-0.5 mt-1 inline-block rounded-full bg-secondary/10 text-secondary font-medium">
-                  {user.role === "STUDENT"
-                    ? "Aluno"
-                    : user.role === "PERSONAL"
-                      ? user.professionTitle || "Profissional"
-                      : user.role === "ADMIN"
-                        ? "Admin"
-                        : "Academia"}
-                </span>
+                <div className="flex flex-col gap-2 mt-2 items-start">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs px-2 py-0.5 inline-block rounded-full bg-secondary/10 text-secondary font-medium">
+                      {user.role === "STUDENT"
+                        ? "Aluno"
+                        : user.role === "PERSONAL"
+                          ? user.professionTitle || "Profissional"
+                          : user.role === "ADMIN"
+                            ? "Admin"
+                            : "Academia"}
+                    </span>
+                    <span className="text-xs px-2 py-0.5 inline-block rounded-full bg-[#14b8a6]/20 text-[#14b8a6] font-bold border border-[#14b8a6]/30">
+                      Plano Atual: {planName}
+                    </span>
+                  </div>
+                  
+                  {!isMaxPlan && user.role !== "ADMIN" && (
+                    <Button variant="outline" size="sm" className="h-7 text-xs font-bold border-[#14b8a6] text-[#14b8a6] hover:bg-[#14b8a6] hover:text-white transition-colors" asChild>
+                      <Link to="/planos">Fazer Upgrade</Link>
+                    </Button>
+                  )}
+                </div>
+
                 {avatarMutation.isPending && (
                   <p className="text-xs text-muted-foreground mt-1">Enviando foto...</p>
                 )}
