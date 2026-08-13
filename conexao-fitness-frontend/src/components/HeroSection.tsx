@@ -17,6 +17,14 @@ const featuredAcademies = [
   { id: 5, name: "Apex Athletics", desc: "Aulas Exclusivas", image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=400&auto=format&fit=crop" },
 ];
 
+const featuredProfessionals = [
+  { id: 1, name: "Carlos Silva", desc: "Personal Trainer", image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop" },
+  { id: 2, name: "Ana Beatriz", desc: "Nutricionista Esportiva", image: "https://images.unsplash.com/photo-1594381898411-846e7d193883?q=80&w=400&auto=format&fit=crop" },
+  { id: 3, name: "Roberto Alves", desc: "Fisioterapeuta", image: "https://images.unsplash.com/photo-1612349317150-e410f628520c?q=80&w=400&auto=format&fit=crop" },
+  { id: 4, name: "Juliana Costa", desc: "Instrutora de Yoga", image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=400&auto=format&fit=crop" },
+  { id: 5, name: "Marcos Vinícius", desc: "Coach de Crossfit", image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400&auto=format&fit=crop" },
+];
+
 const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-[calc(5rem+max(24px,env(safe-area-inset-top)))] pb-[calc(5rem+max(16px,env(safe-area-inset-bottom)))]">
@@ -54,7 +62,7 @@ const HeroSection = () => {
           </p>
 
           {/* Featured Academies Carousel */}
-          <div className="w-full max-w-full mb-8 animate-fade-in-up" style={{ animationDelay: "0.25s" }}>
+          <div className="w-full max-w-full mb-6 animate-fade-in-up" style={{ animationDelay: "0.25s" }}>
             <Carousel
               opts={{
                 align: "start",
@@ -71,6 +79,37 @@ const HeroSection = () => {
                       <div className="absolute bottom-0 left-0 p-4">
                         <h3 className="text-white font-semibold text-lg leading-tight">{academy.name}</h3>
                         <p className="text-white/70 text-sm">{academy.desc}</p>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden sm:flex -left-4 bg-background/50 backdrop-blur-md border-white/20 hover:bg-background/80 text-white" />
+              <CarouselNext className="hidden sm:flex -right-4 bg-background/50 backdrop-blur-md border-white/20 hover:bg-background/80 text-white" />
+            </Carousel>
+          </div>
+
+          {/* Featured Professionals Carousel */}
+          <h3 className="text-xl sm:text-2xl font-bold mb-4 animate-fade-in-up" style={{ animationDelay: "0.26s" }}>
+            Conheça Nossos <span className="gradient-text">Profissionais</span> Especialistas
+          </h3>
+          <div className="w-full max-w-full mb-8 animate-fade-in-up" style={{ animationDelay: "0.27s" }}>
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {featuredProfessionals.map((prof) => (
+                  <CarouselItem key={prof.id} className="pl-2 md:pl-4 basis-[80%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
+                    <div className="relative group overflow-hidden rounded-2xl border border-white/10 aspect-[4/3]">
+                      <img src={prof.image} alt={prof.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                      <div className="absolute bottom-0 left-0 p-4">
+                        <h3 className="text-white font-semibold text-lg leading-tight">{prof.name}</h3>
+                        <p className="text-white/70 text-sm">{prof.desc}</p>
                       </div>
                     </div>
                   </CarouselItem>
