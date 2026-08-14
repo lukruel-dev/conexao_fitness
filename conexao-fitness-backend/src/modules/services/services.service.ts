@@ -92,12 +92,6 @@ export class ServicesService {
 
     qb.andWhere('service.isActive = true');
     
-    // Default boost logic
-    qb.addSelect(
-      `CASE WHEN provider.cityBase ILIKE '%uruguaiana%' THEN 1000 ELSE 0 END`,
-      'uruguaianaBoost'
-    );
-    
     // Premium boost
     qb.addSelect(
       `CASE WHEN subscription.id IS NOT NULL THEN 500 ELSE 0 END`,
@@ -114,6 +108,7 @@ export class ServicesService {
       const haversine = `(6371 * acos(cos(radians(:lat)) * cos(radians(COALESCE(provider.lastLat, -29.7578))) * cos(radians(COALESCE(provider.lastLng, -57.0872)) - radians(:lng)) + sin(radians(:lat)) * sin(radians(COALESCE(provider.lastLat, -29.7578)))))`;
       
       qb.addSelect(haversine, 'distance');
+      qb.addSelect(`CASE WHEN ${haversine} <= 10 THEN 1 WHEN ${haversine} <= 50 THEN 2 ELSE 3 END`, 'distanceZone');
       qb.setParameter('lat', query.lat);
       qb.setParameter('lng', query.lng);
 
@@ -122,13 +117,12 @@ export class ServicesService {
       }
 
       // Hack for raw orderBy alias issue in some TypeORM versions: wrap in quotes or use custom literal
-      qb.orderBy('"uruguaianaBoost"', 'DESC');
+      qb.orderBy('"distanceZone"', 'ASC');
       qb.addOrderBy('"premiumBoost"', 'DESC');
       qb.addOrderBy('"averageRating"', 'DESC');
       qb.addOrderBy('distance', 'ASC');
     } else {
-      qb.orderBy('"uruguaianaBoost"', 'DESC');
-      qb.addOrderBy('"premiumBoost"', 'DESC');
+      qb.orderBy('"premiumBoost"', 'DESC');
       qb.addOrderBy('"averageRating"', 'DESC');
       qb.addOrderBy('service.createdAt', 'DESC');
     }
@@ -137,7 +131,6 @@ export class ServicesService {
 
     return entities.map((entity, index) => {
       const rawData = raw[index];
-      const uruguaiana = rawData.uruguaianaBoost ? parseInt(rawData.uruguaianaBoost, 10) : 0;
       const premium = rawData.premiumBoost ? parseInt(rawData.premiumBoost, 10) : 0;
       
       return {
@@ -145,7 +138,7 @@ export class ServicesService {
         providerName: rawData.providerName,
         providerAvatar: rawData.providerAvatar,
         distance: rawData.distance !== undefined && rawData.distance !== null ? parseFloat(rawData.distance) : null,
-        boostScore: uruguaiana + premium,
+        boostScore: premium,
         isPremium: premium > 0,
         providerRating: rawData.averageRating ? parseFloat(rawData.averageRating) : 5.0,
         totalReviews: rawData.totalReviews ? parseInt(rawData.totalReviews, 10) : 0,
