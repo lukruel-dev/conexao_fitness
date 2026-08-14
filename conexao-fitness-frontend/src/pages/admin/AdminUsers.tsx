@@ -156,7 +156,7 @@ export default function AdminUsers() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className="flex-1 container mx-auto px-4 pt-28 pb-16">
+      <main className="flex-1 container mx-auto px-4 pt-36 pb-16">
         <div className="mb-8">
           <div className="flex items-center gap-2 text-secondary text-sm font-semibold uppercase tracking-wider">
             <ShieldCheck className="w-4 h-4" /> Painel administrativo

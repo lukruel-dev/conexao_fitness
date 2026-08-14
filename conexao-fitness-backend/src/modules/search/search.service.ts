@@ -73,14 +73,10 @@ export class SearchService {
     
     qb.addSelect(`${distanceFormula}`, 'distance_km');
     
-    // Score Formula: Base 100 - (Distance * 1) + Boost Uruguaiana
-    const scoreFormula = `
-      (100 - ${distanceFormula}) + 
-      CASE WHEN provider.cityBase ILIKE :pilotCity THEN 1000 ELSE 0 END
-    `;
+    // Score Formula: Base 100 - Distance
+    const scoreFormula = `(100 - ${distanceFormula})`;
     
     qb.addSelect(scoreFormula, 'ranking_score');
-    qb.setParameter('pilotCity', `%${pilotCity}%`);
 
     qb.orderBy('ranking_score', 'DESC');
 

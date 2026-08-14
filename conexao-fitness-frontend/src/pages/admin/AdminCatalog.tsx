@@ -67,7 +67,7 @@ const AdminCatalog = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className="flex-1 container mx-auto px-4 pt-28 pb-16">
+      <main className="flex-1 container mx-auto px-4 pt-36 pb-16">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold font-display text-primary">Catálogo Base de Serviços</h1>

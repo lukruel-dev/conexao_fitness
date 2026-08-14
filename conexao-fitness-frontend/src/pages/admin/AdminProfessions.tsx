@@ -86,7 +86,7 @@ export default function AdminProfessions() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-24">
+      <main className="container mx-auto px-4 pt-32 pb-24">
         <div className="mb-6 flex justify-start">
           <Link to="/admin" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4" /> Voltar ao Painel

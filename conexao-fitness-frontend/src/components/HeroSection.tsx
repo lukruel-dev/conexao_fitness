@@ -20,14 +20,14 @@ const featuredAcademies = [
 const featuredProfessionals = [
   { id: 1, name: "Carlos Silva", desc: "Personal Trainer", image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop" },
   { id: 2, name: "Ana Beatriz", desc: "Nutricionista Esportiva", image: "https://images.unsplash.com/photo-1594381898411-846e7d193883?q=80&w=400&auto=format&fit=crop" },
-  { id: 3, name: "Roberto Alves", desc: "Fisioterapeuta", image: "https://images.unsplash.com/photo-1612349317150-e410f628520c?q=80&w=400&auto=format&fit=crop" },
+  { id: 3, name: "Roberto Alves", desc: "Fisioterapeuta", image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=400&auto=format&fit=crop" },
   { id: 4, name: "Juliana Costa", desc: "Instrutora de Yoga", image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=400&auto=format&fit=crop" },
   { id: 5, name: "Marcos Vinícius", desc: "Coach de Crossfit", image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400&auto=format&fit=crop" },
 ];
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-[calc(5rem+max(24px,env(safe-area-inset-top)))] pb-[calc(5rem+max(16px,env(safe-area-inset-bottom)))]">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-[calc(7rem+max(24px,env(safe-area-inset-top)))] pb-[calc(5rem+max(16px,env(safe-area-inset-bottom)))]">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         <img

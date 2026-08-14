@@ -43,7 +43,7 @@ export default function AdminServices() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className="flex-1 container mx-auto px-4 pt-28 pb-16">
+      <main className="flex-1 container mx-auto px-4 pt-36 pb-16">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-2 text-secondary text-sm font-semibold uppercase tracking-wider mb-1">

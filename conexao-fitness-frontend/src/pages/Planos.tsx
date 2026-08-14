@@ -11,7 +11,7 @@ export default function Planos() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <main className="flex-1 pt-24 pb-16">
+      <main className="flex-1 pt-40 pb-16">
         <PlansSection />
       </main>
       <Footer />

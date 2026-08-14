@@ -60,7 +60,7 @@ const personalPlans = [
     period: "/mês",
     description: "Para quem está começando",
     features: [
-      "Comissão de 20% a 22%",
+      "Comissão de 12%",
       "Perfil listado",
     ],
     highlight: false,
@@ -72,7 +72,7 @@ const personalPlans = [
     period: "/mês",
     description: "Fluidez, constância, equilíbrio",
     features: [
-      "Comissão de 15% a 18%",
+      "Comissão de 10%",
       "Perfil verificado",
       "Até 10 leads/mês",
     ],
@@ -85,7 +85,7 @@ const personalPlans = [
     period: "/mês",
     description: "Consistência, estilo próprio",
     features: [
-      "Comissão de 10% a 12%",
+      "Comissão de 8%",
       "Leads ilimitados",
       "Destaque nas buscas",
     ],
@@ -98,7 +98,7 @@ const personalPlans = [
     period: "/mês",
     description: "Experiência completa",
     features: [
-      "Comissão de 5% a 7%",
+      "Comissão de 6%",
       "Prioridade máxima",
       "Página personalizada",
     ],
