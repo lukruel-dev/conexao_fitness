@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 80" width="100%" height="100%">
+  <defs>
+    <!-- Neon Blue Gradient -->
+    <linearGradient id="neonBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#00a8ff"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <!-- Neon Lime Gradient -->
+    <linearGradient id="neonLime" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a3e635"/>
+      <stop offset="50%" stop-color="#76e000"/>
+      <stop offset="100%" stop-color="#55a300"/>
+    </linearGradient>
+
+    <radialGradient id="darkCircleBg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </radialGradient>
+
+    <filter id="glowEffect" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- 1. LEFT CIRCLE WITH FX INSIDE -->
+  <g transform="translate(40, 40)">
+    <!-- Circle Background -->
+    <circle cx="0" cy="0" r="32" fill="url(#darkCircleBg)" stroke="#334155" stroke-width="1.5" />
+    
+    <!-- Neon Outer Ring Split -->
+    <!-- Blue top arc -->
+    <path d="M -26,0 A 26,26 0 0,1 26,0" fill="none" stroke="url(#neonBlue)" stroke-width="2.5" stroke-linecap="round" filter="url(#glowEffect)" />
+    <!-- Lime bottom arc -->
+    <path d="M 26,0 A 26,26 0 0,1 -26,0" fill="none" stroke="url(#neonLime)" stroke-width="2.5" stroke-linecap="round" filter="url(#glowEffect)" />
+
+    <!-- FX Monogram inside Circle -->
+    <g transform="translate(-16, -14) scale(0.42)">
+      <!-- F (Blue) -->
+      <path d="M 12,5 L 48,5 L 42,16 L 26,16 L 22,27 L 38,27 L 32,38 L 18,38 L 7,65 L -4,65 Z" fill="url(#neonBlue)"/>
+      <!-- X (Lime) -->
+      <path d="M 52,14 L 36,39 L 54,65 L 41,65 L 29,48 L 20,61 L 8,61 L 22,42 L 32,28 L 41,14 Z" fill="url(#neonLime)"/>
+    </g>
+  </g>
+
+  <!-- 2. RIGHT TEXT (FINEX + — FITNESS —) -->
+  <g transform="translate(90, 42)">
+    <!-- FINEX -->
+    <text font-family="'Outfit', 'Inter', system-ui, sans-serif" font-weight="900" font-size="34" letter-spacing="2">
+      <tspan fill="#ffffff">FINE</tspan><tspan fill="url(#neonLime)">X</tspan>
+    </text>
+
+    <!-- — FITNESS — -->
+    <!-- Left Accent Line -->
+    <line x1="2" y1="14" x2="32" y2="14" stroke="#64748b" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+    <!-- Subtitle Text -->
+    <text x="73" y="18" text-anchor="middle" font-family="'Inter', system-ui, sans-serif" font-weight="700" font-size="9" letter-spacing="4" fill="#94a3b8">FITNESS</text>
+    <!-- Right Accent Line -->
+    <line x1="114" y1="14" x2="144" y2="14" stroke="#64748b" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+  </g>
+</svg>
