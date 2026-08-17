@@ -1,4 +1,4 @@
-import logo from "@/assets/logo.jpeg";
+import FinexLogo from "@/components/FinexLogo";
 import { Button } from "@/components/ui/button";
 import { LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
@@ -27,11 +27,7 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           <Link to="/" className="flex items-center gap-2 shrink-0">
-            <img src={logo} alt="Conexão Fitness" className="h-8 md:h-12 w-auto rounded-lg shrink-0" />
-            <span className="font-display font-bold text-base md:text-xl whitespace-nowrap shrink-0">
-              <span className="text-foreground">Conexão</span>{" "}
-              <span className="text-secondary">Fitness</span>
-            </span>
+            <FinexLogo size="md" />
           </Link>
 
           {/* Desktop Navigation */}

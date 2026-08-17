@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 160" width="100%" height="100%">
+  <defs>
+    <!-- Neon Blue Gradient -->
+    <linearGradient id="hNeonBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#00a8ff"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <!-- Neon Lime Gradient -->
+    <linearGradient id="hNeonLime" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a3e635"/>
+      <stop offset="50%" stop-color="#84cc16"/>
+      <stop offset="100%" stop-color="#65a30d"/>
+    </linearGradient>
+
+    <filter id="hGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- FX Monogram Symbol -->
+  <g transform="translate(15, 5)">
+    <!-- Letter F (Electric Blue) -->
+    <path d="M 35,20 L 105,20 L 92,46 L 62,46 L 52,70 L 85,70 L 73,96 L 43,96 L 22,145 L -2,145 Z" fill="url(#hNeonBlue)" filter="url(#hGlow)"/>
+    <!-- Letter X (Lime Green) -->
+    <path d="M 125,40 L 88,96 L 125,145 L 98,145 L 72,108 L 54,136 L 30,136 L 59,96 L 78,68 L 98,40 Z" fill="url(#hNeonLime)" filter="url(#hGlow)"/>
+  </g>
+
+  <!-- FINEX Typography -->
+  <g transform="translate(180, 88)">
+    <text font-family="'Outfit', 'Inter', system-ui, sans-serif" font-weight="900" font-size="64" letter-spacing="4">
+      <tspan fill="#ffffff">FINE</tspan><tspan fill="url(#hNeonLime)">X</tspan>
+    </text>
+  </g>
+
+  <!-- Tagline below -->
+  <g transform="translate(185, 126)">
+    <text font-family="'Inter', system-ui, sans-serif" font-weight="700" font-size="12" letter-spacing="3.5" fill="#94a3b8">
+      PERFORMANCE <tspan fill="url(#hNeonLime)">•</tspan> FOCO <tspan fill="url(#hNeonBlue)">•</tspan> EVOLUÇÃO
+    </text>
+  </g>
+</svg>

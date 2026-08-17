@@ -6,10 +6,9 @@ import { Input } from "@/components/ui/input";
 import PasswordInput from "@/components/PasswordInput";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import FinexLogo from "@/components/FinexLogo";
 
 import { ArrowLeft } from "lucide-react";
-
-import logo from "@/assets/logo.jpeg";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -44,12 +43,8 @@ const Login = () => {
           </Link>
         </div>
 
-        <Link to="/" className="flex items-center gap-3 justify-center mb-6">
-          <img src={logo} alt="Conexão Fitness" className="h-12 w-auto rounded-lg" />
-          <span className="font-display font-bold text-xl">
-            <span className="text-foreground">Conexão</span>{" "}
-            <span className="text-secondary">Fitness</span>
-          </span>
+        <Link to="/" className="flex items-center justify-center mb-6">
+          <FinexLogo size="lg" />
         </Link>
 
         <div className="bg-transparent md:bg-card md:border md:border-border rounded-2xl p-2 md:p-8 md:shadow-card">

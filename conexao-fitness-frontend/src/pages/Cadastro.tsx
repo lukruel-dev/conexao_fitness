@@ -8,11 +8,11 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import type { UserRole } from "@/types/api";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, User, Dumbbell, Building2, Eye, EyeOff, Check, X, ShieldAlert, Sparkles, HelpCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { listProfessions } from "@/services/professions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import logo from "@/assets/logo.jpeg";
+import FinexLogo from "@/components/FinexLogo";
 import { uploadDocument, uploadAvatar } from "@/services/uploads";
 
 const roleOptions: { value: UserRole; label: string; desc: string }[] = [
@@ -157,12 +157,8 @@ const Cadastro = () => {
           </Link>
         </div>
 
-        <Link to="/" className="flex items-center gap-3 justify-center mb-6">
-          <img src={logo} alt="Conexão Fitness" className="h-12 w-auto rounded-lg" />
-          <span className="font-display font-bold text-xl">
-            <span className="text-foreground">Conexão</span>{" "}
-            <span className="text-secondary">Fitness</span>
-          </span>
+        <Link to="/" className="flex items-center justify-center mb-6">
+          <FinexLogo size="lg" />
         </Link>
 
         <div className="bg-transparent md:bg-card md:border md:border-border rounded-2xl p-2 md:p-8 md:shadow-card">

@@ -1,4 +1,4 @@
-import logo from "@/assets/logo.jpeg";
+import FinexLogo from "@/components/FinexLogo";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Link } from "react-router-dom";
 import { Instagram, Facebook, Linkedin, Mail, Phone, MapPin } from "lucide-react";
@@ -12,14 +12,10 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <Link to="/" className="flex items-center gap-3 mb-4 shrink-0">
-              <img src={logo} alt="Conexão Fitness" className="h-10 md:h-12 w-auto rounded-lg shrink-0" />
-              <span className="font-display font-bold text-lg md:text-xl whitespace-nowrap shrink-0">
-                <span className="text-foreground">Conexão</span>{" "}
-                <span className="text-secondary">Fitness</span>
-              </span>
+              <FinexLogo size="lg" />
             </Link>
             <p className="text-muted-foreground text-sm mb-6">
-              Conectando você às melhores academias e personal trainers do Brasil.
+              Sua plataforma inteligente para treinar, conectar e evoluir.
             </p>
             <div className="flex items-center gap-4">
               <a href="#" className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-colors">
