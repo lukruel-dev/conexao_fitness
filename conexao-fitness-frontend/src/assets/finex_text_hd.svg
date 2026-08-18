@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180" width="100%" height="100%">
+  <defs>
+    <!-- Chrome Metal Gradient -->
+    <linearGradient id="chromeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="25%" stop-color="#f1f5f9"/>
+      <stop offset="50%" stop-color="#cbd5e1"/>
+      <stop offset="52%" stop-color="#94a3b8"/>
+      <stop offset="75%" stop-color="#e2e8f0"/>
+      <stop offset="100%" stop-color="#64748b"/>
+    </linearGradient>
+
+    <!-- Emerald/Lime Green 3D Gradient for X -->
+    <linearGradient id="green3DGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#bbf7d0"/>
+      <stop offset="30%" stop-color="#4ade80"/>
+      <stop offset="60%" stop-color="#16a34a"/>
+      <stop offset="85%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#14532d"/>
+    </linearGradient>
+
+    <!-- Subtitle Metallic Gradient -->
+    <linearGradient id="subMetal" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e2e8f0"/>
+      <stop offset="50%" stop-color="#94a3b8"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+
+    <linearGradient id="lineGradLeft" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#334155" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#94a3b8" stop-opacity="0.9"/>
+    </linearGradient>
+
+    <linearGradient id="lineGradRight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#94a3b8" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#334155" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Drop Shadow Filter for 3D Typography -->
+    <filter id="text3dShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000000" flood-opacity="0.75"/>
+    </filter>
+
+    <filter id="greenGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g filter="url(#text3dShadow)">
+    <!-- 1. FINEX -->
+    <g transform="translate(10, 100)">
+      <!-- F, I, N, E (White/Chrome 3D) -->
+      <text font-family="'Outfit', 'Inter', system-ui, -apple-system, sans-serif" 
+            font-weight="900" 
+            font-size="112" 
+            letter-spacing="4" 
+            fill="url(#chromeGrad)" 
+            stroke="#1e293b" 
+            stroke-width="1.5">
+        FINE
+      </text>
+
+      <!-- X (3D Vibrant Green) -->
+      <text x="350" 
+            font-family="'Outfit', 'Inter', system-ui, -apple-system, sans-serif" 
+            font-weight="900" 
+            font-size="112" 
+            letter-spacing="4" 
+            fill="url(#green3DGrad)" 
+            stroke="#052e16" 
+            stroke-width="1.5"
+            filter="url(#greenGlow)">
+        X
+      </text>
+    </g>
+
+    <!-- 2. — FITNESS — -->
+    <g transform="translate(10, 152)">
+      <!-- Left Accent Needle/Tapered Line -->
+      <path d="M 10, -5 L 140, -5 L 140, -1 L 10, -3 Z" fill="url(#lineGradLeft)"/>
+
+      <!-- FITNESS Subtitle -->
+      <text x="245" y="0" 
+            text-anchor="middle" 
+            font-family="'Inter', system-ui, sans-serif" 
+            font-weight="800" 
+            font-size="28" 
+            letter-spacing="12" 
+            fill="url(#subMetal)" 
+            stroke="#0f172a" 
+            stroke-width="0.75">
+        FITNESS
+      </text>
+
+      <!-- Right Accent Needle/Tapered Line -->
+      <path d="M 350, -5 L 480, -5 L 480, -3 L 350, -1 Z" fill="url(#lineGradRight)"/>
+    </g>
+  </g>
+</svg>

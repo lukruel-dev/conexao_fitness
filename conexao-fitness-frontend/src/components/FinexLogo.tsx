@@ -1,6 +1,6 @@
 import React from "react";
-import finexLogoTransparent from "@/assets/finex_logo_transparent.png";
-import finexTextTransparent from "@/assets/finex_text_transparent.png";
+import finexIconHd from "@/assets/finex_icon_hd.svg";
+import finexTextHd from "@/assets/finex_text_hd.svg";
 
 interface FinexLogoProps {
   className?: string;
@@ -17,7 +17,7 @@ export const FinexLogo: React.FC<FinexLogoProps> = ({
   showText = true,
   size = "md",
 }) => {
-  // Tamanhos da logo circular e do texto metálico transparente
+  // Tamanhos da logo circular com definição vetorial HD
   const sizeMap = {
     sm: {
       badge: "w-9 h-9 md:w-10 md:h-10",
@@ -45,22 +45,22 @@ export const FinexLogo: React.FC<FinexLogoProps> = ({
 
   return (
     <div className={`inline-flex items-center ${currentSize.gap} ${className}`}>
-      {/* 1. Círculo FX com fundo transparente */}
+      {/* 1. Círculo FX Vetorial HD (Fundo 100% Transparente & Nitidez Máxima) */}
       <div className={`relative shrink-0 flex items-center justify-center ${currentSize.badge}`}>
         <img
-          src={finexLogoTransparent}
-          alt="Finex Icon"
-          className={`w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(0,166,255,0.25)] hover:scale-105 transition-all duration-300 ${imageClassName}`}
+          src={finexIconHd}
+          alt="Finex"
+          className={`w-full h-full object-contain filter drop-shadow-[0_0_12px_rgba(0,166,255,0.35)] hover:scale-105 transition-all duration-300 ${imageClassName}`}
         />
       </div>
 
-      {/* 2. Imagem da Tipografia FINEX FITNESS 3D com fundo transparente */}
+      {/* 2. Tipografia FINEX FITNESS 3D Vetorial HD */}
       {showText && (
         <div className="flex items-center shrink-0">
           <img
-            src={finexTextTransparent}
+            src={finexTextHd}
             alt="Finex Fitness"
-            className={`${currentSize.textHeight} w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)] ${textClassName}`}
+            className={`${currentSize.textHeight} w-auto object-contain drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] ${textClassName}`}
           />
         </div>
       )}

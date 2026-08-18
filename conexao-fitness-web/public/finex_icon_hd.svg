@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Cyan/Blue Glow Gradient -->
+    <linearGradient id="neonBlueGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="40%" stop-color="#00a8ff"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <!-- Lime/Green Glow Gradient -->
+    <linearGradient id="neonLimeGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a3e635"/>
+      <stop offset="50%" stop-color="#76e000"/>
+      <stop offset="100%" stop-color="#4d7c0f"/>
+    </linearGradient>
+
+    <!-- 3D Bevel Highlight Gradients -->
+    <linearGradient id="bevelLightBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#bae6fd"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <linearGradient id="bevelLightLime" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#d9f99d"/>
+      <stop offset="100%" stop-color="#4d7c0f"/>
+    </linearGradient>
+
+    <!-- Outer Neon Glow Filter -->
+    <filter id="ultraGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur1"/>
+      <feGaussianBlur stdDeviation="16" result="blur2"/>
+      <feMerge>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="blur1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Subtle Drop Shadow -->
+    <filter id="coreShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#coreShadow)">
+    <!-- 1. NEON CIRCULAR SPLIT RING -->
+    <!-- Top-Left Cyan Arc -->
+    <path d="M 120,380 A 180,180 0 1,1 420,170" 
+          fill="none" 
+          stroke="url(#neonBlueGlow)" 
+          stroke-width="14" 
+          stroke-linecap="round" 
+          filter="url(#ultraGlow)" />
+    <path d="M 120,380 A 180,180 0 1,1 420,170" 
+          fill="none" 
+          stroke="#ffffff" 
+          stroke-width="4" 
+          stroke-linecap="round" 
+          opacity="0.8" />
+
+    <!-- Bottom-Right Lime Arc -->
+    <path d="M 405,190 A 180,180 0 0,1 105,395" 
+          fill="none" 
+          stroke="url(#neonLimeGlow)" 
+          stroke-width="14" 
+          stroke-linecap="round" 
+          filter="url(#ultraGlow)" />
+    <path d="M 405,190 A 180,180 0 0,1 105,395" 
+          fill="none" 
+          stroke="#f7fee7" 
+          stroke-width="4" 
+          stroke-linecap="round" 
+          opacity="0.8" />
+
+    <!-- 2. FX MONOGRAM -->
+    <g transform="translate(18, 10)">
+      <!-- F - Letter (Neon Blue + Metallic Bevel) -->
+      <!-- Shadow Under F -->
+      <path d="M 145,150 L 330,150 L 305,200 L 225,200 L 210,240 L 285,240 L 265,290 L 190,290 L 140,410 L 80,410 Z" 
+            fill="#021a2f" opacity="0.6" transform="translate(4, 6)" />
+
+      <!-- F - Body -->
+      <path d="M 145,150 L 330,150 L 305,200 L 225,200 L 210,240 L 285,240 L 265,290 L 190,290 L 140,410 L 80,410 Z" 
+            fill="url(#neonBlueGlow)" 
+            stroke="#38bdf8" 
+            stroke-width="3" 
+            stroke-linejoin="round" />
+
+      <!-- F - Bevel Highlight Top/Left -->
+      <path d="M 145,150 L 330,150 L 305,175 L 180,175 L 140,410 L 80,410 Z" 
+            fill="url(#bevelLightBlue)" 
+            opacity="0.55" />
+
+      <!-- X - Letter (Neon Lime + Metallic Bevel) -->
+      <!-- Shadow Under X -->
+      <path d="M 330,140 L 235,275 L 345,410 L 275,410 L 195,305 L 155,360 L 95,360 L 165,260 L 215,190 L 265,140 Z" 
+            fill="#0f2604" opacity="0.6" transform="translate(4, 6)" />
+
+      <!-- X - Main Body -->
+      <path d="M 330,140 L 235,275 L 345,410 L 275,410 L 195,305 L 155,360 L 95,360 L 165,260 L 215,190 L 265,140 Z" 
+            fill="url(#neonLimeGlow)" 
+            stroke="#a3e635" 
+            stroke-width="3" 
+            stroke-linejoin="round" />
+
+      <!-- X - Bevel Highlight Top/Right -->
+      <path d="M 330,140 L 235,275 L 265,275 L 330,175 Z" 
+            fill="url(#bevelLightLime)" 
+            opacity="0.6" />
+      <path d="M 195,305 L 275,410 L 245,410 L 175,320 Z" 
+            fill="url(#bevelLightLime)" 
+            opacity="0.4" />
+    </g>
+  </g>
+</svg>

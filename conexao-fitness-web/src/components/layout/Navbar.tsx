@@ -10,18 +10,24 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex flex-shrink-0 items-center">
             <Link href="/" className="flex items-center gap-3">
-              <div className="relative w-10 h-10">
+              <div className="relative w-12 h-12">
                 <Image
-                  src="/logo_01_tr.png"
-                  alt="Conexão Fitness"
+                  src="/finex_icon_hd.svg"
+                  alt="Finex"
+                  fill
+                  className="object-contain drop-shadow-[0_0_10px_rgba(0,166,255,0.35)]"
+                  priority
+                />
+              </div>
+              <div className="relative h-9 w-32 hidden sm:block">
+                <Image
+                  src="/finex_text_hd.svg"
+                  alt="Finex Fitness"
                   fill
                   className="object-contain"
                   priority
                 />
               </div>
-              <span className="font-extrabold text-xl leading-5 tracking-tight text-white hidden sm:block">
-                Conexão<br/><span className="text-brand-green">Fitness</span>
-              </span>
             </Link>
           </div>
 
