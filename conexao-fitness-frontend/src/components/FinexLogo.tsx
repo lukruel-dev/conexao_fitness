@@ -1,5 +1,5 @@
 import React from "react";
-import finexLogoBadge from "@/assets/finex_logo_badge.jpg";
+import finexLogoTransparent from "@/assets/finex_logo_transparent.png";
 
 interface FinexLogoProps {
   className?: string;
@@ -46,12 +46,12 @@ export const FinexLogo: React.FC<FinexLogoProps> = ({
 
   return (
     <div className={`inline-flex items-center ${currentSize.gap} ${className}`}>
-      {/* Círculo do finex_logo_badge.jpg com diâmetro 50% maior */}
+      {/* Logo com fundo transparente */}
       <div className={`relative shrink-0 flex items-center justify-center ${currentSize.badge}`}>
         <img
-          src={finexLogoBadge}
+          src={finexLogoTransparent}
           alt="Finex"
-          className={`w-full h-full rounded-full object-cover shadow-md hover:scale-105 transition-all duration-300 ${imageClassName}`}
+          className={`w-full h-full object-contain filter drop-shadow-[0_0_12px_rgba(0,166,255,0.25)] hover:scale-105 transition-all duration-300 ${imageClassName}`}
         />
       </div>
 
