@@ -1,6 +1,6 @@
 import React from "react";
-import finexIconHd from "@/assets/finex_icon_hd.svg";
-import finexTextHd from "@/assets/finex_text_hd.svg";
+import finexIconHd from "@/assets/finex_icon_hd.png";
+import finexTextHd from "@/assets/finex_text_hd.png";
 
 interface FinexLogoProps {
   className?: string;
