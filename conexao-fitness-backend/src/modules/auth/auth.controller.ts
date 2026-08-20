@@ -1,6 +1,7 @@
 import { Controller, Post, Body, UnauthorizedException, HttpCode, HttpStatus, Get, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { OAuthAuthDto } from './dto/oauth-auth.dto';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
@@ -22,6 +23,12 @@ export class AuthController {
       throw new UnauthorizedException('Credenciais inválidas');
     }
     return this.authService.login(user);
+  }
+
+  @Post('oauth')
+  @HttpCode(HttpStatus.OK)
+  async oauth(@Body() dto: OAuthAuthDto) {
+    return this.authService.oauthLoginOrRegister(dto);
   }
 
   @ApiBearerAuth()

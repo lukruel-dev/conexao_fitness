@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -8,12 +8,13 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import type { UserRole } from "@/types/api";
 
-import { ArrowLeft, User, Dumbbell, Building2, Eye, EyeOff, Check, X, ShieldAlert, Sparkles, HelpCircle } from "lucide-react";
+import { ArrowLeft, User, Dumbbell, Building2, Check, X, ShieldCheck, Sparkles, CheckCircle2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { listProfessions } from "@/services/professions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import FinexLogo from "@/components/FinexLogo";
-import { uploadDocument, uploadAvatar } from "@/services/uploads";
+import { uploadDocument } from "@/services/uploads";
+import OAuthModal, { OAuthUserData } from "@/components/OAuthModal";
 
 const roleOptions: { value: UserRole; label: string; desc: string }[] = [
   { value: "STUDENT", label: "Aluno", desc: "Buscar e reservar treinos" },
@@ -24,7 +25,7 @@ const roleOptions: { value: UserRole; label: string; desc: string }[] = [
 const Cadastro = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { register, loading } = useAuth();
+  const { register, oauthLogin, loading } = useAuth();
   
   const [role, setRole] = useState<UserRole>(() => {
     const params = new URLSearchParams(location.search);
@@ -41,9 +42,25 @@ const Cadastro = () => {
   const [phone, setPhone] = useState("");
   const [professionTitle, setProfessionTitle] = useState("");
   const [professionalRegistrationId, setProfessionalRegistrationId] = useState("");
+  const [razaoSocial, setRazaoSocial] = useState("");
+  const [nomeFantasia, setNomeFantasia] = useState("");
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Estado da autenticação social
+  const [socialAuth, setSocialAuth] = useState<OAuthUserData | null>(null);
+  const [oauthProvider, setOauthProvider] = useState<"google" | "apple" | null>(null);
+
+  // Inicializa caso tenha vindo redirecionado do login social
+  useEffect(() => {
+    const stateData = (location.state as any)?.oauthData as OAuthUserData | undefined;
+    if (stateData) {
+      setSocialAuth(stateData);
+      setName(stateData.name);
+      setEmail(stateData.email);
+    }
+  }, [location.state]);
 
   const formatCpfCnpj = (value: string) => {
     const numbers = value.replace(/\D/g, "");
@@ -76,6 +93,36 @@ const Cadastro = () => {
     queryFn: listProfessions,
   });
 
+  const handleOAuthSelected = async (data: OAuthUserData) => {
+    if (role === "STUDENT") {
+      // Para ALUNO: Conclui o cadastro imediatamente via Google/Apple
+      try {
+        const res = await oauthLogin({
+          provider: data.provider,
+          email: data.email,
+          name: data.name,
+          avatarUrl: data.avatarUrl,
+          role: "STUDENT",
+        });
+
+        if ("accessToken" in res && res.accessToken) {
+          toast.success("Conta criada e conectada com sucesso!");
+          navigate("/buscar");
+        }
+      } catch (err) {
+        toast.error("Erro no cadastro social", { description: (err as Error).message });
+      }
+    } else {
+      // Para PROFISSIONAL ou ACADEMIA: Salva a conta social vinculada e foca nos campos obrigatórios
+      setSocialAuth(data);
+      setName(data.name);
+      setEmail(data.email);
+      toast.info(
+        `Conta ${data.provider === "google" ? "Google" : "Apple"} vinculada! Por favor, preencha os dados complementares abaixo.`
+      );
+    }
+  };
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -89,7 +136,26 @@ const Cadastro = () => {
         return;
       }
       if (!documentFile) {
-        toast.error("Por favor, anexe seu comprovante de registro");
+        toast.error("Por favor, anexe seu comprovante de registro profissional");
+        return;
+      }
+      if (!cpf) {
+        toast.error("Por favor, preencha seu CPF");
+        return;
+      }
+      if (!phone) {
+        toast.error("Por favor, preencha seu telefone");
+        return;
+      }
+    }
+
+    if (role === "ACADEMIA") {
+      if (!cpf) {
+        toast.error("Por favor, preencha o CNPJ da academia");
+        return;
+      }
+      if (!phone) {
+        toast.error("Por favor, preencha o telefone de contato");
         return;
       }
     }
@@ -97,7 +163,7 @@ const Cadastro = () => {
     try {
       let professionalDocumentUrl = undefined;
 
-      if (role === "PERSONAL" && documentFile) {
+      if ((role === "PERSONAL" || role === "ACADEMIA") && documentFile) {
         setIsUploading(true);
         try {
           const res = await uploadDocument(documentFile);
@@ -110,17 +176,48 @@ const Cadastro = () => {
         setIsUploading(false);
       }
 
-      const newUser = await register({ 
-        name, 
-        email, 
-        password, 
-        role, 
-        professionTitle, 
-        cpf, 
-        phone,
-        professionalRegistrationId: role === "PERSONAL" ? professionalRegistrationId : undefined,
-        professionalDocumentUrl
-      });
+      let newUser: any;
+
+      if (socialAuth) {
+        // Cadastro via OAuth com dados complementares
+        const res = await oauthLogin({
+          provider: socialAuth.provider,
+          email: socialAuth.email,
+          name: name || socialAuth.name,
+          avatarUrl: socialAuth.avatarUrl,
+          role,
+          cpf,
+          cnpj: role === "ACADEMIA" ? cpf : undefined,
+          razaoSocial: role === "ACADEMIA" ? (razaoSocial || name) : undefined,
+          nomeFantasia: role === "ACADEMIA" ? (nomeFantasia || name) : undefined,
+          phone,
+          professionTitle: role === "PERSONAL" ? professionTitle : undefined,
+          professionalRegistrationId: role === "PERSONAL" ? professionalRegistrationId : undefined,
+          professionalDocumentUrl,
+        });
+
+        if ("accessToken" in res && res.accessToken) {
+          newUser = res.user;
+        } else {
+          throw new Error("Não foi possível concluir o cadastro social.");
+        }
+      } else {
+        // Cadastro tradicional com senha
+        newUser = await register({ 
+          name, 
+          email, 
+          password, 
+          role, 
+          professionTitle: role === "PERSONAL" ? professionTitle : undefined, 
+          cpf, 
+          cnpj: role === "ACADEMIA" ? cpf : undefined,
+          razaoSocial: role === "ACADEMIA" ? (razaoSocial || name) : undefined,
+          nomeFantasia: role === "ACADEMIA" ? (nomeFantasia || name) : undefined,
+          phone,
+          professionalRegistrationId: role === "PERSONAL" ? professionalRegistrationId : undefined,
+          professionalDocumentUrl
+        });
+      }
 
       if (avatarFile && (role === "PERSONAL" || role === "ACADEMIA")) {
         try {
@@ -129,7 +226,7 @@ const Cadastro = () => {
             await m.updateMyAvatar(avatarRes.url);
           });
         } catch (err) {
-          toast.error("Conta criada, mas falhou ao salvar foto", { description: (err as Error).message });
+          console.warn("Avatar upload notice:", err);
         }
       }
 
@@ -167,6 +264,35 @@ const Cadastro = () => {
             Comece em menos de um minuto.
           </p>
 
+          {/* Social Auth Banner se conectado */}
+          {socialAuth && (
+            <div className="mb-6 p-3.5 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-between animate-fade-in">
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
+                <div>
+                  <div className="text-xs font-semibold text-foreground">
+                    Conectado com {socialAuth.provider === "google" ? "Google" : "Apple"}
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate max-w-[200px]">
+                    {socialAuth.email}
+                  </div>
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs text-muted-foreground hover:text-destructive"
+                onClick={() => {
+                  setSocialAuth(null);
+                  toast.info("Desvinculado. Você pode cadastrar com senha.");
+                }}
+              >
+                Alterar
+              </Button>
+            </div>
+          )}
+
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>Eu sou</Label>
@@ -191,10 +317,16 @@ const Cadastro = () => {
               </div>
             </div>
 
+            {/* Campos Específicos para PROFISSIONAL */}
             {role === "PERSONAL" && (
               <>
+                <div className="p-3 bg-secondary/10 border border-secondary/20 rounded-xl mb-3 text-xs text-secondary-foreground flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-secondary shrink-0" />
+                  <span>Cadastre seus dados profissionais para ativação e validação do seu perfil.</span>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="profession">Sua Profissão</Label>
+                  <Label htmlFor="profession">Sua Profissão *</Label>
                   <Select value={professionTitle} onValueChange={setProfessionTitle}>
                     <SelectTrigger className="h-12">
                       <SelectValue placeholder="Selecione sua profissão" />
@@ -212,12 +344,12 @@ const Cadastro = () => {
                 <div className="space-y-2">
                   <Label htmlFor="professionalRegistrationId">
                     {professionTitle === "Educador Físico" 
-                      ? "Número do CREF" 
+                      ? "Número do CREF *" 
                       : professionTitle === "Fisioterapeuta" 
-                      ? "Número do CREFITO" 
+                      ? "Número do CREFITO *" 
                       : professionTitle === "Nutricionista" 
-                      ? "Número do CRN" 
-                      : "Número do Registro Profissional (ex: CREF, CRN)"}
+                      ? "Número do CRN *" 
+                      : "Número do Registro Profissional (ex: CREF, CRN) *"}
                   </Label>
                   <Input
                     id="professionalRegistrationId"
@@ -225,12 +357,12 @@ const Cadastro = () => {
                     className="h-12"
                     value={professionalRegistrationId}
                     onChange={(e) => setProfessionalRegistrationId(e.target.value)}
-                    placeholder="Ex: 000000-G/SP"
+                    placeholder="Ex: 000000-G/RS"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="documentFile">Comprovante de Registro (Foto/PDF)</Label>
+                  <Label htmlFor="documentFile">Comprovante de Registro (Foto/PDF) *</Label>
                   <Input
                     id="documentFile"
                     type="file"
@@ -246,9 +378,56 @@ const Cadastro = () => {
               </>
             )}
 
+            {/* Campos Específicos para ACADEMIA */}
+            {role === "ACADEMIA" && (
+              <>
+                <div className="p-3 bg-secondary/10 border border-secondary/20 rounded-xl mb-3 text-xs text-secondary-foreground flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-secondary shrink-0" />
+                  <span>Informe os dados comerciais da sua academia ou centro de treino.</span>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="nomeFantasia">Nome Fantasia da Academia *</Label>
+                  <Input 
+                    id="nomeFantasia" 
+                    required 
+                    className="h-12" 
+                    placeholder="Ex: FitLife Academia"
+                    value={nomeFantasia} 
+                    onChange={(e) => setNomeFantasia(e.target.value)} 
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="razaoSocial">Razão Social (Opcional)</Label>
+                  <Input 
+                    id="razaoSocial" 
+                    className="h-12" 
+                    placeholder="Ex: FitLife Treinamento Esportivo LTDA"
+                    value={razaoSocial} 
+                    onChange={(e) => setRazaoSocial(e.target.value)} 
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="documentFileAcademia">Alvará ou Contrato Social (Opcional)</Label>
+                  <Input
+                    id="documentFileAcademia"
+                    type="file"
+                    accept="image/*,.pdf"
+                    className="h-12 pt-3"
+                    onChange={(e) => setDocumentFile(e.target.files?.[0] || null)}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Anexe alvará ou documento oficial para agilizar a verificação.
+                  </p>
+                </div>
+              </>
+            )}
+
             {(role === "PERSONAL" || role === "ACADEMIA") && (
               <div className="space-y-2">
-                <Label htmlFor="avatarFile">Foto de Perfil (Opcional)</Label>
+                <Label htmlFor="avatarFile">Foto de Perfil ou Logo (Opcional)</Label>
                 <Input
                   id="avatarFile"
                   type="file"
@@ -256,35 +435,38 @@ const Cadastro = () => {
                   className="h-12 pt-3"
                   onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Selecione uma foto para o seu perfil profissional.
-                </p>
               </div>
             )}
 
             <div className="space-y-2">
               <Label htmlFor="name">
-                {role === "ACADEMIA" || role === "PERSONAL" ? "Nome ou Razão Social" : "Nome completo"}
+                {role === "ACADEMIA" ? "Nome do Responsável Legal *" : role === "PERSONAL" ? "Nome Completo do Profissional *" : "Nome completo *"}
               </Label>
-              <Input id="name" required className="h-12" value={name} onChange={(e) => setName(e.target.value)} />
+              <Input 
+                id="name" 
+                required 
+                className="h-12" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)} 
+              />
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="cpf">
-                {role === "ACADEMIA" || role === "PERSONAL" ? "CPF ou CNPJ" : "CPF"}
+                {role === "ACADEMIA" ? "CNPJ da Academia *" : "CPF *"}
               </Label>
               <Input 
                 id="cpf" 
                 required 
                 className="h-12" 
-                placeholder={role === "ACADEMIA" || role === "PERSONAL" ? "000.000.000-00 ou 00.000.000/0000-00" : "000.000.000-00"}
+                placeholder={role === "ACADEMIA" ? "00.000.000/0000-00" : "000.000.000-00"}
                 value={cpf} 
                 onChange={(e) => setCpf(formatCpfCnpj(e.target.value))} 
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Número de Telefone</Label>
+              <Label htmlFor="phone">Telefone / WhatsApp *</Label>
               <Input 
                 id="phone" 
                 required 
@@ -294,58 +476,80 @@ const Cadastro = () => {
                 onChange={(e) => setPhone(formatPhone(e.target.value))} 
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
+              <Label htmlFor="email">E-mail *</Label>
               <Input
                 id="email"
                 type="email"
                 required
-                className="h-12"
+                disabled={!!socialAuth}
+                className={`h-12 ${socialAuth ? "bg-muted/70 cursor-not-allowed" : ""}`}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <PasswordInput
-                id="password"
-                required
-                minLength={6}
-                className="h-12"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+
+            {!socialAuth && (
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha *</Label>
+                <PasswordInput
+                  id="password"
+                  required
+                  minLength={6}
+                  className="h-12"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            )}
 
             <Button type="submit" variant="hero" className="w-full h-12 text-base mt-2" disabled={loading || isUploading}>
-              {loading || isUploading ? "Criando..." : "Criar conta"}
+              {loading || isUploading 
+                ? "Criando conta..." 
+                : socialAuth 
+                ? "Concluir Cadastro" 
+                : "Criar conta"}
             </Button>
           </form>
 
-          <div className="mt-8 flex items-center justify-center gap-4">
-            <div className="flex-1 h-px bg-border"></div>
-            <span className="text-xs text-muted-foreground font-medium uppercase">Ou cadastre-se com</span>
-            <div className="flex-1 h-px bg-border"></div>
-          </div>
+          {!socialAuth && (
+            <>
+              <div className="mt-8 flex items-center justify-center gap-4">
+                <div className="flex-1 h-px bg-border"></div>
+                <span className="text-xs text-muted-foreground font-medium uppercase">Ou cadastre-se com</span>
+                <div className="flex-1 h-px bg-border"></div>
+              </div>
 
-          <div className="mt-6 flex flex-col sm:flex-row gap-3">
-            <Button variant="outline" className="w-full h-12" onClick={() => toast.info("Cadastro com Google em breve!")}>
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-              </svg>
-              Google
-            </Button>
-            <Button variant="outline" className="w-full h-12" onClick={() => toast.info("Cadastro com Apple em breve!")}>
-              <svg className="w-5 h-5 mr-2 text-foreground fill-current" viewBox="0 0 24 24">
-                <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.09 2.31-.86 3.59-.8 1.51.05 2.95.72 3.81 1.96-3.44 1.96-2.93 6.66.62 8.04-.76 1.77-1.85 3.87-3.1 5.06v-.09zm-3.32-14.7c.69-.95 1.13-2.16.92-3.41-1.11.07-2.38.74-3.1 1.67-.65.8-1.22 2.07-1 3.3 1.25.12 2.45-.63 3.18-1.56z" />
-              </svg>
-              Apple
-            </Button>
-          </div>
-
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  className="w-full h-12 hover:bg-primary/5 hover:border-primary/40 transition-all" 
+                  onClick={() => setOauthProvider("google")}
+                >
+                  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                  Google
+                </Button>
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  className="w-full h-12 hover:bg-primary/5 hover:border-primary/40 transition-all" 
+                  onClick={() => setOauthProvider("apple")}
+                >
+                  <svg className="w-5 h-5 mr-2 text-foreground fill-current" viewBox="0 0 24 24">
+                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.09 2.31-.86 3.59-.8 1.51.05 2.95.72 3.81 1.96-3.44 1.96-2.93 6.66.62 8.04-.76 1.77-1.85 3.87-3.1 5.06v-.09zm-3.32-14.7c.69-.95 1.13-2.16.92-3.41-1.11.07-2.38.74-3.1 1.67-.65.8-1.22 2.07-1 3.3 1.25.12 2.45-.63 3.18-1.56z" />
+                  </svg>
+                  Apple
+                </Button>
+              </div>
+            </>
+          )}
 
           <p className="text-center text-sm text-muted-foreground mt-6">
             Já tem conta?{" "}
@@ -356,6 +560,13 @@ const Cadastro = () => {
 
         </div>
       </div>
+
+      <OAuthModal
+        isOpen={!!oauthProvider}
+        onClose={() => setOauthProvider(null)}
+        provider={oauthProvider}
+        onSuccess={handleOAuthSelected}
+      />
     </div>
   );
 };

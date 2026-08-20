@@ -1,16 +1,27 @@
-import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
-import type { UserRole } from '../entities/user.entity';
+import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import type { UserRole } from '../../users/entities/user.entity';
 
-export class CreateUserDto {
-  @IsString()
-  name: string;
+export class OAuthAuthDto {
+  @IsEnum(['google', 'apple'])
+  provider: 'google' | 'apple';
 
   @IsEmail()
   email: string;
 
   @IsString()
-  @MinLength(8, { message: 'A senha deve ter no mínimo 8 caracteres' })
-  password: string;
+  name: string;
+
+  @IsString()
+  @IsOptional()
+  avatarUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  token?: string;
+
+  @IsEnum(['STUDENT', 'PERSONAL', 'ACADEMIA', 'ADMIN'])
+  @IsOptional()
+  role?: UserRole;
 
   @IsString()
   @IsOptional()
@@ -31,13 +42,6 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   phone?: string;
-
-  @IsString()
-  @IsOptional()
-  avatarUrl?: string;
-
-  @IsEnum(['STUDENT', 'PERSONAL', 'ACADEMIA', 'ADMIN'])
-  role: UserRole;
 
   @IsString()
   @IsOptional()

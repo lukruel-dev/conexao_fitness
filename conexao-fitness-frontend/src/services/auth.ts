@@ -2,7 +2,7 @@ import { apiRequest } from "@/lib/apiClient";
 import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from "@/lib/apiConfig";
 import type { AuthResponse, AuthUser, LoginDto, RegisterDto } from "@/types/api";
 
-function persistSession(res: AuthResponse) {
+export function persistSession(res: AuthResponse) {
   localStorage.setItem(AUTH_TOKEN_KEY, res.accessToken);
   localStorage.setItem(AUTH_USER_KEY, JSON.stringify(res.user));
 }
@@ -31,6 +31,18 @@ export async function login(dto: LoginDto): Promise<AuthResponse> {
 export async function register(dto: RegisterDto): Promise<AuthResponse> {
   const res = await apiRequest<AuthResponse>("/auth/register", { method: "POST", body: dto });
   persistSession(res);
+  return res;
+}
+
+export async function oauthLogin(dto: import("@/types/api").OAuthDto): Promise<AuthResponse | import("@/types/api").OAuthPendingResponse> {
+  const res = await apiRequest<AuthResponse | import("@/types/api").OAuthPendingResponse>("/auth/oauth", {
+    method: "POST",
+    body: dto,
+  });
+
+  if ("accessToken" in res && res.accessToken) {
+    persistSession(res);
+  }
   return res;
 }
 

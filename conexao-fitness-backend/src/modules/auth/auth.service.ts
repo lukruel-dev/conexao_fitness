@@ -3,9 +3,11 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { OAuthAuthDto } from './dto/oauth-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Subscription, SubscriptionStatus } from '../payments/entities/subscription.entity';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -89,5 +91,70 @@ export class AuthService {
     }
     const user = await this.usersService.create(dto);
     return this.login(user);
+  }
+
+  async oauthLoginOrRegister(dto: OAuthAuthDto) {
+    const existingUser = await this.usersService.findByEmail(dto.email);
+
+    if (existingUser) {
+      if (existingUser.status === 'SUSPENSO') {
+        throw new UnauthorizedException('Conta suspensa. Entre em contato com o suporte.');
+      }
+      if (!existingUser.avatarUrl && dto.avatarUrl) {
+        await this.usersService.updateAvatar(existingUser.id, dto.avatarUrl);
+        existingUser.avatarUrl = dto.avatarUrl;
+      }
+      return this.login(existingUser);
+    }
+
+    const selectedRole = dto.role || 'STUDENT';
+
+    // Se for PERSONAL ou ACADEMIA e ainda faltar dados obrigatórios
+    if (selectedRole === 'PERSONAL') {
+      const hasRequiredFields = !!(dto.professionTitle && dto.professionalRegistrationId && dto.cpf);
+      if (!hasRequiredFields) {
+        return {
+          requiresAdditionalData: true,
+          provider: dto.provider,
+          email: dto.email,
+          name: dto.name,
+          avatarUrl: dto.avatarUrl,
+          role: 'PERSONAL',
+        };
+      }
+    } else if (selectedRole === 'ACADEMIA') {
+      const hasRequiredFields = !!(dto.cnpj || dto.cpf);
+      if (!hasRequiredFields) {
+        return {
+          requiresAdditionalData: true,
+          provider: dto.provider,
+          email: dto.email,
+          name: dto.name,
+          avatarUrl: dto.avatarUrl,
+          role: 'ACADEMIA',
+        };
+      }
+    }
+
+    // Gerar uma senha segura interna para a conta OAuth
+    const dummyPassword = `OAuth_${dto.provider}_${Math.random().toString(36).slice(2)}_${Date.now()}`;
+
+    const createdUser = await this.usersService.create({
+      name: dto.name,
+      email: dto.email,
+      password: dummyPassword,
+      role: selectedRole,
+      avatarUrl: dto.avatarUrl,
+      cpf: dto.cpf,
+      cnpj: dto.cnpj,
+      razaoSocial: dto.razaoSocial,
+      nomeFantasia: dto.nomeFantasia,
+      phone: dto.phone,
+      professionTitle: dto.professionTitle,
+      professionalRegistrationId: dto.professionalRegistrationId,
+      professionalDocumentUrl: dto.professionalDocumentUrl,
+    });
+
+    return this.login(createdUser);
   }
 }

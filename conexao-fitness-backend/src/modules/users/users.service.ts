@@ -31,8 +31,9 @@ export class UsersService {
       passwordHash: hashedPassword,
       role: dto.role,
       status: 'PENDENTE_KYC',
-      cpf: dto.cpf,
+      cpf: dto.cpf || dto.cnpj,
       phone: dto.phone,
+      avatarUrl: dto.avatarUrl,
     });
 
     const savedUser = await this.usersRepo.save(user);
@@ -46,6 +47,15 @@ export class UsersService {
         documentUrl: dto.professionalDocumentUrl,
       });
       await this.personalProfileRepo.save(profile);
+    } else if (dto.role === 'ACADEMIA') {
+      const profile = this.academiaProfileRepo.create({
+        userId: savedUser.id,
+        razaoSocial: dto.razaoSocial || dto.name,
+        nomeFantasia: dto.nomeFantasia || dto.name,
+        cnpj: dto.cnpj || dto.cpf || '',
+        documentUrl: dto.professionalDocumentUrl,
+      });
+      await this.academiaProfileRepo.save(profile);
     }
 
     return savedUser;

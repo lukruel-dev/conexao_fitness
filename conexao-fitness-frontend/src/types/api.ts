@@ -130,13 +130,43 @@ export interface LoginDto {
 export interface RegisterDto {
   name: string;
   email: string;
-  password: string;
+  password?: string;
   role: UserRole;
+  avatarUrl?: string;
   professionTitle?: string;
   cpf?: string;
+  cnpj?: string;
+  razaoSocial?: string;
+  nomeFantasia?: string;
   phone?: string;
   professionalRegistrationId?: string;
   professionalDocumentUrl?: string;
+}
+
+export interface OAuthDto {
+  provider: 'google' | 'apple';
+  email: string;
+  name: string;
+  avatarUrl?: string;
+  token?: string;
+  role?: UserRole;
+  cpf?: string;
+  cnpj?: string;
+  razaoSocial?: string;
+  nomeFantasia?: string;
+  phone?: string;
+  professionTitle?: string;
+  professionalRegistrationId?: string;
+  professionalDocumentUrl?: string;
+}
+
+export interface OAuthPendingResponse {
+  requiresAdditionalData: true;
+  provider: 'google' | 'apple';
+  email: string;
+  name: string;
+  avatarUrl?: string;
+  role: UserRole;
 }
 
 export interface AuthResponse {

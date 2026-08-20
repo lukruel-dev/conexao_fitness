@@ -9,6 +9,7 @@ interface AuthContextValue {
   loading: boolean;
   login: (dto: LoginDto) => Promise<AuthUser>;
   register: (dto: RegisterDto) => Promise<AuthUser>;
+  oauthLogin: (dto: import("@/types/api").OAuthDto) => Promise<import("@/types/api").AuthResponse | import("@/types/api").OAuthPendingResponse>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   setUser: (user: AuthUser) => void;
@@ -62,6 +63,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const handleOAuthLogin = useCallback(async (dto: import("@/types/api").OAuthDto) => {
+    setLoading(true);
+    try {
+      const { oauthLogin: apiOAuthLogin } = await import("@/services/auth");
+      const res = await apiOAuthLogin(dto);
+      if ("accessToken" in res && res.accessToken) {
+        setUser(res.user);
+      }
+      return res;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const logout = useCallback(() => {
     logoutApi();
     setUser(null);
@@ -84,11 +99,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       login,
       register,
+      oauthLogin: handleOAuthLogin,
       logout,
       refreshUser,
       setUser: setUserExternal,
     }),
-    [user, loading, login, register, logout, refreshUser, setUserExternal],
+    [user, loading, login, register, handleOAuthLogin, logout, refreshUser, setUserExternal],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
