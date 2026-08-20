@@ -109,7 +109,13 @@ const ServicoDetalhe = () => {
         <div className="container mx-auto px-4">
           <div className="pl-[env(safe-area-inset-left,16px)] sm:pl-0">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (window.history.state && typeof window.history.state.idx === "number" && window.history.state.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate("/buscar");
+                }
+              }}
               className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6"
             >
               <ArrowLeft className="w-4 h-4" /> Voltar
