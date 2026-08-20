@@ -187,14 +187,14 @@ export default function PlanosPage() {
         <Link href="/" className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors text-sm font-medium">
           <ArrowLeft className="w-4 h-4" /> Voltar
         </Link>
-        <div className="flex items-center gap-2.5">
+        <Link href="/" className="flex items-center gap-2.5 group transition-transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
           <div className="w-8 h-8 relative">
-            <img src="/finex_icon_hd.svg" alt="Finex Logo" className="w-full h-full object-contain" />
+            <img src="/finex_icon_hd.svg" alt="Finex Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(0,166,255,0.35)] group-hover:drop-shadow-[0_0_16px_rgba(0,166,255,0.65)] transition-all duration-300" />
           </div>
           <div className="h-6 w-20 relative">
-            <img src="/finex_text_hd.svg" alt="Finex Fitness" className="w-full h-full object-contain" />
+            <img src="/finex_text_hd.svg" alt="Finex Fitness" className="w-full h-full object-contain group-hover:brightness-110 transition-all duration-300" />
           </div>
-        </div>
+        </Link>
       </div>
 
       <div className="flex-1 max-w-[90rem] mx-auto px-4 py-16 w-full flex flex-col items-center">

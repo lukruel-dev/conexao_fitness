@@ -569,14 +569,14 @@ export default function Home() {
         <footer className="border-t border-slate-800 bg-[#12151c] py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2 space-y-4">
-              <div className="flex items-center gap-3">
+              <Link href="/" className="inline-flex items-center gap-3 group transition-transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer">
                 <div className="w-10 h-10 relative">
-                   <img src="/finex_icon_hd.svg" alt="Finex Logo" className="w-full h-full object-contain" />
+                   <img src="/finex_icon_hd.svg" alt="Finex Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(0,166,255,0.35)] group-hover:drop-shadow-[0_0_16px_rgba(0,166,255,0.65)] transition-all duration-300" />
                 </div>
                 <div className="h-7 w-28 relative">
-                   <img src="/finex_text_hd.svg" alt="Finex Fitness" className="w-full h-full object-contain" />
+                   <img src="/finex_text_hd.svg" alt="Finex Fitness" className="w-full h-full object-contain group-hover:brightness-110 transition-all duration-300" />
                 </div>
-              </div>
+              </Link>
               <p className="text-slate-500 text-sm max-w-sm">
                 Conectando você às melhores academias e profissionais do Brasil.
               </p>
