@@ -37,6 +37,7 @@ const Login = () => {
 
   const handleOAuthSuccess = async (data: OAuthUserData) => {
     try {
+      localStorage.setItem(`cf_last_oauth_${data.provider}`, JSON.stringify(data));
       const res = await oauthLogin({
         provider: data.provider,
         email: data.email,
@@ -45,7 +46,7 @@ const Login = () => {
       });
 
       if ("accessToken" in res && res.accessToken) {
-        toast.success(`Bem-vindo, ${res.user.name.split(" ")[0]}!`);
+        toast.success(`Bem-vindo de volta, ${res.user.name.split(" ")[0]}!`);
         if (res.user.role === "ADMIN") {
           navigate("/perfil");
         } else if (res.user.role === "PERSONAL" || res.user.role === "ACADEMIA") {
@@ -54,7 +55,7 @@ const Login = () => {
           navigate("/buscar");
         }
       } else if ("requiresAdditionalData" in res) {
-        toast.info("Conta não encontrada. Vamos concluir seu cadastro!");
+        toast.info("Vamos concluir seu cadastro!");
         navigate("/cadastro", {
           state: {
             oauthData: data,
@@ -64,6 +65,23 @@ const Login = () => {
     } catch (err) {
       toast.error("Erro na autenticação social", { description: (err as Error).message });
     }
+  };
+
+  const handleProviderClick = (provider: "google" | "apple") => {
+    // Se já temos a última conta conectada neste navegador, faz o login direto em 1 clique!
+    const saved = localStorage.getItem(`cf_last_oauth_${provider}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as OAuthUserData;
+        if (parsed.email && parsed.name) {
+          handleOAuthSuccess(parsed);
+          return;
+        }
+      } catch {}
+    }
+
+    // Se for primeira vez, abre o seletor
+    setOauthProvider(provider);
   };
 
   return (
@@ -130,8 +148,8 @@ const Login = () => {
             <Button 
               type="button"
               variant="outline" 
-              className="w-full h-12 hover:bg-primary/5 hover:border-primary/40 transition-all" 
-              onClick={() => setOauthProvider("google")}
+              className="w-full h-12 hover:bg-primary/5 hover:border-primary/40 transition-all font-semibold" 
+              onClick={() => handleProviderClick("google")}
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -144,8 +162,8 @@ const Login = () => {
             <Button 
               type="button"
               variant="outline" 
-              className="w-full h-12 hover:bg-primary/5 hover:border-primary/40 transition-all" 
-              onClick={() => setOauthProvider("apple")}
+              className="w-full h-12 hover:bg-primary/5 hover:border-primary/40 transition-all font-semibold" 
+              onClick={() => handleProviderClick("apple")}
             >
               <svg className="w-5 h-5 mr-2 text-foreground fill-current" viewBox="0 0 24 24">
                 <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.09 2.31-.86 3.59-.8 1.51.05 2.95.72 3.81 1.96-3.44 1.96-2.93 6.66.62 8.04-.76 1.77-1.85 3.87-3.1 5.06v-.09zm-3.32-14.7c.69-.95 1.13-2.16.92-3.41-1.11.07-2.38.74-3.1 1.67-.65.8-1.22 2.07-1 3.3 1.25.12 2.45-.63 3.18-1.56z" />

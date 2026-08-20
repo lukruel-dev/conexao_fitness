@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles, User } from "lucide-react";
+import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles, User, Globe } from "lucide-react";
 
 export interface OAuthUserData {
   provider: "google" | "apple";
@@ -29,6 +29,61 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
   const [customEmail, setCustomEmail] = useState("");
   const [isCustomMode, setIsCustomMode] = useState(false);
   const [loading, setLoading] = useState(false);
+  const googleBtnRef = useRef<HTMLDivElement>(null);
+
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  // Carrega o SDK oficial da Google Identity Services se houver Client ID
+  useEffect(() => {
+    if (isOpen && provider === "google" && googleClientId) {
+      const scriptId = "google-gsi-client";
+      if (!document.getElementById(scriptId)) {
+        const script = document.createElement("script");
+        script.id = scriptId;
+        script.src = "https://accounts.google.com/gsi/client";
+        script.async = true;
+        script.defer = true;
+        script.onload = () => initGoogleGSI();
+        document.body.appendChild(script);
+      } else {
+        initGoogleGSI();
+      }
+    }
+  }, [isOpen, provider, googleClientId]);
+
+  const initGoogleGSI = () => {
+    if (window.google?.accounts?.id && googleBtnRef.current && googleClientId) {
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: (response: any) => {
+          try {
+            // Decodifica o JWT retornado pelo Google oficial
+            const base64Url = response.credential.split(".")[1];
+            const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+            const payload = JSON.parse(decodeURIComponent(escape(window.atob(base64))));
+            
+            onSuccess({
+              provider: "google",
+              name: payload.name || payload.given_name || "Usuário Google",
+              email: payload.email,
+              avatarUrl: payload.picture, // Foto real oficial do Google!
+            });
+            onClose();
+          } catch (e) {
+            console.error("Erro ao decodificar token do Google:", e);
+          }
+        },
+      });
+
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        theme: "filled_blue",
+        size: "large",
+        width: 320,
+        text: "continue_with",
+        shape: "pill",
+      });
+    }
+  };
 
   if (!provider) return null;
 
@@ -42,10 +97,10 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
         provider,
         name,
         email,
-        avatarUrl: avatarUrl || (isGoogle ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150" : undefined),
+        avatarUrl,
       });
       onClose();
-    }, 400);
+    }, 300);
   };
 
   const handleCustomSubmit = (e: React.FormEvent) => {
@@ -80,8 +135,57 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
+        {isGoogle && googleClientId && (
+          <div className="flex flex-col items-center justify-center py-3 bg-muted/40 rounded-xl border border-border/80 my-2">
+            <div ref={googleBtnRef} className="min-h-[44px] flex items-center justify-center" />
+            <span className="text-[11px] text-muted-foreground mt-2">Login oficial com 2FA e foto real do Google</span>
+          </div>
+        )}
+
         {!isCustomMode ? (
           <div className="space-y-3 py-2">
+            {/* Conta salva recentemente */}
+            {(() => {
+              const savedRaw = localStorage.getItem(`cf_last_oauth_${provider}`);
+              if (!savedRaw) return null;
+              try {
+                const saved = JSON.parse(savedRaw) as OAuthUserData;
+                const initials = saved.name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
+                return (
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => handleSelectAccount(saved.name, saved.email, saved.avatarUrl)}
+                    className="w-full flex items-center justify-between p-3.5 rounded-xl border-2 border-primary/40 bg-primary/5 hover:bg-primary/10 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center border border-primary/40 overflow-hidden">
+                        {saved.avatarUrl ? (
+                          <img src={saved.avatarUrl} alt={saved.name} className="w-full h-full object-cover" />
+                        ) : (
+                          initials
+                        )}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                            {saved.name}
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/20 text-primary font-medium">Recente</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground truncate max-w-[200px]">
+                          {saved.email}
+                        </div>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-primary group-hover:translate-x-1 transition-all" />
+                  </button>
+                );
+              } catch {
+                return null;
+              }
+            })()}
+
             {/* Conta rápida 1 */}
             <button
               type="button"
@@ -142,7 +246,7 @@ export const OAuthModal: React.FC<OAuthModalProps> = ({
                 onClick={() => setIsCustomMode(true)}
               >
                 <User className="w-4 h-4 mr-2" />
-                Usar outra conta {isGoogle ? "Google" : "Apple"}
+                Digitar meus dados {isGoogle ? "Google" : "Apple"}
               </Button>
             </div>
           </div>
