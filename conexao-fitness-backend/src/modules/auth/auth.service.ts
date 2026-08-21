@@ -100,7 +100,7 @@ export class AuthService {
       if (existingUser.status === 'SUSPENSO') {
         throw new UnauthorizedException('Conta suspensa. Entre em contato com o suporte.');
       }
-      if (!existingUser.avatarUrl && dto.avatarUrl) {
+      if (dto.avatarUrl && existingUser.avatarUrl !== dto.avatarUrl) {
         await this.usersService.updateAvatar(existingUser.id, dto.avatarUrl);
         existingUser.avatarUrl = dto.avatarUrl;
       }

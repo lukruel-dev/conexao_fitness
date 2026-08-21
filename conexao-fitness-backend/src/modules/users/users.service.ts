@@ -30,7 +30,7 @@ export class UsersService {
       email: dto.email,
       passwordHash: hashedPassword,
       role: dto.role,
-      status: 'PENDENTE_KYC',
+      status: (dto.role === 'STUDENT' || dto.role === 'ADMIN') ? 'ATIVO' : 'PENDENTE_KYC',
       cpf: dto.cpf || dto.cnpj,
       phone: dto.phone,
       avatarUrl: dto.avatarUrl,
