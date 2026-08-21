@@ -67,7 +67,26 @@ const Login = () => {
     }
   };
 
-  const handleProviderClick = (provider: "google" | "apple") => {
+  const handleProviderClick = async (provider: "google" | "apple") => {
+    if (provider === "google" && import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+      try {
+        const { triggerGoogleSignIn } = await import("@/services/googleAuth");
+        const profile = await triggerGoogleSignIn();
+        await handleOAuthSuccess({
+          provider: "google",
+          name: profile.name,
+          email: profile.email,
+          avatarUrl: profile.picture,
+        });
+        return;
+      } catch (err: any) {
+        if (err?.message?.includes("closed") || err?.message?.includes("cancel")) {
+          return;
+        }
+        console.warn("Google official sign-in fallback:", err);
+      }
+    }
+
     // Se já temos a última conta conectada neste navegador, faz o login direto em 1 clique!
     const saved = localStorage.getItem(`cf_last_oauth_${provider}`);
     if (saved) {

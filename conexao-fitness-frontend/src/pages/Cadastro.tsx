@@ -525,8 +525,28 @@ const Cadastro = () => {
                 <Button 
                   type="button"
                   variant="outline" 
-                  className="w-full h-12 hover:bg-primary/5 hover:border-primary/40 transition-all" 
-                  onClick={() => setOauthProvider("google")}
+                  className="w-full h-12 hover:bg-primary/5 hover:border-primary/40 transition-all font-semibold" 
+                  onClick={async () => {
+                    if (import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+                      try {
+                        const { triggerGoogleSignIn } = await import("@/services/googleAuth");
+                        const profile = await triggerGoogleSignIn();
+                        await handleOAuthSelected({
+                          provider: "google",
+                          name: profile.name,
+                          email: profile.email,
+                          avatarUrl: profile.picture,
+                        });
+                        return;
+                      } catch (err: any) {
+                        if (err?.message?.includes("closed") || err?.message?.includes("cancel")) {
+                          return;
+                        }
+                        console.warn("Google sign in fallback:", err);
+                      }
+                    }
+                    setOauthProvider("google");
+                  }}
                 >
                   <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -539,7 +559,7 @@ const Cadastro = () => {
                 <Button 
                   type="button"
                   variant="outline" 
-                  className="w-full h-12 hover:bg-primary/5 hover:border-primary/40 transition-all" 
+                  className="w-full h-12 hover:bg-primary/5 hover:border-primary/40 transition-all font-semibold" 
                   onClick={() => setOauthProvider("apple")}
                 >
                   <svg className="w-5 h-5 mr-2 text-foreground fill-current" viewBox="0 0 24 24">
