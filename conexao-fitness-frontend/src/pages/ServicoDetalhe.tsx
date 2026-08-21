@@ -105,7 +105,7 @@ const ServicoDetalhe = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="pt-36 md:pt-40 pb-16">
+      <main className="pt-24 md:pt-28 pb-16">
         <div className="container mx-auto px-4">
           <div className="pl-[env(safe-area-inset-left,16px)] sm:pl-0">
             <button

@@ -38,7 +38,7 @@ const QuemSomos = () => {
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Header />
 
-      <main className="flex-1 pt-36">
+      <main className="flex-1 pt-24 md:pt-28">
         {/* HERO SECTION */}
         <section className="relative py-20 lg:py-28 overflow-hidden bg-gradient-to-b from-primary/10 via-background to-background">
           {/* Subtle Ambient Glows */}

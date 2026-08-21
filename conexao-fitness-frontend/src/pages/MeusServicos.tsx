@@ -101,7 +101,7 @@ export default function MeusServicos() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className="flex-1 container mx-auto px-4 pt-36 pb-16">
+      <main className="flex-1 container mx-auto px-4 pt-24 md:pt-28 pb-16">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-display text-primary pl-1">Meus Serviços</h1>

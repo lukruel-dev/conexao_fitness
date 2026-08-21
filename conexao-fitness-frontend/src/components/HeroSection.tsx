@@ -27,7 +27,7 @@ const featuredProfessionals = [
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-[calc(7rem+max(24px,env(safe-area-inset-top)))] pb-[calc(5rem+max(16px,env(safe-area-inset-bottom)))]">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-28 md:pt-32 pb-16">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         <img

@@ -85,7 +85,7 @@ export default function Carteira() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <main className="flex-1 container mx-auto px-4 pt-36 pb-16 max-w-4xl">
+      <main className="flex-1 container mx-auto px-4 pt-24 md:pt-28 pb-16 max-w-4xl">
         <h1 className="text-2xl sm:text-3xl font-bold font-display text-primary flex items-center gap-3 mb-2 pl-1">
           <div className="p-2 sm:p-2.5 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <Wallet className="w-6 h-6 sm:w-8 sm:h-8" />
