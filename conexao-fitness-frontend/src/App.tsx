@@ -28,6 +28,7 @@ import AgendaProfissional from "./pages/AgendaProfissional";
 import QuemSomos from "./pages/QuemSomos";
 import Planos from "./pages/Planos";
 import BottomNav from "@/components/BottomNav";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
@@ -80,6 +81,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <BottomNav />
+            <FloatingWhatsApp />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

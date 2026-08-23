@@ -87,6 +87,25 @@ const Login = () => {
       }
     }
 
+    if (provider === "apple" && import.meta.env.VITE_APPLE_CLIENT_ID) {
+      try {
+        const { triggerAppleSignIn } = await import("@/services/appleAuth");
+        const profile = await triggerAppleSignIn();
+        await handleOAuthSuccess({
+          provider: "apple",
+          name: profile.name,
+          email: profile.email,
+          avatarUrl: profile.avatarUrl,
+        });
+        return;
+      } catch (err: any) {
+        if (err?.message?.includes("closed") || err?.message?.includes("cancel") || err?.message?.includes("popup_closed")) {
+          return;
+        }
+        console.warn("Apple official sign-in fallback:", err);
+      }
+    }
+
     // Se já temos a última conta conectada neste navegador, faz o login direto em 1 clique!
     const saved = localStorage.getItem(`cf_last_oauth_${provider}`);
     if (saved) {

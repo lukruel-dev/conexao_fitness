@@ -560,7 +560,27 @@ const Cadastro = () => {
                   type="button"
                   variant="outline" 
                   className="w-full h-12 hover:bg-primary/5 hover:border-primary/40 transition-all font-semibold" 
-                  onClick={() => setOauthProvider("apple")}
+                  onClick={async () => {
+                    if (import.meta.env.VITE_APPLE_CLIENT_ID) {
+                      try {
+                        const { triggerAppleSignIn } = await import("@/services/appleAuth");
+                        const profile = await triggerAppleSignIn();
+                        await handleOAuthSelected({
+                          provider: "apple",
+                          name: profile.name,
+                          email: profile.email,
+                          avatarUrl: profile.avatarUrl,
+                        });
+                        return;
+                      } catch (err: any) {
+                        if (err?.message?.includes("closed") || err?.message?.includes("cancel") || err?.message?.includes("popup_closed")) {
+                          return;
+                        }
+                        console.warn("Apple sign in fallback:", err);
+                      }
+                    }
+                    setOauthProvider("apple");
+                  }}
                 >
                   <svg className="w-5 h-5 mr-2 text-foreground fill-current" viewBox="0 0 24 24">
                     <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.09 2.31-.86 3.59-.8 1.51.05 2.95.72 3.81 1.96-3.44 1.96-2.93 6.66.62 8.04-.76 1.77-1.85 3.87-3.1 5.06v-.09zm-3.32-14.7c.69-.95 1.13-2.16.92-3.41-1.11.07-2.38.74-3.1 1.67-.65.8-1.22 2.07-1 3.3 1.25.12 2.45-.63 3.18-1.56z" />
