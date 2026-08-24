@@ -33,14 +33,9 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             {user?.role === "ADMIN" ? (
-              <>
-                <Link to="/perfil" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
-                  Perfil
-                </Link>
-                <Link to="/admin" className="text-secondary font-semibold hover:text-secondary/80 transition-colors font-medium">
-                  Admin
-                </Link>
-              </>
+              <Link to="/admin" className="text-secondary font-semibold hover:text-secondary/80 transition-colors font-medium flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/20">
+                Painel Administrativo
+              </Link>
             ) : isProvider ? (
               <>
                 <Link to="/carteira" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
@@ -134,14 +129,9 @@ const Header = () => {
           <div className="md:hidden py-4 border-t border-border/50 animate-fade-in">
             <nav className="flex flex-col gap-4">
               {user?.role === "ADMIN" ? (
-                <>
-                  <Link to="/perfil" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
-                    Perfil
-                  </Link>
-                  <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="text-secondary font-semibold py-2">
-                    Admin
-                  </Link>
-                </>
+                <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="text-secondary font-semibold py-2">
+                  Painel Administrativo
+                </Link>
               ) : isProvider ? (
                 <>
                   <Link to="/carteira" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, Navigate } from "react-router-dom";
-import { Users, CreditCard, CalendarCheck, Dumbbell, ArrowRight, ShieldCheck } from "lucide-react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Users, CreditCard, CalendarCheck, Dumbbell, ArrowRight, ShieldCheck, LogOut } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +19,8 @@ const metricCards = [
 ];
 
 export default function AdminDashboard() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user?.role !== "ADMIN") return <Navigate to="/" replace />;
@@ -28,6 +29,11 @@ export default function AdminDashboard() {
     queryKey: ["admin", "dashboard"],
     queryFn: getAdminDashboard,
   });
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -41,7 +47,7 @@ export default function AdminDashboard() {
             <h1 className="font-display text-3xl md:text-4xl font-bold mt-1">Centro de Comando</h1>
             <p className="text-muted-foreground mt-1">Visão geral da plataforma em tempo real.</p>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center">
             <Button asChild variant="outline">
               <Link to="/admin/profissoes">
                 Profissões
@@ -71,6 +77,13 @@ export default function AdminDashboard() {
               <Link to="/admin/usuarios">
                 Gerenciar usuários <ArrowRight className="w-4 h-4" />
               </Link>
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleLogout} 
+              className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive gap-1.5 font-medium ml-1"
+            >
+              <LogOut className="w-4 h-4" /> Sair
             </Button>
           </div>
         </div>

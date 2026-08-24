@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, User, ArrowLeft } from "lucide-react";
+import { Home, Search, User, ArrowLeft, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const BottomNav = () => {
@@ -51,10 +51,17 @@ const BottomNav = () => {
         <span className="text-[10px] font-medium">Buscar</span>
       </Link>
       
-      <Link to="/perfil" className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${location.pathname === "/perfil" ? "text-primary" : "text-muted-foreground"}`}>
-        <User className="w-6 h-6" />
-        <span className="text-[10px] font-medium">Perfil</span>
-      </Link>
+      {user?.role === "ADMIN" ? (
+        <Link to="/admin" className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${location.pathname.startsWith("/admin") ? "text-secondary font-semibold" : "text-muted-foreground"}`}>
+          <ShieldCheck className="w-6 h-6 text-secondary" />
+          <span className="text-[10px] font-medium">Admin</span>
+        </Link>
+      ) : (
+        <Link to="/perfil" className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${location.pathname === "/perfil" ? "text-primary" : "text-muted-foreground"}`}>
+          <User className="w-6 h-6" />
+          <span className="text-[10px] font-medium">Perfil</span>
+        </Link>
+      )}
     </div>
   );
 };
