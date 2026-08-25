@@ -164,24 +164,22 @@ export class ServicesService {
   }
 
   async update(id: string, dto: UpdateServiceDto): Promise<Service> {
-    await this.findOneOrFail(id);
+    const service = await this.findOneOrFail(id);
 
-    await this.servicesRepo.update(id, {
-      providerType: dto.providerType,
-      providerId: dto.providerId,
-      unitId: dto.unitId,
-      catalogId: dto.catalogId,
-      name: dto.name,
-      description: dto.description,
-      modality: dto.modality,
-      durationMinutes: dto.durationMinutes,
-      type: dto.type,
-      price: dto.price,
-      currency: dto.currency,
-      isActive: dto.isActive,
-    });
+    if (dto.providerType !== undefined) service.providerType = dto.providerType;
+    if (dto.providerId !== undefined) service.providerId = dto.providerId;
+    if (dto.unitId !== undefined) service.unitId = dto.unitId;
+    if (dto.catalogId !== undefined) service.catalogId = dto.catalogId;
+    if (dto.name !== undefined) service.name = dto.name;
+    if (dto.description !== undefined) service.description = dto.description;
+    if (dto.modality !== undefined) service.modality = dto.modality;
+    if (dto.durationMinutes !== undefined) service.durationMinutes = dto.durationMinutes;
+    if (dto.type !== undefined) service.type = dto.type;
+    if (dto.price !== undefined) service.price = dto.price;
+    if (dto.currency !== undefined) service.currency = dto.currency;
+    if (dto.isActive !== undefined) service.isActive = dto.isActive;
 
-    return this.findOneOrFail(id);
+    return await this.servicesRepo.save(service);
   }
 
   async remove(id: string): Promise<void> {
