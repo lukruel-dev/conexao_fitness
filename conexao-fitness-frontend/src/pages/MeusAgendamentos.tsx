@@ -10,7 +10,7 @@ import { getMyBalance } from "@/services/wallet";
 import { listServices } from "@/services/services";
 import { listSlotsByService } from "@/services/slots";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, formatBookingSchedule } from "@/lib/format";
 import type { BookingStatus } from "@/types/api";
 import { Calendar, MapPin, X, Star, MessageCircle, CreditCard, Wallet } from "lucide-react";
 import { CheckoutModal } from "@/components/CheckoutModal";
@@ -209,7 +209,13 @@ const MeusAgendamentos = () => {
                         {slot && (
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5" />
-                            {formatDateTime(slot.startsAt)}
+                            {formatBookingSchedule(
+                              slot.startsAt,
+                              service?.type === "DAY_PASS" ||
+                              service?.type === "DIARIA" ||
+                              service?.name?.toLowerCase().includes("day pass") ||
+                              service?.name?.toLowerCase().includes("passe diário")
+                            )}
                           </span>
                         )}
                         {service?.city && (

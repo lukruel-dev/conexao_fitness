@@ -305,13 +305,21 @@ async function bootstrap() {
 
   for (const srv of allServices) {
     const now = new Date();
+    const isDayPass =
+      srv.type === ServiceType.DIARIA ||
+      srv.type === ServiceType.DAY_PASS ||
+      (srv.durationMinutes && srv.durationMinutes >= 720) ||
+      srv.name.toLowerCase().includes('day pass') ||
+      srv.providerType === ProviderType.ACADEMIA;
+    const hours = isDayPass ? [6] : timesToGenerate;
+
     for (let dayOffset = 1; dayOffset <= 3; dayOffset++) {
-      for (const hour of timesToGenerate) {
+      for (const hour of hours) {
         const startsAt = new Date(now);
         startsAt.setDate(now.getDate() + dayOffset);
         startsAt.setHours(hour, 0, 0, 0);
 
-        const duration = srv.durationMinutes || 60;
+        const duration = isDayPass ? 1440 : (srv.durationMinutes || 60);
         const endsAt = new Date(startsAt.getTime() + duration * 60000);
 
         const slot = slotsRepo.create({

@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Service as AppService } from './modules/services/entities/service.entity';
+import { Service as AppService, ServiceType } from './modules/services/entities/service.entity';
 import { ScheduleSlot } from './modules/services/entities/schedule-slot.entity';
 import { ScheduleSlotStatus } from './modules/services/enums/schedule-slot-status.enum';
 
@@ -20,14 +20,21 @@ async function bootstrap() {
   const timesToGenerate = [8, 10, 14, 16, 18, 19]; // 6 horários por dia
   const slotsToInsert: ScheduleSlot[] = [];
 
-  // Mês de Agosto de 2026: Dias 1 a 31
   for (const srv of allServices) {
+    const isDayPass =
+      srv.type === ServiceType.DIARIA ||
+      srv.type === ServiceType.DAY_PASS ||
+      (srv.durationMinutes && srv.durationMinutes >= 720) ||
+      srv.name.toLowerCase().includes('day pass') ||
+      srv.providerType === 'ACADEMIA';
+    const hours = isDayPass ? [6] : timesToGenerate;
+
     for (let day = 1; day <= 31; day++) {
-      for (const hour of timesToGenerate) {
+      for (const hour of hours) {
         // Mês é 0-indexado em JS (7 = Agosto)
         const startsAt = new Date(2026, 7, day, hour, 0, 0, 0);
         
-        const duration = srv.durationMinutes || 60;
+        const duration = isDayPass ? 1440 : (srv.durationMinutes || 60);
         const endsAt = new Date(startsAt.getTime() + duration * 60000);
 
         const slot = slotsRepo.create({

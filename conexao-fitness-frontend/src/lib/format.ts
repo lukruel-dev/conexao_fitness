@@ -15,9 +15,19 @@ export function formatTime(iso: string) {
 }
 
 export function formatDateLong(iso: string) {
-  return new Intl.DateTimeFormat("pt-BR", {
+  const formatted = new Intl.DateTimeFormat("pt-BR", {
     weekday: "long",
-    day: "2-digit",
+    day: "numeric",
     month: "long",
   }).format(new Date(iso));
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
+
+export function formatBookingSchedule(iso: string, isDayPass: boolean = false) {
+  const dateFormatted = formatDateLong(iso);
+  if (isDayPass) {
+    return `${dateFormatted} • Acesso Livre (Dia Todo)`;
+  }
+  const timeFormatted = formatTime(iso);
+  return `${dateFormatted} às ${timeFormatted}`;
 }

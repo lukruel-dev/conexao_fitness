@@ -70,6 +70,13 @@ const ServicoDetalhe = () => {
     },
   });
 
+  const isDayPass =
+    service?.type === "DAY_PASS" ||
+    service?.type === "DIARIA" ||
+    service?.name?.toLowerCase().includes("day pass") ||
+    service?.name?.toLowerCase().includes("passe diário") ||
+    (service?.providerType === "ACADEMIA" && service?.type !== "PLANO_MENSAL");
+
   const handleReserve = () => {
     if (!isAuthenticated) {
       toast.info("Faça login para reservar", { description: "Você será redirecionado." });
@@ -77,7 +84,7 @@ const ServicoDetalhe = () => {
       return;
     }
     if (!selectedSlotId) {
-      toast.warning("Selecione um horário primeiro");
+      toast.warning(isDayPass ? "Selecione o dia do seu Day Pass primeiro" : "Selecione um horário primeiro");
       return;
     }
     bookingMutation.mutate();
@@ -168,7 +175,7 @@ const ServicoDetalhe = () => {
                       </span>
                     )}
                     <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" /> {service.durationMinutes} min
+                      <Clock className="w-4 h-4" /> {isDayPass ? "Acesso 1 dia inteiro" : `${service.durationMinutes} min`}
                     </span>
                     {service.city && (
                       <span className="flex items-center gap-1">
@@ -183,18 +190,72 @@ const ServicoDetalhe = () => {
                 </div>
               </div>
 
-              {/* Slots */}
+              {/* Slots / Day Pass Selection */}
               <div className="bg-card border border-border rounded-2xl p-6">
-                <h2 className="font-display text-xl font-bold mb-4">Horários disponíveis</h2>
+                <div className="mb-4">
+                  <h2 className="font-display text-xl font-bold">
+                    {isDayPass ? "Escolha a data do Day Pass" : "Horários disponíveis"}
+                  </h2>
+                  {isDayPass && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      O Day Pass é válido para o dia inteiro. Selecione o dia em que você deseja treinar:
+                    </p>
+                  )}
+                </div>
+
                 {loadingSlots ? (
                   <div className="h-32 bg-muted rounded animate-pulse" />
                 ) : slotsByDay.length === 0 ? (
-                  <p className="text-muted-foreground text-sm">Sem horários disponíveis.</p>
+                  <p className="text-muted-foreground text-sm">
+                    {isDayPass ? "Sem datas disponíveis no momento." : "Sem horários disponíveis."}
+                  </p>
+                ) : isDayPass ? (
+                  /* Day Pass: Seleção exclusiva por dia */
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {slotsByDay.map(({ day, items }) => {
+                      const availableSlot = items.find((s) => s.status === "AVAILABLE");
+                      const isAvailable = !!availableSlot;
+                      const isSelected = items.some((s) => s.id === selectedSlotId);
+                      const targetSlotId = availableSlot ? availableSlot.id : items[0].id;
+
+                      return (
+                        <button
+                          key={day}
+                          disabled={!isAvailable}
+                          type="button"
+                          onClick={() => isAvailable && setSelectedSlotId(targetSlotId)}
+                          className={`p-4 rounded-xl text-left transition-all border flex flex-col justify-between gap-2 ${
+                            isSelected
+                              ? "bg-primary/10 text-foreground border-primary shadow-glow-blue ring-2 ring-primary/30"
+                              : isAvailable
+                                ? "bg-background border-border hover:border-primary/50 text-foreground hover:bg-muted/40"
+                                : "bg-muted/50 border-border text-muted-foreground opacity-60 cursor-not-allowed"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold text-sm sm:text-base">
+                              {formatDateLong(items[0].startsAt)}
+                            </span>
+                            {isSelected && (
+                              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>{isAvailable ? "Passe Livre • Dia Todo" : "Esgotado"}</span>
+                            <span className={`font-medium ${isSelected ? "text-primary font-bold" : ""}`}>
+                              {isSelected ? "Selecionado" : isAvailable ? "Disponível" : "Indisponível"}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 ) : (
+                  /* Sessão / Horários normais */
                   <div className="space-y-5">
                     {slotsByDay.map(({ day, items }) => (
                       <div key={day}>
-                        <h3 className="text-sm font-semibold text-foreground capitalize mb-2">
+                        <h3 className="text-sm font-semibold text-foreground mb-2">
                           {formatDateLong(items[0].startsAt)}
                         </h3>
                         <div className="flex flex-wrap gap-2">
@@ -234,7 +295,7 @@ const ServicoDetalhe = () => {
                   <div className="text-xs text-muted-foreground">
                     {service.type === "PLANO_MENSAL"
                       ? "por mês"
-                      : service.type === "DAY_PASS"
+                      : isDayPass
                         ? "day pass"
                         : "por sessão"}
                   </div>
@@ -245,7 +306,7 @@ const ServicoDetalhe = () => {
                   onClick={handleReserve}
                   disabled={bookingMutation.isPending}
                 >
-                  {bookingMutation.isPending ? "Processando..." : "Reservar e pagar"}
+                  {bookingMutation.isPending ? "Processando..." : isDayPass ? "Garantir Day Pass" : "Reservar e pagar"}
                 </Button>
                 <p className="text-xs text-muted-foreground text-center">
                   Pagamento seguro via Pix ou cartão

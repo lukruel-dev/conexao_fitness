@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { listBookingsByProvider } from "@/services/bookings";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, formatBookingSchedule } from "@/lib/format";
 import type { BookingStatus } from "@/types/api";
 import { Calendar, MessageCircle, Users } from "lucide-react";
 import ChatModal from "@/components/ChatModal";
@@ -143,7 +143,13 @@ export default function AgendaProfissional() {
                     {b.slot && (
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5" />
-                        {formatDateTime(b.slot.startsAt)}
+                        {formatBookingSchedule(
+                          b.slot.startsAt,
+                          b.service?.type === "DAY_PASS" ||
+                          b.service?.type === "DIARIA" ||
+                          b.service?.name?.toLowerCase().includes("day pass") ||
+                          b.service?.name?.toLowerCase().includes("passe diário")
+                        )}
                       </span>
                     )}
                   </div>
