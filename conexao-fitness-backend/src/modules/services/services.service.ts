@@ -83,7 +83,7 @@ export class ServicesService {
     }
     
     if (query?.modality) {
-      qb.andWhere('service.modality ILIKE :modality', { modality: query.modality });
+      qb.andWhere('service.modality ILIKE :modality', { modality: `%${query.modality}%` });
     }
     
     if (query?.providerType) {

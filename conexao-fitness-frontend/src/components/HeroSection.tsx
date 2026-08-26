@@ -163,7 +163,7 @@ const HeroSection = () => {
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full gradient-secondary flex items-center justify-center text-secondary-foreground font-bold text-xs sm:text-base">
                 100+
               </div>
-              <span className="text-xs sm:text-sm text-muted-foreground">Personal trainers</span>
+              <span className="text-xs sm:text-sm text-muted-foreground">Profissionais parceiros</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-muted flex items-center justify-center text-xs sm:text-base">

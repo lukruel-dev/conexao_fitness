@@ -12,11 +12,42 @@ import { toast } from "@/hooks/use-toast";
 import { Capacitor } from "@capacitor/core";
 import { Geolocation } from "@capacitor/geolocation";
 
-const modalityOptions = ["Todos", "Musculação", "Funcional", "CrossFit", "Yoga", "Pilates"];
 const typeOptions: { value: "" | "PERSONAL" | "ACADEMIA"; label: string }[] = [
   { value: "", label: "Todos" },
   { value: "ACADEMIA", label: "Academias" },
-  { value: "PERSONAL", label: "Personal Trainers" },
+  { value: "PERSONAL", label: "Profissionais" },
+];
+
+const generalModalities: { value: string; label: string }[] = [
+  { value: "Todos", label: "Todas as modalidades" },
+  { value: "Musculação", label: "Musculação" },
+  { value: "Funcional", label: "Funcional" },
+  { value: "CrossFit", label: "CrossFit" },
+  { value: "Pilates", label: "Pilates" },
+  { value: "Yoga", label: "Yoga" },
+  { value: "Nutrição", label: "Nutrição" },
+  { value: "Fisioterapia", label: "Fisioterapia" },
+  { value: "Massoterapia", label: "Massoterapia" },
+];
+
+const professionalModalities: { value: string; label: string }[] = [
+  { value: "Todos", label: "Todos os profissionais" },
+  { value: "Musculação", label: "Personal Trainer" },
+  { value: "Nutrição", label: "Nutricionista" },
+  { value: "Fisioterapia", label: "Fisioterapeuta" },
+  { value: "Massoterapia", label: "Massoterapeuta" },
+  { value: "Pilates", label: "Pilates" },
+  { value: "Yoga", label: "Yoga" },
+  { value: "Funcional", label: "Treino Funcional" },
+];
+
+const gymModalities: { value: string; label: string }[] = [
+  { value: "Todos", label: "Todas as modalidades" },
+  { value: "Academia", label: "Day Pass / Musculação" },
+  { value: "Funcional", label: "Funcional" },
+  { value: "CrossFit", label: "CrossFit" },
+  { value: "Pilates", label: "Pilates" },
+  { value: "Yoga", label: "Yoga" },
 ];
 
 const radiusOptions: { value: number | undefined; label: string }[] = [
@@ -180,6 +211,18 @@ const Buscar = () => {
   });
 
 
+  const currentModalityOptions =
+    providerType === "PERSONAL"
+      ? professionalModalities
+      : providerType === "ACADEMIA"
+      ? gymModalities
+      : generalModalities;
+
+  const handleProviderTypeChange = (val: "" | "PERSONAL" | "ACADEMIA") => {
+    setProviderType(val);
+    setModality("Todos");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -204,8 +247,8 @@ const Buscar = () => {
                 <Input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  aria-label="Buscar academia, personal trainer ou modalidade"
-                  placeholder="Buscar academia, personal..."
+                  aria-label="Buscar academia, profissional ou modalidade"
+                  placeholder="Buscar academia, profissional, modalidade..."
                   className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 text-xs sm:text-sm placeholder:text-xs placeholder:sm:text-sm min-w-0 flex-1"
                 />
               </div>
@@ -250,34 +293,48 @@ const Buscar = () => {
 
 
             {/* Filters */}
-            <div className="flex flex-wrap gap-2 mt-4">
-              {typeOptions.map((t) => (
-                <button
-                  key={t.label}
-                  onClick={() => setProviderType(t.value)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    providerType === t.value
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-muted/70"
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
-              <div className="w-px bg-border mx-1" />
-              {modalityOptions.map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setModality(m)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    modality === m
-                      ? "bg-secondary text-secondary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-muted/70"
-                  }`}
-                >
-                  {m}
-                </button>
-              ))}
+            <div className="flex flex-col gap-3 mt-4">
+              {/* Nível 1: Tipo de Prestador */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-medium text-muted-foreground mr-1">Filtrar por:</span>
+                {typeOptions.map((t) => (
+                  <button
+                    key={t.label}
+                    onClick={() => handleProviderTypeChange(t.value)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                      providerType === t.value
+                        ? "bg-primary text-primary-foreground shadow-sm scale-[1.02]"
+                        : "bg-muted text-muted-foreground hover:bg-muted/70"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Nível 2: Especialidades / Modalidades Contextuais */}
+              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/40">
+                <span className="text-xs font-medium text-muted-foreground mr-1">
+                  {providerType === "PERSONAL"
+                    ? "Especialidade:"
+                    : providerType === "ACADEMIA"
+                    ? "Modalidade:"
+                    : "Categoria:"}
+                </span>
+                {currentModalityOptions.map((m) => (
+                  <button
+                    key={m.label}
+                    onClick={() => setModality(m.value)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      modality === m.value
+                        ? "bg-secondary text-secondary-foreground font-semibold shadow-sm scale-[1.02]"
+                        : "bg-muted text-muted-foreground hover:bg-muted/70"
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

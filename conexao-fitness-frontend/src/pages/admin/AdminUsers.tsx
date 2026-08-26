@@ -348,7 +348,7 @@ export default function AdminUsers() {
           <DialogHeader>
             <DialogTitle>Revisão de Documento (KYC)</DialogTitle>
             <DialogDescription>
-              Dados profissionais informados por {kycReviewTarget?.name}.
+              Dados profissionais informados por {kycReviewTarget?.name?.trim()}.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 my-2">
