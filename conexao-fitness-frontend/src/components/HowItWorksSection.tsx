@@ -4,7 +4,7 @@ const steps = [
   {
     icon: MapPin,
     title: "Busque por localização",
-    description: "Use seu GPS ou digite o CEP para encontrar academias e personal trainers próximos.",
+    description: "Use seu GPS ou digite o CEP para encontrar academias e profissionais próximos.",
     color: "primary" as const,
   },
   {

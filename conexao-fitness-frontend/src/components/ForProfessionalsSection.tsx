@@ -3,7 +3,7 @@ import { Users, TrendingUp, Calendar, DollarSign, BadgeCheck, BarChart3 } from "
 import { Link } from "react-router-dom";
 
 const personalFeatures = [
-  { icon: BadgeCheck, text: "Perfil verificado com CREF" },
+  { icon: BadgeCheck, text: "Perfil verificado (CREF, CRN, CREFITO etc.)" },
   { icon: Calendar, text: "Agenda integrada" },
   { icon: DollarSign, text: "Receba direto na conta" },
   { icon: BarChart3, text: "Métricas e insights" },

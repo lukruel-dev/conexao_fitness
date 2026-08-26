@@ -26,7 +26,7 @@ const features = [
   {
     icon: MessageCircle,
     title: "Chat Direto",
-    description: "Converse com academias e personals antes de reservar.",
+    description: "Converse com academias e profissionais antes de reservar.",
   },
   {
     icon: Shield,
