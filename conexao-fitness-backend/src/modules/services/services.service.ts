@@ -17,6 +17,7 @@ import { CreateScheduleSlotDto } from './dto/create-schedule-slot.dto';
 import { UpdateScheduleSlotDto } from './dto/update-schedule-slot.dto';
 import { ScheduleSlotStatus } from './enums/schedule-slot-status.enum';
 import { User } from '../users/entities/user.entity';
+import { PersonalProfile } from '../users/entities/personal-profile.entity';
 import { Subscription } from '../payments/entities/subscription.entity';
 import { AvailabilityService } from '../availability/availability.service';
 import { ServiceCatalogService } from '../service-catalog/service-catalog.service';
@@ -73,17 +74,49 @@ export class ServicesService {
   async findAll(query?: GetServicesDto): Promise<any[]> {
     const qb = this.servicesRepo.createQueryBuilder('service');
     qb.leftJoin(User, 'provider', 'provider.id = service.providerId');
+    qb.leftJoin(PersonalProfile, 'personalProfile', 'personalProfile.userId = provider.id');
     qb.leftJoin(Subscription, 'subscription', "subscription.userId = provider.id AND subscription.status = 'ACTIVE'");
     
     if (query?.q) {
       qb.andWhere(
-        '(service.name ILIKE :q OR service.description ILIKE :q OR service.modality ILIKE :q OR provider.name ILIKE :q)',
+        '(service.name ILIKE :q OR service.description ILIKE :q OR service.modality ILIKE :q OR provider.name ILIKE :q OR personalProfile.professionTitle ILIKE :q)',
         { q: `%${query.q}%` },
       );
     }
     
     if (query?.modality) {
-      qb.andWhere('service.modality ILIKE :modality', { modality: `%${query.modality}%` });
+      const term = query.modality.trim().toLowerCase();
+      if (term.includes('personal') || term.includes('muscula')) {
+        qb.andWhere(
+          '(service.modality ILIKE :m1 OR service.name ILIKE :m1 OR personalProfile.professionTitle ILIKE :m1 OR service.modality ILIKE :m2 OR service.name ILIKE :m2 OR personalProfile.professionTitle ILIKE :m2 OR service.name ILIKE :m3)',
+          { m1: '%Personal%', m2: '%Muscula%', m3: '%Treino%' }
+        );
+      } else if (term.includes('academia')) {
+        qb.andWhere(
+          '(service.modality ILIKE :m1 OR service.name ILIKE :m1 OR service.providerType = :m2 OR service.name ILIKE :m3 OR service.description ILIKE :m1)',
+          { m1: '%Academia%', m2: 'ACADEMIA', m3: '%Pass%' }
+        );
+      } else if (term.includes('nutri')) {
+        qb.andWhere(
+          '(service.modality ILIKE :m OR service.name ILIKE :m OR personalProfile.professionTitle ILIKE :m OR service.description ILIKE :m)',
+          { m: '%Nutri%' }
+        );
+      } else if (term.includes('fisio')) {
+        qb.andWhere(
+          '(service.modality ILIKE :m OR service.name ILIKE :m OR personalProfile.professionTitle ILIKE :m OR service.description ILIKE :m)',
+          { m: '%Fisio%' }
+        );
+      } else if (term.includes('masso')) {
+        qb.andWhere(
+          '(service.modality ILIKE :m OR service.name ILIKE :m OR personalProfile.professionTitle ILIKE :m OR service.description ILIKE :m)',
+          { m: '%Masso%' }
+        );
+      } else {
+        qb.andWhere(
+          '(service.modality ILIKE :modality OR service.name ILIKE :modality OR service.description ILIKE :modality OR personalProfile.professionTitle ILIKE :modality)',
+          { modality: `%${query.modality}%` }
+        );
+      }
     }
     
     if (query?.providerType) {
@@ -103,6 +136,7 @@ export class ServicesService {
     qb.addSelect('provider.totalReviews', 'totalReviews');
     qb.addSelect('provider.name', 'providerName');
     qb.addSelect('provider.avatarUrl', 'providerAvatar');
+    qb.addSelect('personalProfile.professionTitle', 'professionTitle');
 
     if (query?.lat !== undefined && query?.lng !== undefined) {
       const haversine = `(6371 * acos(cos(radians(:lat)) * cos(radians(COALESCE(provider.lastLat, -29.7578))) * cos(radians(COALESCE(provider.lastLng, -57.0872)) - radians(:lng)) + sin(radians(:lat)) * sin(radians(COALESCE(provider.lastLat, -29.7578)))))`;
@@ -137,6 +171,7 @@ export class ServicesService {
         ...entity,
         providerName: rawData.providerName,
         providerAvatar: rawData.providerAvatar,
+        professionTitle: rawData.professionTitle,
         distance: rawData.distance !== undefined && rawData.distance !== null ? parseFloat(rawData.distance) : null,
         boostScore: premium,
         isPremium: premium > 0,

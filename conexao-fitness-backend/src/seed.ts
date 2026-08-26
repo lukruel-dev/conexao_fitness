@@ -107,7 +107,7 @@ async function bootstrap() {
       description: 'Sessão individual com acompanhamento biomecânico, ajuste de carga e foco no seu objetivo.',
       price: '75.00',
       durationMinutes: 60,
-      modality: 'PRESENCIAL',
+      modality: 'Musculação',
       type: ServiceType.SESSAO,
       isActive: true,
     });
@@ -153,7 +153,7 @@ async function bootstrap() {
       description: 'Avaliação da composição corporal, plano alimentar individualizado e orientação de suplementação.',
       price: '140.00',
       durationMinutes: 60,
-      modality: 'PRESENCIAL',
+      modality: 'Nutrição',
       type: ServiceType.SESSAO,
       isActive: true,
     });
@@ -199,7 +199,7 @@ async function bootstrap() {
       description: 'Tratamento de dores crônicas, recuperação muscular pós-treino e alinhamento postural.',
       price: '130.00',
       durationMinutes: 50,
-      modality: 'PRESENCIAL',
+      modality: 'Fisioterapia',
       type: ServiceType.SESSAO,
       isActive: true,
     });
@@ -241,7 +241,7 @@ async function bootstrap() {
       description: 'Acesso total durante um dia inteiro aos equipamentos de musculação, área cardiovascular e vestiários climatizados.',
       price: '25.00',
       durationMinutes: 1440,
-      modality: 'PRESENCIAL',
+      modality: 'Academia',
       type: ServiceType.DIARIA,
       isActive: true,
     });
@@ -283,6 +283,8 @@ async function bootstrap() {
     });
     await personalRepo.save(personal);
 
+    const assignedModality = pTitle === 'Personal Trainer' ? 'Musculação' : pTitle === 'Nutricionista' ? 'Nutrição' : pTitle === 'Fisioterapeuta' ? 'Fisioterapia' : 'Massoterapia';
+
     const service = servicesRepo.create({
       providerType: ProviderType.PERSONAL,
       providerId: savedUser.id,
@@ -290,7 +292,7 @@ async function bootstrap() {
       description: faker.lorem.sentence(),
       price: personal.baseHourlyPrice || '90.00',
       durationMinutes: 60,
-      modality: 'PRESENCIAL',
+      modality: assignedModality,
       type: ServiceType.SESSAO,
       isActive: true,
     });

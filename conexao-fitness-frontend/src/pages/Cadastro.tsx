@@ -40,7 +40,6 @@ const Cadastro = () => {
   const [password, setPassword] = useState("");
   const [cpf, setCpf] = useState("");
   const [phone, setPhone] = useState("");
-  const [professionTitle, setProfessionTitle] = useState("");
   const [professionalRegistrationId, setProfessionalRegistrationId] = useState("");
   const [razaoSocial, setRazaoSocial] = useState("");
   const [nomeFantasia, setNomeFantasia] = useState("");
@@ -93,6 +92,43 @@ const Cadastro = () => {
     queryFn: listProfessions,
   });
 
+  const [selectedProfessions, setSelectedProfessions] = useState<string[]>([]);
+  const [customProfession, setCustomProfession] = useState("");
+
+  const defaultProfessions = [
+    "Personal Trainer",
+    "Instrutor de Pilates",
+    "Professor de Yoga",
+    "Nutricionista",
+    "Fisioterapeuta",
+    "Massoterapeuta",
+    "Professor de Dança",
+    "Professor de Artes Marciais",
+  ];
+
+  const availableProfessionsList = professions?.length
+    ? Array.from(new Set([...professions.map((p) => p.title), ...defaultProfessions]))
+    : defaultProfessions;
+
+  const toggleProfession = (title: string) => {
+    if (selectedProfessions.includes(title)) {
+      setSelectedProfessions(selectedProfessions.filter((t) => t !== title));
+    } else {
+      setSelectedProfessions([...selectedProfessions, title]);
+    }
+  };
+
+  const handleAddCustomProfession = () => {
+    if (!customProfession.trim()) return;
+    const clean = customProfession.trim();
+    if (!selectedProfessions.includes(clean)) {
+      setSelectedProfessions([...selectedProfessions, clean]);
+    }
+    setCustomProfession("");
+  };
+
+  const professionTitle = selectedProfessions.join(", ");
+
   const handleOAuthSelected = async (data: OAuthUserData) => {
     if (role === "STUDENT") {
       // Para ALUNO: Conclui o cadastro imediatamente via Google/Apple
@@ -127,8 +163,8 @@ const Cadastro = () => {
     e.preventDefault();
     
     if (role === "PERSONAL") {
-      if (!professionTitle) {
-        toast.error("Por favor, selecione sua profissão");
+      if (selectedProfessions.length === 0) {
+        toast.error("Por favor, selecione ao menos uma profissão ou especialidade");
         return;
       }
       if (!professionalRegistrationId) {
@@ -325,31 +361,80 @@ const Cadastro = () => {
                   <span>Cadastre seus dados profissionais para ativação e validação do seu perfil.</span>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="profession">Sua Profissão *</Label>
-                  <Select value={professionTitle} onValueChange={setProfessionTitle}>
-                    <SelectTrigger className="h-12">
-                      <SelectValue placeholder="Selecione sua profissão" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {professions?.map((p) => (
-                        <SelectItem key={p.id} value={p.title}>
-                          {p.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label>Suas Profissões / Especialidades *</Label>
+                    <span className="text-xs font-semibold text-secondary">
+                      {selectedProfessions.length > 0
+                        ? `${selectedProfessions.length} selecionada(s)`
+                        : "Selecione uma ou mais"}
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-muted/40 rounded-xl border border-border space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {availableProfessionsList.map((p) => {
+                        const isSelected = selectedProfessions.includes(p);
+                        return (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => toggleProfession(p)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
+                              isSelected
+                                ? "bg-secondary text-secondary-foreground font-semibold shadow-sm ring-2 ring-secondary/30 scale-[1.02]"
+                                : "bg-card text-muted-foreground border border-border hover:border-foreground/30 hover:text-foreground"
+                            }`}
+                          >
+                            {isSelected && <Check className="w-3.5 h-3.5" />}
+                            {p}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Adicionar outra especialidade se desejar */}
+                    <div className="flex gap-2 pt-2 border-t border-border/40">
+                      <Input
+                        placeholder="Outra especialidade (ex: Treinador de Corrida)"
+                        value={customProfession}
+                        onChange={(e) => setCustomProfession(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddCustomProfession();
+                          }
+                        }}
+                        className="h-9 text-xs"
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={handleAddCustomProfession}
+                        className="h-9 text-xs shrink-0"
+                      >
+                        + Adicionar
+                      </Button>
+                    </div>
+                  </div>
+
+                  {selectedProfessions.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Perfil será apresentado como: <strong className="text-foreground">{selectedProfessions.join(", ")}</strong>
+                    </p>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="professionalRegistrationId">
-                    {professionTitle === "Educador Físico" 
-                      ? "Número do CREF *" 
-                      : professionTitle === "Fisioterapeuta" 
-                      ? "Número do CREFITO *" 
-                      : professionTitle === "Nutricionista" 
-                      ? "Número do CRN *" 
-                      : "Número do Registro Profissional (ex: CREF, CRN) *"}
+                    {selectedProfessions.includes("Educador Físico") || selectedProfessions.includes("Personal Trainer")
+                      ? "Número do Registro Profissional (CREF / outros) *"
+                      : selectedProfessions.includes("Fisioterapeuta")
+                      ? "Número do Registro Profissional (CREFITO / outros) *"
+                      : selectedProfessions.includes("Nutricionista")
+                      ? "Número do Registro Profissional (CRN / outros) *"
+                      : "Número do Registro Profissional (ex: CREF, CRN, CREFITO) *"}
                   </Label>
                   <Input
                     id="professionalRegistrationId"

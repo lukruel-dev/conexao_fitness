@@ -20,22 +20,22 @@ const typeOptions: { value: "" | "PERSONAL" | "ACADEMIA"; label: string }[] = [
 
 const generalModalities: { value: string; label: string }[] = [
   { value: "Todos", label: "Todas as modalidades" },
-  { value: "Musculação", label: "Musculação" },
-  { value: "Funcional", label: "Funcional" },
-  { value: "CrossFit", label: "CrossFit" },
+  { value: "Personal", label: "Personal & Musculação" },
+  { value: "Nutri", label: "Nutrição" },
+  { value: "Fisio", label: "Fisioterapia" },
+  { value: "Masso", label: "Massoterapia" },
   { value: "Pilates", label: "Pilates" },
   { value: "Yoga", label: "Yoga" },
-  { value: "Nutrição", label: "Nutrição" },
-  { value: "Fisioterapia", label: "Fisioterapia" },
-  { value: "Massoterapia", label: "Massoterapia" },
+  { value: "Funcional", label: "Funcional" },
+  { value: "CrossFit", label: "CrossFit" },
 ];
 
 const professionalModalities: { value: string; label: string }[] = [
   { value: "Todos", label: "Todos os profissionais" },
-  { value: "Musculação", label: "Personal Trainer" },
-  { value: "Nutrição", label: "Nutricionista" },
-  { value: "Fisioterapia", label: "Fisioterapeuta" },
-  { value: "Massoterapia", label: "Massoterapeuta" },
+  { value: "Personal", label: "Personal Trainer" },
+  { value: "Nutri", label: "Nutricionista" },
+  { value: "Fisio", label: "Fisioterapeuta" },
+  { value: "Masso", label: "Massoterapeuta" },
   { value: "Pilates", label: "Pilates" },
   { value: "Yoga", label: "Yoga" },
   { value: "Funcional", label: "Treino Funcional" },
