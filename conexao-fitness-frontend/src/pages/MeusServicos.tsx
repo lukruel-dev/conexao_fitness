@@ -368,9 +368,9 @@ export default function MeusServicos() {
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-foreground">Novo Preço (R$)</label>
                   <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="Ex: 120.00"
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="Ex: 120,00"
                     value={editPrice}
                     onChange={(e) => setEditPrice(e.target.value)}
                     required
