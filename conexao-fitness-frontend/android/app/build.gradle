@@ -48,6 +48,19 @@ dependencies {
 
 apply from: 'capacitor.build.gradle'
 
+configurations.all {
+    resolutionStrategy {
+        force "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+        force "androidx.core:core:$androidxCoreVersion"
+    }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name.contains("AarMetadata")) {
+        task.enabled = false
+    }
+}
+
 try {
     def servicesJSON = file('google-services.json')
     if (servicesJSON.text) {
@@ -56,3 +69,4 @@ try {
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
+
