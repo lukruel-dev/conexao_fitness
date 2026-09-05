@@ -26,6 +26,8 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-36 platforms;android-35 build-tools;36.0.0 build-tools;35.0.0 platform-tools'
 
       - name: Install Dependencies
         working-directory: conexao-fitness-frontend
@@ -51,7 +53,9 @@ jobs:
         working-directory: conexao-fitness-frontend/android
         run: |
           chmod +x gradlew
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
           ./gradlew assembleDebug --stacktrace --info
+
 
 
       - name: Upload APK Artifact
