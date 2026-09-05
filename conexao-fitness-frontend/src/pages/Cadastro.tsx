@@ -16,6 +16,7 @@ import FinexLogo from "@/components/FinexLogo";
 import { uploadDocument, uploadAvatar } from "@/services/uploads";
 import OAuthModal, { OAuthUserData } from "@/components/OAuthModal";
 import { CameraCaptureModal } from "@/components/CameraCaptureModal";
+import { isNativePlatform, captureNativePhoto } from "@/utils/nativeCamera";
 
 const roleOptions: { value: UserRole; label: string; desc: string }[] = [
   { value: "STUDENT", label: "Aluno", desc: "Buscar e reservar treinos" },
@@ -559,7 +560,18 @@ const Cadastro = () => {
                         variant="outline"
                         size="sm"
                         className="h-8 px-3 text-xs gap-1.5 border-border hover:bg-accent font-medium shadow-sm"
-                        onClick={() => cameraInputRef.current?.click()}
+                        onClick={async () => {
+                          if (isNativePlatform()) {
+                            try {
+                              const file = await captureNativePhoto({ source: "camera" });
+                              if (file) handleAvatarChange(file);
+                            } catch (err: any) {
+                              toast.error("Não foi possível abrir a câmera", { description: err?.message });
+                            }
+                          } else {
+                            cameraInputRef.current?.click();
+                          }
+                        }}
                       >
                         <Camera className="w-3.5 h-3.5 text-primary" />
                         Tirar Foto (Câmera)
@@ -575,13 +587,28 @@ const Cadastro = () => {
                         onChange={(e) => handleAvatarChange(e.target.files?.[0] || null)}
                       />
 
-                      <label
-                        htmlFor="avatarFileInput"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 cursor-pointer transition-colors shadow-sm"
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="h-8 px-3 text-xs gap-1.5 font-medium shadow-sm"
+                        onClick={async () => {
+                          if (isNativePlatform()) {
+                            try {
+                              const file = await captureNativePhoto({ source: "photos" });
+                              if (file) handleAvatarChange(file);
+                            } catch (err: any) {
+                              toast.error("Não foi possível abrir a galeria", { description: err?.message });
+                            }
+                          } else {
+                            const fileInput = document.getElementById("avatarFileInput") as HTMLInputElement;
+                            fileInput?.click();
+                          }
+                        }}
                       >
                         <UploadCloud className="w-3.5 h-3.5" />
                         {avatarPreview ? "Trocar imagem" : "Galeria / Arquivos"}
-                      </label>
+                      </Button>
                       <input
                         id="avatarFileInput"
                         type="file"

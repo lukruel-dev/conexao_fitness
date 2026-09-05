@@ -8,7 +8,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Camera, RefreshCw, SwitchCamera, Check, AlertCircle, X } from "lucide-react";
+import { Camera, RefreshCw, SwitchCamera, Check, AlertCircle, X, Smartphone } from "lucide-react";
+import { isNativePlatform, captureNativePhoto } from "@/utils/nativeCamera";
 
 interface CameraCaptureModalProps {
   open: boolean;
@@ -180,6 +181,23 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
     e.target.value = "";
   };
 
+  const handleNativeCameraTrigger = async () => {
+    if (isNativePlatform()) {
+      try {
+        const file = await captureNativePhoto({ source: "camera" });
+        if (file) {
+          onCapture(file);
+          onOpenChange(false);
+        }
+      } catch (err: any) {
+        console.error("Erro na captura nativa:", err);
+      }
+    } else {
+      nativeCameraInputRef.current?.click();
+    }
+  };
+
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md p-6 bg-card border border-border">
@@ -191,7 +209,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        {/* Input nativo de câmera para celulares e dispositivos móveis */}
+        {/* Input nativo de câmera para celulares e navegadores */}
         <input
           ref={nativeCameraInputRef}
           type="file"
@@ -209,7 +227,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
               
               <div className="flex flex-col gap-2 pt-2">
                 <Button
-                  onClick={() => nativeCameraInputRef.current?.click()}
+                  onClick={handleNativeCameraTrigger}
                   className="gap-2 bg-primary text-primary-foreground font-semibold shadow-md"
                 >
                   <Camera className="w-4 h-4" /> Abrir Câmera do Celular / Dispositivo

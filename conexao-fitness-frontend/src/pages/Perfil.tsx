@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import { useRef, useState } from "react";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
 import { CameraCaptureModal } from "@/components/CameraCaptureModal";
+import { isNativePlatform, captureNativePhoto } from "@/utils/nativeCamera";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -69,6 +70,36 @@ const Perfil = () => {
     }
     avatarMutation.mutate(file);
     e.target.value = "";
+  };
+
+  const handleTakePhoto = async () => {
+    if (isNativePlatform()) {
+      try {
+        const file = await captureNativePhoto({ source: "camera" });
+        if (file) {
+          avatarMutation.mutate(file);
+        }
+      } catch (err: any) {
+        toast.error("Não foi possível abrir a câmera nativa", { description: err?.message });
+      }
+    } else {
+      cameraInputRef.current?.click();
+    }
+  };
+
+  const handlePickGallery = async () => {
+    if (isNativePlatform()) {
+      try {
+        const file = await captureNativePhoto({ source: "photos" });
+        if (file) {
+          avatarMutation.mutate(file);
+        }
+      } catch (err: any) {
+        toast.error("Não foi possível abrir a galeria", { description: err?.message });
+      }
+    } else {
+      fileInputRef.current?.click();
+    }
   };
 
   const handleDocumentPick = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,14 +179,14 @@ const Perfil = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-60">
                     <DropdownMenuItem
-                      onClick={() => cameraInputRef.current?.click()}
+                      onClick={handleTakePhoto}
                       className="cursor-pointer gap-2 py-2.5 font-medium"
                     >
                       <Camera className="w-4 h-4 text-primary" />
                       <span>Tirar foto (Câmera)</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={handlePickGallery}
                       className="cursor-pointer gap-2 py-2.5 font-medium"
                     >
                       <ImageIcon className="w-4 h-4 text-secondary" />
