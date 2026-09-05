@@ -30,6 +30,7 @@ const Perfil = () => {
   const navigate = useNavigate();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
 
@@ -145,13 +146,13 @@ const Perfil = () => {
                       <Camera className="w-3.5 h-3.5" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-56">
+                  <DropdownMenuContent align="start" className="w-60">
                     <DropdownMenuItem
-                      onClick={() => setIsCameraOpen(true)}
+                      onClick={() => cameraInputRef.current?.click()}
                       className="cursor-pointer gap-2 py-2.5 font-medium"
                     >
                       <Camera className="w-4 h-4 text-primary" />
-                      <span>Usar câmera / WebCam</span>
+                      <span>Tirar foto (Câmera)</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => fileInputRef.current?.click()}
@@ -160,9 +161,27 @@ const Perfil = () => {
                       <ImageIcon className="w-4 h-4 text-secondary" />
                       <span>Escolher da galeria</span>
                     </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setIsCameraOpen(true)}
+                      className="cursor-pointer gap-2 py-2 font-normal text-xs text-muted-foreground"
+                    >
+                      <Camera className="w-3.5 h-3.5 opacity-70" />
+                      <span>WebCam ao vivo (PC)</span>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
+                {/* Input de câmera direta do celular/dispositivo */}
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="user"
+                  className="hidden"
+                  onChange={handleAvatarPick}
+                />
+
+                {/* Input de galeria/arquivos */}
                 <input
                   ref={fileInputRef}
                   type="file"

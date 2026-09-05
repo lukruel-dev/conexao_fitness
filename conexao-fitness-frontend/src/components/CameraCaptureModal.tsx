@@ -169,6 +169,17 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
     onOpenChange(false);
   };
 
+  const nativeCameraInputRef = useRef<HTMLInputElement>(null);
+
+  const handleNativeCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onCapture(file);
+      onOpenChange(false);
+    }
+    e.target.value = "";
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md p-6 bg-card border border-border">
@@ -180,19 +191,38 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
+        {/* Input nativo de câmera para celulares e dispositivos móveis */}
+        <input
+          ref={nativeCameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="user"
+          className="hidden"
+          onChange={handleNativeCapture}
+        />
+
         <div className="my-3 flex flex-col items-center justify-center">
           {error ? (
-            <div className="p-6 text-center bg-destructive/10 border border-destructive/20 rounded-2xl w-full">
-              <AlertCircle className="w-10 h-10 text-destructive mx-auto mb-2" />
-              <p className="text-sm font-medium text-destructive mb-4">{error}</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => startCamera(facingMode)}
-                className="gap-2"
-              >
-                <RefreshCw className="w-4 h-4" /> Tentar Novamente
-              </Button>
+            <div className="p-6 text-center bg-destructive/10 border border-destructive/20 rounded-2xl w-full space-y-3">
+              <AlertCircle className="w-10 h-10 text-destructive mx-auto" />
+              <p className="text-sm font-medium text-destructive">{error}</p>
+              
+              <div className="flex flex-col gap-2 pt-2">
+                <Button
+                  onClick={() => nativeCameraInputRef.current?.click()}
+                  className="gap-2 bg-primary text-primary-foreground font-semibold shadow-md"
+                >
+                  <Camera className="w-4 h-4" /> Abrir Câmera do Celular / Dispositivo
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => startCamera(facingMode)}
+                  className="gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" /> Tentar WebCam Novamente
+                </Button>
+              </div>
             </div>
           ) : capturedImage ? (
             <div className="relative w-72 h-72 rounded-2xl overflow-hidden border-2 border-primary shadow-lg bg-black flex items-center justify-center">

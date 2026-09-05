@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,7 @@ const Cadastro = () => {
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -558,11 +559,21 @@ const Cadastro = () => {
                         variant="outline"
                         size="sm"
                         className="h-8 px-3 text-xs gap-1.5 border-border hover:bg-accent font-medium shadow-sm"
-                        onClick={() => setIsCameraOpen(true)}
+                        onClick={() => cameraInputRef.current?.click()}
                       >
                         <Camera className="w-3.5 h-3.5 text-primary" />
-                        Usar Câmera
+                        Tirar Foto (Câmera)
                       </Button>
+
+                      {/* Input de câmera direta do celular/dispositivo */}
+                      <input
+                        ref={cameraInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="user"
+                        className="hidden"
+                        onChange={(e) => handleAvatarChange(e.target.files?.[0] || null)}
+                      />
 
                       <label
                         htmlFor="avatarFileInput"
