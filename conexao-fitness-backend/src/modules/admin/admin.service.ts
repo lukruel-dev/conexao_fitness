@@ -128,10 +128,9 @@ export class AdminService {
       // 5. Limpa notificações do usuário
       await manager.query(`DELETE FROM "notifications" WHERE "userId" = $1`, [userId]).catch(() => {});
 
-      // 6. Limpa dados financeiros (carteira, cobranças QR, intents)
+      // 6. Limpa dados financeiros (carteira, intents de pagamento)
       await manager.query(`DELETE FROM "payment_intents" WHERE "payerUserId" = $1`, [userId]).catch(() => {});
       await manager.query(`DELETE FROM "wallet_accounts" WHERE "owner_id" = $1`, [userId]).catch(() => {});
-      await manager.query(`DELETE FROM "qr_charges" WHERE "providerId" = $1`, [userId]).catch(() => {});
 
       // 7. Remove serviços prestados pelo usuário (o TypeORM faz cascade em schedule_slots e bookings)
       const userServices = await manager.find(Service, { where: { providerId: userId } });
