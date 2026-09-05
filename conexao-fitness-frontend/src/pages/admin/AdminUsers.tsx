@@ -374,14 +374,32 @@ export default function AdminUsers() {
                 if (!rawUrl) return <p className="text-sm text-destructive">Nenhum documento anexado.</p>;
                 const docUrl = resolveMediaUrl(rawUrl);
                 return docUrl.toLowerCase().endsWith('.pdf') ? (
-                  <a 
-                    href={docUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline text-sm flex items-center gap-2"
-                  >
-                    Abrir documento PDF em nova guia
-                  </a>
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <a 
+                        href={docUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                      >
+                        Abrir documento PDF em nova guia
+                      </a>
+                      <a 
+                        href={docUrl} 
+                        download 
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                      >
+                        Baixar PDF
+                      </a>
+                    </div>
+                    <div className="border border-border rounded-lg overflow-hidden h-[300px] bg-muted relative">
+                      <iframe 
+                        src={docUrl} 
+                        title="Documento PDF" 
+                        className="w-full h-full"
+                      />
+                    </div>
+                  </div>
                 ) : (
                   <div className="rounded-xl overflow-hidden border border-border bg-muted flex items-center justify-center min-h-[200px]">
                     <img 

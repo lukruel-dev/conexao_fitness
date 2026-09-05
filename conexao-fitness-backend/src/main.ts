@@ -10,7 +10,15 @@ async function bootstrap() {
 
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
+    setHeaders: (res, pathStr) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      if (pathStr.endsWith('.pdf')) {
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline');
+      }
+    },
   });
+
 
   // Middleware para suporte ao Private Network Access (PNA)
   app.use((req, res, next) => {

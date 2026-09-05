@@ -7,9 +7,22 @@ import { API_BASE_URL } from "./apiConfig";
 export function resolveMediaUrl(url?: string | null): string {
   if (!url) return "";
   
-  // Se for caminho relativo (/uploads/...)
+  // Se for caminho relativo (/uploads/folder/filename)
+  if (url.startsWith("/uploads/")) {
+    const clean = url.replace(/^\/uploads\//, "");
+    return `${API_BASE_URL.replace(/\/$/, "")}/upload/file/${clean}`;
+  }
+
   if (url.startsWith("/")) {
     return `${API_BASE_URL.replace(/\/$/, "")}${url}`;
+  }
+
+  // Se for uma URL absoluta com /uploads/ (ex: http://localhost:3001/uploads/... ou https://conexao-fitness.onrender.com/uploads/...)
+  if (url.includes("/uploads/")) {
+    const parts = url.split("/uploads/");
+    if (parts.length > 1) {
+      return `${API_BASE_URL.replace(/\/$/, "")}/upload/file/${parts[1]}`;
+    }
   }
 
   // Se for uma URL com localhost de porta divergente (ex: localhost:3000 vs localhost:3001)
@@ -17,7 +30,6 @@ export function resolveMediaUrl(url?: string | null): string {
     try {
       const parsed = new URL(url);
       const apiParsed = new URL(API_BASE_URL.startsWith("http") ? API_BASE_URL : `http://${API_BASE_URL}`);
-      // Substitui o host e porta pelo API_BASE_URL atual
       parsed.protocol = apiParsed.protocol;
       parsed.host = apiParsed.host;
       return parsed.toString();
@@ -28,3 +40,4 @@ export function resolveMediaUrl(url?: string | null): string {
 
   return url;
 }
+
