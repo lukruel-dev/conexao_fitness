@@ -17,11 +17,20 @@ describe('AdminService', () => {
     getMany: jest.fn().mockResolvedValue(results),
   });
 
+  const mockManager = {
+    query: jest.fn().mockResolvedValue([]),
+    find: jest.fn().mockResolvedValue([]),
+    delete: jest.fn().mockResolvedValue({ affected: 1 }),
+  };
+
   const mockUsersRepo = {
     findOne: jest.fn(),
     save: jest.fn().mockImplementation(u => u),
     count: jest.fn(),
     delete: jest.fn(),
+    manager: {
+      transaction: jest.fn().mockImplementation(cb => cb(mockManager)),
+    },
     createQueryBuilder: jest.fn().mockReturnValue(makeQb()),
   };
   const mockBookingsRepo = {
@@ -153,22 +162,21 @@ describe('AdminService', () => {
   describe('deleteUser', () => {
     it('should delete user successfully', async () => {
       mockUsersRepo.findOne.mockResolvedValue({ id: 'u2', name: 'User 2' });
-      mockUsersRepo.delete.mockResolvedValue({ affected: 1 });
 
       const result = await service.deleteUser('u2', 'admin-id');
       expect(result).toEqual({ success: true, message: 'Usuário excluído com sucesso' });
-      expect(mockUsersRepo.delete).toHaveBeenCalledWith('u2');
+      expect(mockManager.delete).toHaveBeenCalledWith(User, 'u2');
     });
 
     it('should throw BadRequestException when admin attempts to delete own account', async () => {
       await expect(service.deleteUser('admin-id', 'admin-id')).rejects.toThrow(BadRequestException);
-      expect(mockUsersRepo.delete).not.toHaveBeenCalled();
+      expect(mockManager.delete).not.toHaveBeenCalled();
     });
 
     it('should throw NotFoundException if user does not exist', async () => {
       mockUsersRepo.findOne.mockResolvedValue(null);
       await expect(service.deleteUser('u-unknown', 'admin-id')).rejects.toThrow(NotFoundException);
-      expect(mockUsersRepo.delete).not.toHaveBeenCalled();
+      expect(mockManager.delete).not.toHaveBeenCalled();
     });
   });
 });

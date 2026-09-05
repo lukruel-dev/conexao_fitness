@@ -9,7 +9,7 @@ export class ProviderAvailability {
   @Column('uuid')
   providerId: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'providerId' })
   provider: User;
 

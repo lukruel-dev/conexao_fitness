@@ -109,7 +109,48 @@ export class AdminService {
     if (!user) {
       throw new NotFoundException('Usuário não encontrado');
     }
-    await this.usersRepo.delete(userId);
+
+    const entityManager = this.usersRepo.manager;
+
+    await entityManager.transaction(async (manager) => {
+      // 1. Limpa avaliações (como aluno ou como prestador)
+      await manager.query(`DELETE FROM "reviews" WHERE "studentId" = $1 OR "providerId" = $1`, [userId]).catch(() => {});
+
+      // 2. Limpa mensagens do chat enviadas pelo usuário
+      await manager.query(`DELETE FROM "messages" WHERE "senderId" = $1`, [userId]).catch(() => {});
+
+      // 3. Limpa disponibilidades cadastradas do profissional
+      await manager.query(`DELETE FROM "provider_availabilities" WHERE "providerId" = $1`, [userId]).catch(() => {});
+
+      // 4. Limpa assinaturas ativas/pendentes
+      await manager.query(`DELETE FROM "subscriptions" WHERE "userId" = $1`, [userId]).catch(() => {});
+
+      // 5. Limpa notificações do usuário
+      await manager.query(`DELETE FROM "notifications" WHERE "userId" = $1`, [userId]).catch(() => {});
+
+      // 6. Limpa dados financeiros (carteira, cobranças QR, intents)
+      await manager.query(`DELETE FROM "payment_intents" WHERE "payerUserId" = $1`, [userId]).catch(() => {});
+      await manager.query(`DELETE FROM "wallet_accounts" WHERE "owner_id" = $1`, [userId]).catch(() => {});
+      await manager.query(`DELETE FROM "qr_charges" WHERE "providerId" = $1`, [userId]).catch(() => {});
+
+      // 7. Remove serviços prestados pelo usuário (o TypeORM faz cascade em schedule_slots e bookings)
+      const userServices = await manager.find(Service, { where: { providerId: userId } });
+      for (const service of userServices) {
+        await manager.delete(Service, service.id);
+      }
+
+      // 8. Remove agendamentos feitos pelo usuário como aluno
+      await manager.delete(Booking, { student: { id: userId } });
+
+      // 9. Remove perfis
+      await manager.query(`DELETE FROM "personal_profiles" WHERE "user_id" = $1`, [userId]).catch(() => {});
+      await manager.query(`DELETE FROM "academia_profiles" WHERE "user_id" = $1`, [userId]).catch(() => {});
+      await manager.query(`DELETE FROM "aluno_profiles" WHERE "user_id" = $1`, [userId]).catch(() => {});
+
+      // 10. Remove o usuário principal
+      await manager.delete(User, userId);
+    });
+
     return { success: true, message: 'Usuário excluído com sucesso' };
   }
 

@@ -23,21 +23,21 @@ export class Review {
   @Column()
   studentId: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'studentId' })
   student: User;
 
   @Column()
   bookingId: string;
 
-  @ManyToOne(() => Booking)
+  @ManyToOne(() => Booking, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'bookingId' })
   booking: Booking;
 
   @Column()
   providerId: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'providerId' })
   provider: User;
 
