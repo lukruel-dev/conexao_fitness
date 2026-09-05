@@ -10,6 +10,7 @@ import { uploadAvatar, updateMyAvatar, uploadDocument, updateMyDocument } from "
 import { CreditCard, User, Crown, CalendarDays, Camera, ChevronRight, Users, List, LogOut, FileCheck, FileText, AlertCircle, CheckCircle2, Clock, UploadCloud, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useRef, useState } from "react";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 
 const getMaxPlan = (role: string) => {
   if (role === 'STUDENT') return 'Premium';
@@ -221,7 +222,7 @@ const Perfil = () => {
 
                   {user.documentUrl && (
                     <a
-                      href={user.documentUrl}
+                      href={resolveMediaUrl(user.documentUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-background border border-border hover:border-primary/40 hover:text-primary transition-colors"

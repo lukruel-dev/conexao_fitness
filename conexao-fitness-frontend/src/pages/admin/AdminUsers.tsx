@@ -43,6 +43,7 @@ import {
   suspendUser,
 } from "@/services/admin";
 import type { AdminUser, UserRole, UserStatus } from "@/types/api";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 
 const ROLE_OPTIONS: { value: UserRole | "ALL"; label: string }[] = [
   { value: "ALL", label: "Todas as roles" },
@@ -369,8 +370,9 @@ export default function AdminUsers() {
             <div>
               <p className="text-sm font-semibold text-muted-foreground mb-2">Comprovante</p>
               {(() => {
-                const docUrl = kycReviewTarget?.personalProfile?.documentUrl || kycReviewTarget?.academiaProfile?.documentUrl;
-                if (!docUrl) return <p className="text-sm text-destructive">Nenhum documento anexado.</p>;
+                const rawUrl = kycReviewTarget?.personalProfile?.documentUrl || kycReviewTarget?.academiaProfile?.documentUrl;
+                if (!rawUrl) return <p className="text-sm text-destructive">Nenhum documento anexado.</p>;
+                const docUrl = resolveMediaUrl(rawUrl);
                 return docUrl.toLowerCase().endsWith('.pdf') ? (
                   <a 
                     href={docUrl} 
