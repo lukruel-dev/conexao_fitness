@@ -13,7 +13,7 @@ import { AcademiaProfile } from './academia-profile.entity';
 import { Booking } from '../../bookings/entities/booking.entity';
 
 export type UserRole = 'STUDENT' | 'PERSONAL' | 'ACADEMIA' | 'ADMIN';
-export type UserStatus = 'ATIVO' | 'PENDENTE_KYC' | 'SUSPENSO';
+export type UserStatus = 'ATIVO' | 'PENDENTE_KYC' | 'SUSPENSO' | 'KYC_REJEITADO';
 
 @Entity('users')
 export class User {
@@ -43,6 +43,9 @@ export class User {
 
   @Column({ type: 'varchar', default: 'PENDENTE_KYC' })
   status: UserStatus;
+
+  @Column({ type: 'text', nullable: true })
+  kycRejectionReason?: string;
 
   @Column({ nullable: true })
   cityBase?: string;

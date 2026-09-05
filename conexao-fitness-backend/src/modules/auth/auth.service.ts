@@ -30,27 +30,38 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { email: user.email, sub: user.id, role: user.role };
+    let fullUser = user;
+    if (!fullUser.personalProfile && !fullUser.academiaProfile && fullUser.id) {
+      const loaded = await this.usersService.findOne(fullUser.id);
+      if (loaded) fullUser = loaded;
+    }
+
+    const payload = { email: fullUser.email, sub: fullUser.id, role: fullUser.role };
     
     // Buscar a assinatura mais recente (ativa)
     const activeSub = await this.subscriptionRepo.findOne({
-      where: { userId: user.id, status: SubscriptionStatus.ACTIVE },
+      where: { userId: fullUser.id, status: SubscriptionStatus.ACTIVE },
       order: { createdAt: 'DESC' },
     });
     
-    // Se não tiver assinatura ativa, vamos assumir o plano base "Gratuito" ou a pendente.
-    // Para fins do novo modelo de planos, todos começam no "Gratuito" se não assinarem.
     const planName = activeSub?.planName || 'Gratuito';
+
+    const documentUrl = fullUser.personalProfile?.documentUrl || fullUser.academiaProfile?.documentUrl || undefined;
+    const cref = fullUser.personalProfile?.cref || undefined;
 
     return {
       accessToken: this.jwtService.sign(payload),
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatarUrl: user.avatarUrl,
+        id: fullUser.id,
+        name: fullUser.name,
+        email: fullUser.email,
+        role: fullUser.role,
+        status: fullUser.status,
+        avatarUrl: fullUser.avatarUrl,
         planName,
+        documentUrl,
+        cref,
+        kycRejectionReason: fullUser.kycRejectionReason,
       }
     };
   }
@@ -73,14 +84,21 @@ export class AuthService {
         professionTitle = user.personalProfile.professionTitle;
     }
 
+    const documentUrl = user.personalProfile?.documentUrl || user.academiaProfile?.documentUrl || undefined;
+    const cref = user.personalProfile?.cref || undefined;
+
     return {
         id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
+        status: user.status,
         avatarUrl: user.avatarUrl,
         professionTitle,
         planName,
+        documentUrl,
+        cref,
+        kycRejectionReason: user.kycRejectionReason,
     };
   }
 

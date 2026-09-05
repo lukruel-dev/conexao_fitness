@@ -8,12 +8,12 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import type { UserRole } from "@/types/api";
 
-import { ArrowLeft, User, Dumbbell, Building2, Check, X, ShieldCheck, Sparkles, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, User, Dumbbell, Building2, Check, X, ShieldCheck, Sparkles, CheckCircle2, Camera, FileCheck, UploadCloud, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { listProfessions } from "@/services/professions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import FinexLogo from "@/components/FinexLogo";
-import { uploadDocument } from "@/services/uploads";
+import { uploadDocument, uploadAvatar } from "@/services/uploads";
 import OAuthModal, { OAuthUserData } from "@/components/OAuthModal";
 
 const roleOptions: { value: UserRole; label: string; desc: string }[] = [
@@ -45,7 +45,18 @@ const Cadastro = () => {
   const [nomeFantasia, setNomeFantasia] = useState("");
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  const handleAvatarChange = (file: File | null) => {
+    setAvatarFile(file);
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
+      setAvatarPreview(previewUrl);
+    } else {
+      setAvatarPreview(null);
+    }
+  };
 
   // Estado da autenticação social
   const [socialAuth, setSocialAuth] = useState<OAuthUserData | null>(null);
@@ -198,9 +209,12 @@ const Cadastro = () => {
 
     try {
       let professionalDocumentUrl = undefined;
+      let userAvatarUrl = socialAuth?.avatarUrl || undefined;
 
+      setIsUploading(true);
+
+      // Upload do documento de registro
       if ((role === "PERSONAL" || role === "ACADEMIA") && documentFile) {
-        setIsUploading(true);
         try {
           const res = await uploadDocument(documentFile);
           professionalDocumentUrl = res.url;
@@ -209,7 +223,17 @@ const Cadastro = () => {
           setIsUploading(false);
           return;
         }
-        setIsUploading(false);
+      }
+
+      // Upload da foto de perfil se fornecida
+      if (avatarFile) {
+        try {
+          const res = await uploadAvatar(avatarFile);
+          userAvatarUrl = res.url;
+        } catch (err) {
+          console.warn("Falha no upload do avatar:", err);
+          // Continua o cadastro mesmo que o avatar falhe
+        }
       }
 
       let newUser: any;
@@ -220,7 +244,7 @@ const Cadastro = () => {
           provider: socialAuth.provider,
           email: socialAuth.email,
           name: name || socialAuth.name,
-          avatarUrl: socialAuth.avatarUrl,
+          avatarUrl: userAvatarUrl,
           role,
           cpf,
           cnpj: role === "ACADEMIA" ? cpf : undefined,
@@ -244,6 +268,7 @@ const Cadastro = () => {
           email, 
           password, 
           role, 
+          avatarUrl: userAvatarUrl,
           professionTitle: role === "PERSONAL" ? professionTitle : undefined, 
           cpf, 
           cnpj: role === "ACADEMIA" ? cpf : undefined,
@@ -255,16 +280,7 @@ const Cadastro = () => {
         });
       }
 
-      if (avatarFile && (role === "PERSONAL" || role === "ACADEMIA")) {
-        try {
-          import("@/services/uploads").then(async (m) => {
-            const avatarRes = await m.uploadAvatar(avatarFile);
-            await m.updateMyAvatar(avatarRes.url);
-          });
-        } catch (err) {
-          console.warn("Avatar upload notice:", err);
-        }
-      }
+      setIsUploading(false);
 
       toast.success("Conta criada com sucesso!");
       if (newUser?.role === "ADMIN") {
@@ -511,15 +527,62 @@ const Cadastro = () => {
             )}
 
             {(role === "PERSONAL" || role === "ACADEMIA") && (
-              <div className="space-y-2">
-                <Label htmlFor="avatarFile">Foto de Perfil ou Logo (Opcional)</Label>
-                <Input
-                  id="avatarFile"
-                  type="file"
-                  accept="image/*"
-                  className="h-12 pt-3"
-                  onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
-                />
+              <div className="space-y-2 p-4 rounded-xl border border-border bg-card/60">
+                <Label className="text-sm font-semibold text-foreground flex items-center justify-between">
+                  <span>{role === "ACADEMIA" ? "Logotipo da Academia" : "Foto de Perfil Profissional"}</span>
+                  <span className="text-xs text-muted-foreground font-normal">Recomendado</span>
+                </Label>
+
+                <div className="flex items-center gap-4 mt-2">
+                  <div className="relative w-20 h-20 rounded-full border-2 border-dashed border-border bg-muted/50 flex items-center justify-center overflow-hidden shrink-0 group">
+                    {avatarPreview ? (
+                      <img
+                        src={avatarPreview}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-muted-foreground">
+                        <Camera className="w-6 h-6 mb-1 opacity-70" />
+                        <span className="text-[10px]">Foto</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="avatarFileInput"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 cursor-pointer transition-colors shadow-sm"
+                      >
+                        <UploadCloud className="w-3.5 h-3.5" />
+                        {avatarPreview ? "Trocar imagem" : "Selecionar imagem"}
+                      </label>
+                      <input
+                        id="avatarFileInput"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleAvatarChange(e.target.files?.[0] || null)}
+                      />
+
+                      {avatarPreview && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => handleAvatarChange(null)}
+                        >
+                          <Trash2 className="w-3.5 h-3.5 mr-1" /> Remover
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      Formatos JPG, PNG ou WEBP. Uma boa foto transmite mais confiança aos alunos!
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 

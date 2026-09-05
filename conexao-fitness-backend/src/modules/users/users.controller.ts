@@ -48,4 +48,13 @@ export class UsersController {
   ) {
     return this.usersService.updateAvatar(user.id, avatarUrl);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/document')
+  async updateDocument(
+    @CurrentUser() user: any,
+    @Body('documentUrl') documentUrl: string,
+  ) {
+    return this.usersService.updateDocument(user.id, documentUrl);
+  }
 }

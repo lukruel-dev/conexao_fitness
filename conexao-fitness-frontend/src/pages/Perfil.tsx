@@ -6,10 +6,10 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { onboardProvider, createSubscription } from "@/services/payments";
-import { uploadAvatar, updateMyAvatar } from "@/services/uploads";
-import { CreditCard, User, Crown, CalendarDays, Camera, ChevronRight, Users, List, LogOut } from "lucide-react";
+import { uploadAvatar, updateMyAvatar, uploadDocument, updateMyDocument } from "@/services/uploads";
+import { CreditCard, User, Crown, CalendarDays, Camera, ChevronRight, Users, List, LogOut, FileCheck, FileText, AlertCircle, CheckCircle2, Clock, UploadCloud, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 const getMaxPlan = (role: string) => {
   if (role === 'STUDENT') return 'Premium';
@@ -22,6 +22,8 @@ const Perfil = () => {
   const navigate = useNavigate();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
+
   const avatarMutation = useMutation({
     mutationFn: async (file: File) => {
       const { url } = await uploadAvatar(file);
@@ -35,6 +37,19 @@ const Perfil = () => {
       toast.error("Não foi possível atualizar a foto", { description: err.message }),
   });
 
+  const documentMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const { url } = await uploadDocument(file);
+      return updateMyDocument(url);
+    },
+    onSuccess: (updated) => {
+      setUser(updated);
+      toast.success("Comprovante enviado com sucesso para validação Finex!");
+    },
+    onError: (err: Error) =>
+      toast.error("Erro ao reenviar documento", { description: err.message }),
+  });
+
   const handleAvatarPick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -43,6 +58,13 @@ const Perfil = () => {
       return;
     }
     avatarMutation.mutate(file);
+    e.target.value = "";
+  };
+
+  const handleDocumentPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    documentMutation.mutate(file);
     e.target.value = "";
   };
 
@@ -149,6 +171,113 @@ const Perfil = () => {
               </div>
             </div>
           </div>
+
+          {/* CARD DE STATUS DE CREDENCIAMENTO / DOCUMENTAÇÃO FINEX (PROFISSIONAL & ACADEMIA) */}
+          {isProvider && (
+            <div className="bg-card border border-border rounded-2xl p-5 mb-6 shadow-sm">
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                    <FileCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-base text-foreground">
+                      Credenciamento Profissional Finex
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Status de verificação do seu registro e documentação
+                    </p>
+                  </div>
+                </div>
+
+                {/* Badges de Status */}
+                {user.status === "ATIVO" || user.status === "KYC_APROVADO" ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Credenciado
+                  </span>
+                ) : user.status === "KYC_REJEITADO" ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-destructive/10 text-destructive border border-destructive/20">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    Ação Necessária
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                    <Clock className="w-3.5 h-3.5 animate-pulse" />
+                    Em Análise
+                  </span>
+                )}
+              </div>
+
+              {/* Detalhes do Documento e CREF */}
+              <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div>
+                    <span className="text-muted-foreground block">Registro Profissional:</span>
+                    <span className="font-semibold text-foreground text-sm">
+                      {user.cref || "Informado no cadastro"}
+                    </span>
+                  </div>
+
+                  {user.documentUrl && (
+                    <a
+                      href={user.documentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-background border border-border hover:border-primary/40 hover:text-primary transition-colors"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Visualizar Comprovante
+                    </a>
+                  )}
+                </div>
+
+                {/* Motivo de Rejeição, se houver */}
+                {user.status === "KYC_REJEITADO" && (
+                  <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-xs text-destructive">
+                    <p className="font-semibold mb-1 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5" /> Motivo da recusa pela equipe Finex:
+                    </p>
+                    <p className="text-destructive/90">
+                      {user.kycRejectionReason || "Comprovante ilegível ou dados divergentes. Por favor, reenvie um documento válido."}
+                    </p>
+                  </div>
+                )}
+
+                {/* Ação de Reenvio / Troca de Documento */}
+                <div className="pt-2 border-t border-border/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <p className="text-[11px] text-muted-foreground">
+                    {user.status === "ATIVO" || user.status === "KYC_APROVADO"
+                      ? "Seus dados foram verificados pelo compliance da Finex."
+                      : "Mantenha seu documento legível para aprovação rápida."}
+                  </p>
+
+                  <Button
+                    type="button"
+                    variant={user.status === "KYC_REJEITADO" ? "destructive" : "outline"}
+                    size="sm"
+                    className="h-8 text-xs font-semibold shrink-0 gap-1.5"
+                    disabled={documentMutation.isPending}
+                    onClick={() => docInputRef.current?.click()}
+                  >
+                    <UploadCloud className="w-3.5 h-3.5" />
+                    {documentMutation.isPending
+                      ? "Enviando..."
+                      : user.documentUrl
+                      ? "Reenviar Comprovante"
+                      : "Enviar Comprovante"}
+                  </Button>
+                  <input
+                    ref={docInputRef}
+                    type="file"
+                    accept="image/*,.pdf"
+                    className="hidden"
+                    onChange={handleDocumentPick}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
             <Link to="/carteira" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">

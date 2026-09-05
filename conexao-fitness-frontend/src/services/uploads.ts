@@ -55,3 +55,10 @@ export async function updateMyAvatar(avatarUrl: string): Promise<AuthUser> {
     body: { avatarUrl },
   });
 }
+
+export async function updateMyDocument(documentUrl: string): Promise<AuthUser> {
+  return apiRequest<AuthUser>("/users/me/document", {
+    method: "PATCH",
+    body: { documentUrl },
+  });
+}

@@ -241,7 +241,7 @@ export default function AdminUsers() {
                   const isSuspended = u.status === "SUSPENSO";
                   const canReviewKyc =
                     (u.role === "PERSONAL" || u.role === "ACADEMIA") &&
-                    u.status === "PENDENTE_KYC";
+                    (u.status === "PENDENTE_KYC" || u.status === "KYC_REJEITADO");
                   return (
                     <TableRow key={u.id}>
                       <TableCell className="font-medium">{u.name}</TableCell>
@@ -353,15 +353,27 @@ export default function AdminUsers() {
           </DialogHeader>
           <div className="space-y-4 my-2">
             <div>
-              <p className="text-sm font-semibold text-muted-foreground">Número de Registro Profissional</p>
-              <p className="text-lg font-medium">{kycReviewTarget?.personalProfile?.cref || "Não informado"}</p>
+              <p className="text-sm font-semibold text-muted-foreground">
+                {kycReviewTarget?.role === "ACADEMIA" ? "CNPJ" : "Número de Registro Profissional"}
+              </p>
+              <p className="text-lg font-medium">
+                {kycReviewTarget?.personalProfile?.cref || kycReviewTarget?.academiaProfile?.cnpj || "Não informado"}
+              </p>
             </div>
+            {kycReviewTarget?.kycRejectionReason && (
+              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-xs text-destructive">
+                <span className="font-semibold block">Última rejeição registrada:</span>
+                {kycReviewTarget.kycRejectionReason}
+              </div>
+            )}
             <div>
               <p className="text-sm font-semibold text-muted-foreground mb-2">Comprovante</p>
-              {kycReviewTarget?.personalProfile?.documentUrl ? (
-                kycReviewTarget.personalProfile.documentUrl.toLowerCase().endsWith('.pdf') ? (
+              {(() => {
+                const docUrl = kycReviewTarget?.personalProfile?.documentUrl || kycReviewTarget?.academiaProfile?.documentUrl;
+                if (!docUrl) return <p className="text-sm text-destructive">Nenhum documento anexado.</p>;
+                return docUrl.toLowerCase().endsWith('.pdf') ? (
                   <a 
-                    href={kycReviewTarget.personalProfile.documentUrl} 
+                    href={docUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-primary hover:underline text-sm flex items-center gap-2"
@@ -371,15 +383,13 @@ export default function AdminUsers() {
                 ) : (
                   <div className="rounded-xl overflow-hidden border border-border bg-muted flex items-center justify-center min-h-[200px]">
                     <img 
-                      src={kycReviewTarget.personalProfile.documentUrl} 
+                      src={docUrl} 
                       alt="Documento" 
                       className="max-h-[400px] object-contain"
                     />
                   </div>
-                )
-              ) : (
-                <p className="text-sm text-destructive">Nenhum documento anexado.</p>
-              )}
+                );
+              })()}
             </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">

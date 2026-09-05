@@ -25,6 +25,7 @@ export class AdminService {
       throw new NotFoundException('Usuário não encontrado');
     }
     user.status = 'ATIVO';
+    user.kycRejectionReason = null as any;
     return this.usersRepo.save(user);
   }
 
@@ -33,7 +34,8 @@ export class AdminService {
     if (!user) {
       throw new NotFoundException('Usuário não encontrado');
     }
-    user.status = 'PENDENTE_KYC'; 
+    user.status = 'KYC_REJEITADO'; 
+    user.kycRejectionReason = reason;
     return this.usersRepo.save(user);
   }
 

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Navigate, useSearchParams } from "react-router-dom";
+import { Navigate, useSearchParams, Link } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -8,7 +8,7 @@ import { listBookingsByProvider } from "@/services/bookings";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDateTime, formatBookingSchedule } from "@/lib/format";
 import type { BookingStatus } from "@/types/api";
-import { Calendar, MessageCircle, Users } from "lucide-react";
+import { Calendar, MessageCircle, Users, AlertCircle, Clock, CheckCircle2, ChevronRight } from "lucide-react";
 import ChatModal from "@/components/ChatModal";
 
 const filters: { value: BookingStatus | ""; label: string }[] = [
@@ -87,6 +87,39 @@ export default function AgendaProfissional() {
           <span>Meus <span className="gradient-text">Alunos</span></span>
         </h1>
         <p className="text-muted-foreground mb-6">Acompanhe os agendamentos recebidos e converse com seus alunos.</p>
+
+        {/* Banner de Status KYC Finex */}
+        {user?.status === "KYC_REJEITADO" ? (
+          <div className="mb-6 p-4 rounded-2xl bg-destructive/10 border border-destructive/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-semibold text-destructive">Documentação Recusada</h4>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {user.kycRejectionReason || "Seu comprovante profissional precisa ser reenviado para liberação completa da sua conta."}
+                </p>
+              </div>
+            </div>
+            <Button size="sm" variant="destructive" className="shrink-0 text-xs" asChild>
+              <Link to="/perfil">Corrigir Documento <ChevronRight className="w-3.5 h-3.5 ml-1" /></Link>
+            </Button>
+          </div>
+        ) : user?.status === "PENDENTE_KYC" ? (
+          <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <Clock className="w-5 h-5 text-amber-500 shrink-0 mt-0.5 animate-pulse" />
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">Credenciamento Finex em Análise</h4>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Seus dados e documentos estão em fase de validação pela nossa equipe de compliance.
+                </p>
+              </div>
+            </div>
+            <Button size="sm" variant="outline" className="shrink-0 text-xs" asChild>
+              <Link to="/perfil">Ver Documentos <ChevronRight className="w-3.5 h-3.5 ml-1" /></Link>
+            </Button>
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap gap-2 mb-6">
           {filters.map((f) => (

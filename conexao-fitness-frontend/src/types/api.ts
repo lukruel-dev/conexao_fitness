@@ -96,9 +96,14 @@ export interface AdminUser {
   email: string;
   role: UserRole;
   status: UserStatus;
+  kycRejectionReason?: string | null;
   createdAt?: string;
   personalProfile?: {
     cref?: string;
+    documentUrl?: string;
+  };
+  academiaProfile?: {
+    cnpj?: string;
     documentUrl?: string;
   };
 }
@@ -115,11 +120,15 @@ export interface AuthUser {
   name: string;
   email: string;
   role: UserRole;
+  status?: UserStatus;
   avatarUrl?: string | null;
   professionTitle?: string | null;
   cpf?: string | null;
   phone?: string | null;
   planName?: string;
+  documentUrl?: string | null;
+  cref?: string | null;
+  kycRejectionReason?: string | null;
 }
 
 export interface LoginDto {

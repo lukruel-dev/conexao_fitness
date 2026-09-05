@@ -143,4 +143,29 @@ export class UsersService {
     await this.academiaProfileRepo.save(profile);
     return this.findOneOrFail(userId);
   }
+
+  async updateDocument(userId: string, documentUrl: string): Promise<User> {
+    const user = await this.findOneOrFail(userId);
+
+    if (user.role === 'PERSONAL') {
+      let profile = user.personalProfile;
+      if (!profile) {
+        profile = this.personalProfileRepo.create({ userId: user.id, publicName: user.name });
+      }
+      profile.documentUrl = documentUrl;
+      await this.personalProfileRepo.save(profile);
+    } else if (user.role === 'ACADEMIA') {
+      let profile = user.academiaProfile;
+      if (!profile) {
+        profile = this.academiaProfileRepo.create({ userId: user.id, razaoSocial: user.name, nomeFantasia: user.name, cnpj: user.cpf || '' });
+      }
+      profile.documentUrl = documentUrl;
+      await this.academiaProfileRepo.save(profile);
+    }
+
+    // Se estava rejeitado ou suspenso por KYC, volta para PENDENTE_KYC para reanálise da Finex
+    user.status = 'PENDENTE_KYC';
+    user.kycRejectionReason = null as any;
+    return this.usersRepo.save(user);
+  }
 }
