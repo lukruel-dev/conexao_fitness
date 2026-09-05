@@ -30,9 +30,9 @@ export class UploadService {
       // Escreve o arquivo no disco
       fs.writeFileSync(filePath, file.buffer);
 
-      // Monta a URL pública baseada no APP_URL
-      const appUrl = process.env.APP_URL || 'http://localhost:3001';
-      return `${appUrl}/uploads/${folder}/${uniqueFilename}`;
+      // Monta a URL pública baseada no APP_URL ou Render oficial
+      const appUrl = process.env.APP_URL || 'https://conexao-fitness.onrender.com';
+      return `${appUrl.replace(/\/$/, '')}/uploads/${folder}/${uniqueFilename}`;
     } catch (error) {
       this.logger.error('Erro ao salvar arquivo localmente', error);
       throw new InternalServerErrorException('Falha ao processar o upload do arquivo');
