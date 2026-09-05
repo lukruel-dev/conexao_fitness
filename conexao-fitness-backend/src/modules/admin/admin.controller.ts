@@ -1,8 +1,9 @@
-import { Controller, Patch, Param, UseGuards, Body, Get, Query } from '@nestjs/common';
+import { Controller, Patch, Param, UseGuards, Body, Get, Query, Delete } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { UserRole, UserStatus } from '../users/entities/user.entity';
 import { BookingStatus } from '../bookings/entities/booking.entity';
@@ -53,6 +54,11 @@ export class AdminController {
   @Patch('users/:id/activate')
   activateUser(@Param('id') userId: string) {
     return this.adminService.activateUser(userId);
+  }
+
+  @Delete('users/:id')
+  deleteUser(@Param('id') userId: string, @CurrentUser() currentUser: any) {
+    return this.adminService.deleteUser(userId, currentUser?.id);
   }
 
   @Get('subscriptions')

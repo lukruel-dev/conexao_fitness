@@ -7,10 +7,17 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { onboardProvider, createSubscription } from "@/services/payments";
 import { uploadAvatar, updateMyAvatar, uploadDocument, updateMyDocument } from "@/services/uploads";
-import { CreditCard, User, Crown, CalendarDays, Camera, ChevronRight, Users, List, LogOut, FileCheck, FileText, AlertCircle, CheckCircle2, Clock, UploadCloud, ExternalLink } from "lucide-react";
+import { CreditCard, User, Crown, CalendarDays, Camera, ChevronRight, Users, List, LogOut, FileCheck, FileText, AlertCircle, CheckCircle2, Clock, UploadCloud, ExternalLink, Image as ImageIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useRef, useState } from "react";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
+import { CameraCaptureModal } from "@/components/CameraCaptureModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const getMaxPlan = (role: string) => {
   if (role === 'STUDENT') return 'Premium';
@@ -24,6 +31,7 @@ const Perfil = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   const avatarMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -125,15 +133,36 @@ const Perfil = () => {
                     <User className="w-8 h-8 text-primary" />
                   )}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={avatarMutation.isPending}
-                  className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:opacity-90 disabled:opacity-60"
-                  aria-label="Trocar foto de perfil"
-                >
-                  <Camera className="w-3.5 h-3.5" />
-                </button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      disabled={avatarMutation.isPending}
+                      className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:opacity-90 disabled:opacity-60 transition-transform active:scale-95"
+                      aria-label="Trocar foto de perfil"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56">
+                    <DropdownMenuItem
+                      onClick={() => setIsCameraOpen(true)}
+                      className="cursor-pointer gap-2 py-2.5 font-medium"
+                    >
+                      <Camera className="w-4 h-4 text-primary" />
+                      <span>Usar câmera / WebCam</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => fileInputRef.current?.click()}
+                      className="cursor-pointer gap-2 py-2.5 font-medium"
+                    >
+                      <ImageIcon className="w-4 h-4 text-secondary" />
+                      <span>Escolher da galeria</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -142,6 +171,15 @@ const Perfil = () => {
                   onChange={handleAvatarPick}
                 />
               </div>
+
+              <CameraCaptureModal
+                open={isCameraOpen}
+                onOpenChange={setIsCameraOpen}
+                onCapture={(file) => avatarMutation.mutate(file)}
+                title="Foto de Perfil"
+                description="Tire uma foto sua pela câmera ou webcam para atualizar seu perfil."
+              />
+
               <div className="min-w-0 flex-1">
                 <h2 className="font-display font-bold text-lg truncate">{user.name}</h2>
                 <p className="text-sm text-muted-foreground truncate">{user.email}</p>

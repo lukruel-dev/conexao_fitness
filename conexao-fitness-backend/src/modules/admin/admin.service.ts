@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole, UserStatus } from '../users/entities/user.entity';
@@ -99,6 +99,18 @@ export class AdminService {
     }
     user.status = 'ATIVO';
     return this.usersRepo.save(user);
+  }
+
+  async deleteUser(userId: string, currentAdminId?: string): Promise<{ success: boolean; message: string }> {
+    if (currentAdminId && userId === currentAdminId) {
+      throw new BadRequestException('Não é possível excluir o próprio usuário administrador logado.');
+    }
+    const user = await this.usersRepo.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+    await this.usersRepo.delete(userId);
+    return { success: true, message: 'Usuário excluído com sucesso' };
   }
 
   async findAllSubscriptions(): Promise<Subscription[]> {

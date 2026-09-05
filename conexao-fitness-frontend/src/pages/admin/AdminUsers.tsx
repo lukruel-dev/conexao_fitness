@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, XCircle, Ban, RotateCcw, ShieldCheck, Search } from "lucide-react";
+import { CheckCircle2, XCircle, Ban, RotateCcw, ShieldCheck, Search, Trash2 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,6 +38,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   activateUser,
   approveKyc,
+  deleteUser,
   listAdminUsers,
   rejectKyc,
   suspendUser,
@@ -94,6 +95,7 @@ export default function AdminUsers() {
   const [rejectTarget, setRejectTarget] = useState<AdminUser | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [kycReviewTarget, setKycReviewTarget] = useState<AdminUser | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user?.role !== "ADMIN") return <Navigate to="/" replace />;
@@ -148,6 +150,16 @@ export default function AdminUsers() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => deleteUser(id),
+    onSuccess: () => {
+      toast.success("Usuário excluído com sucesso");
+      setDeleteTarget(null);
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message || "Erro ao excluir usuário"),
+  });
+
   const filtered = (users ?? []).filter((u) => {
     if (!search) return true;
     const s = search.toLowerCase();
@@ -164,7 +176,7 @@ export default function AdminUsers() {
           </div>
           <h1 className="font-display text-3xl md:text-4xl font-bold mt-1">Gestão de Usuários</h1>
           <p className="text-muted-foreground mt-1">
-            Filtre, suspenda, reative e aprove o KYC de profissionais.
+            Filtre, suspenda, reative, exclua e aprove o KYC de profissionais.
           </p>
         </div>
 
@@ -240,6 +252,7 @@ export default function AdminUsers() {
                 )}
                 {filtered.map((u) => {
                   const isSuspended = u.status === "SUSPENSO";
+                  const isCurrentUser = u.id === user?.id;
                   const canReviewKyc =
                     (u.role === "PERSONAL" || u.role === "ACADEMIA") &&
                     (u.status === "PENDENTE_KYC" || u.status === "KYC_REJEITADO");
@@ -303,6 +316,16 @@ export default function AdminUsers() {
                               <Ban className="w-4 h-4" /> Suspender
                             </Button>
                           )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-destructive hover:bg-destructive/10 border-destructive/30 hover:border-destructive hover:text-destructive"
+                            onClick={() => setDeleteTarget(u)}
+                            disabled={isCurrentUser || deleteMut.isPending}
+                            title={isCurrentUser ? "Você não pode excluir sua própria conta" : "Excluir usuário"}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -339,6 +362,32 @@ export default function AdminUsers() {
               }
             >
               Confirmar rejeição
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <Trash2 className="w-5 h-5" /> Excluir Usuário
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              Tem certeza que deseja excluir permanentemente o usuário{" "}
+              <strong className="text-foreground">{deleteTarget?.name}</strong> ({deleteTarget?.email})?
+              <br /><br />
+              Esta ação é <strong>irreversível</strong> e removerá todos os dados e vínculos relacionados a este cadastro da base de dados.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0 mt-4">
+            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>Cancelar</Button>
+            <Button
+              variant="destructive"
+              disabled={deleteMut.isPending}
+              onClick={() => deleteTarget && deleteMut.mutate(deleteTarget.id)}
+            >
+              {deleteMut.isPending ? "Excluindo..." : "Confirmar exclusão"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -442,3 +491,4 @@ export default function AdminUsers() {
     </div>
   );
 }
+

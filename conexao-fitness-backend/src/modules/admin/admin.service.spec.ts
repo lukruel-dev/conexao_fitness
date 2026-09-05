@@ -5,7 +5,7 @@ import { User, UserRole, UserStatus } from '../users/entities/user.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
 import { Service } from '../services/entities/service.entity';
 import { Subscription } from '../payments/entities/subscription.entity';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('AdminService', () => {
   let service: AdminService;
@@ -21,6 +21,7 @@ describe('AdminService', () => {
     findOne: jest.fn(),
     save: jest.fn().mockImplementation(u => u),
     count: jest.fn(),
+    delete: jest.fn(),
     createQueryBuilder: jest.fn().mockReturnValue(makeQb()),
   };
   const mockBookingsRepo = {
@@ -71,7 +72,7 @@ describe('AdminService', () => {
     it('should reject user', async () => {
       mockUsersRepo.findOne.mockResolvedValue({ id: 'u1', status: 'PENDENTE_KYC' });
       const result = await service.rejectKyc('u1', 'reason');
-      expect(result.status).toBe('PENDENTE_KYC');
+      expect(result.status).toBe('KYC_REJEITADO');
       expect(mockUsersRepo.save).toHaveBeenCalled();
     });
 
@@ -146,6 +147,28 @@ describe('AdminService', () => {
     it('should throw NotFoundException if user not found', async () => {
       mockUsersRepo.findOne.mockResolvedValue(null);
       await expect(service.activateUser('u1')).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('deleteUser', () => {
+    it('should delete user successfully', async () => {
+      mockUsersRepo.findOne.mockResolvedValue({ id: 'u2', name: 'User 2' });
+      mockUsersRepo.delete.mockResolvedValue({ affected: 1 });
+
+      const result = await service.deleteUser('u2', 'admin-id');
+      expect(result).toEqual({ success: true, message: 'Usuário excluído com sucesso' });
+      expect(mockUsersRepo.delete).toHaveBeenCalledWith('u2');
+    });
+
+    it('should throw BadRequestException when admin attempts to delete own account', async () => {
+      await expect(service.deleteUser('admin-id', 'admin-id')).rejects.toThrow(BadRequestException);
+      expect(mockUsersRepo.delete).not.toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException if user does not exist', async () => {
+      mockUsersRepo.findOne.mockResolvedValue(null);
+      await expect(service.deleteUser('u-unknown', 'admin-id')).rejects.toThrow(NotFoundException);
+      expect(mockUsersRepo.delete).not.toHaveBeenCalled();
     });
   });
 });

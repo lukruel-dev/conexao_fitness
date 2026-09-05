@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import FinexLogo from "@/components/FinexLogo";
 import { uploadDocument, uploadAvatar } from "@/services/uploads";
 import OAuthModal, { OAuthUserData } from "@/components/OAuthModal";
+import { CameraCaptureModal } from "@/components/CameraCaptureModal";
 
 const roleOptions: { value: UserRole; label: string; desc: string }[] = [
   { value: "STUDENT", label: "Aluno", desc: "Buscar e reservar treinos" },
@@ -46,6 +47,7 @@ const Cadastro = () => {
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
   const handleAvatarChange = (file: File | null) => {
@@ -550,13 +552,24 @@ const Cadastro = () => {
                   </div>
 
                   <div className="flex-1 space-y-1.5">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-3 text-xs gap-1.5 border-border hover:bg-accent font-medium shadow-sm"
+                        onClick={() => setIsCameraOpen(true)}
+                      >
+                        <Camera className="w-3.5 h-3.5 text-primary" />
+                        Usar Câmera
+                      </Button>
+
                       <label
                         htmlFor="avatarFileInput"
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 cursor-pointer transition-colors shadow-sm"
                       >
                         <UploadCloud className="w-3.5 h-3.5" />
-                        {avatarPreview ? "Trocar imagem" : "Selecionar imagem"}
+                        {avatarPreview ? "Trocar imagem" : "Galeria / Arquivos"}
                       </label>
                       <input
                         id="avatarFileInput"
@@ -583,6 +596,14 @@ const Cadastro = () => {
                     </p>
                   </div>
                 </div>
+
+                <CameraCaptureModal
+                  open={isCameraOpen}
+                  onOpenChange={setIsCameraOpen}
+                  onCapture={handleAvatarChange}
+                  title={role === "ACADEMIA" ? "Logotipo / Foto da Academia" : "Foto de Perfil Profissional"}
+                  description="Capture uma foto direta pela câmera ou webcam para seu perfil."
+                />
               </div>
             )}
 

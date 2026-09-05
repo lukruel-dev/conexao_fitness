@@ -15,6 +15,7 @@ describe('AdminController', () => {
     findAllBookings: jest.fn(),
     suspendUser: jest.fn(),
     activateUser: jest.fn(),
+    deleteUser: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -102,6 +103,15 @@ describe('AdminController', () => {
       const result = await controller.activateUser('u1');
       expect(result).toEqual({ id: 'u1' });
       expect(mockAdminService.activateUser).toHaveBeenCalledWith('u1');
+    });
+  });
+
+  describe('deleteUser', () => {
+    it('should call adminService.deleteUser', async () => {
+      mockAdminService.deleteUser.mockResolvedValue({ success: true, message: 'Usuário excluído com sucesso' });
+      const result = await controller.deleteUser('u2', { id: 'admin1' });
+      expect(result).toEqual({ success: true, message: 'Usuário excluído com sucesso' });
+      expect(mockAdminService.deleteUser).toHaveBeenCalledWith('u2', 'admin1');
     });
   });
 });

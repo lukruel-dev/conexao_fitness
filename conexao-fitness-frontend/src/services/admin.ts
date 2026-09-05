@@ -31,3 +31,10 @@ export function rejectKyc(id: string, reason: string) {
 export function listAdminSubscriptions() {
   return apiRequest<any[]>("/admin/subscriptions");
 }
+
+export function deleteUser(id: string) {
+  return apiRequest<{ success: boolean; message: string }>(`/admin/users/${id}`, {
+    method: "DELETE",
+  });
+}
+
