@@ -54,7 +54,8 @@ jobs:
         run: |
           chmod +x gradlew
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          ./gradlew assembleDebug --stacktrace --info
+          ./gradlew clean assembleDebug --stacktrace --info
+
 
 
 
