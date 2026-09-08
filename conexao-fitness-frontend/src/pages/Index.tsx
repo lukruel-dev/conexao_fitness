@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import PlansSection from "@/components/PlansSection";
 import { FeaturedSpotlight } from "@/components/feed/FeaturedSpotlight";
 import { CreatePostCard } from "@/components/feed/CreatePostCard";
 import { PostCard } from "@/components/feed/PostCard";
@@ -321,6 +322,11 @@ const Index: React.FC = () => {
               </div>
             </div>
           </section>
+        </div>
+
+        {/* 💳 SEÇÃO COMPLETA DE PLANOS & ASSINATURAS */}
+        <div className="mt-20 border-t border-border/60">
+          <PlansSection />
         </div>
       </main>
 

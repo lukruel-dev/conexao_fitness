@@ -31,53 +31,134 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-6 lg:gap-8">
+            <Link
+              to="/"
+              className={`transition-colors font-medium text-sm ${
+                location.pathname === "/"
+                  ? "text-primary font-bold"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Início
+            </Link>
+
             {user?.role === "ADMIN" ? (
-              <Link to="/admin" className="text-secondary font-semibold hover:text-secondary/80 transition-colors font-medium flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/20">
+              <Link
+                to="/admin"
+                className="text-secondary font-semibold hover:text-secondary/80 transition-colors font-medium flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/20"
+              >
                 Painel Administrativo
               </Link>
             ) : isProvider ? (
               <>
-                <Link to="/carteira" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                <Link
+                  to="/planos"
+                  className={`transition-colors font-medium text-sm ${
+                    location.pathname === "/planos"
+                      ? "text-primary font-bold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Planos
+                </Link>
+                <Link
+                  to="/carteira"
+                  className={`transition-colors font-medium text-sm ${
+                    location.pathname === "/carteira"
+                      ? "text-primary font-bold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
                   Carteira
                 </Link>
-                <Link to="/agenda-profissional" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                <Link
+                  to="/agenda-profissional"
+                  className={`transition-colors font-medium text-sm ${
+                    location.pathname === "/agenda-profissional"
+                      ? "text-primary font-bold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
                   Meus alunos
                 </Link>
-                <Link to="/meus-servicos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                <Link
+                  to="/meus-servicos"
+                  className={`transition-colors font-medium text-sm ${
+                    location.pathname === "/meus-servicos"
+                      ? "text-primary font-bold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
                   Meus serviços
                 </Link>
-                <Link to="/perfil" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                <Link
+                  to="/perfil"
+                  className={`transition-colors font-medium text-sm ${
+                    location.pathname === "/perfil"
+                      ? "text-primary font-bold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
                   Perfil
                 </Link>
               </>
             ) : (
               <>
-                <Link to="/buscar" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                <Link
+                  to="/buscar"
+                  className={`transition-colors font-medium text-sm ${
+                    location.pathname === "/buscar"
+                      ? "text-primary font-bold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
                   Buscar
                 </Link>
-                <Link to="/quem-somos" className="text-foreground font-semibold hover:text-primary transition-colors flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/20">
-                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  Quem somos
+                <Link
+                  to="/planos"
+                  className={`transition-colors font-medium text-sm ${
+                    location.pathname === "/planos"
+                      ? "text-primary font-bold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Planos
                 </Link>
                 {isAuthenticated && (
-                  <Link to="/meus-agendamentos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                  <Link
+                    to="/meus-agendamentos"
+                    className={`transition-colors font-medium text-sm ${
+                      location.pathname === "/meus-agendamentos"
+                        ? "text-primary font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
                     Meus agendamentos
                   </Link>
                 )}
                 {isAuthenticated && (
-                  <Link to="/carteira" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                  <Link
+                    to="/carteira"
+                    className={`transition-colors font-medium text-sm ${
+                      location.pathname === "/carteira"
+                        ? "text-primary font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
                     Carteira
                   </Link>
                 )}
                 {isAuthenticated && (
-                  <Link to="/perfil" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
+                  <Link
+                    to="/perfil"
+                    className={`transition-colors font-medium text-sm ${
+                      location.pathname === "/perfil"
+                        ? "text-primary font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
                     Perfil
-                  </Link>
-                )}
-                {!isAuthenticated && (
-                  <Link to="/#planos" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
-                    Planos
                   </Link>
                 )}
               </>
@@ -127,53 +208,104 @@ const Header = () => {
 
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-border/50 animate-fade-in">
-            <nav className="flex flex-col gap-4">
+            <nav className="flex flex-col gap-3">
+              <Link
+                to="/"
+                onClick={() => setIsMenuOpen(false)}
+                className={`py-2 text-sm font-semibold transition-colors ${
+                  location.pathname === "/" ? "text-primary" : "text-foreground"
+                }`}
+              >
+                Início
+              </Link>
+
               {user?.role === "ADMIN" ? (
-                <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="text-secondary font-semibold py-2">
+                <Link
+                  to="/admin"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-secondary font-semibold py-2 text-sm"
+                >
                   Painel Administrativo
                 </Link>
               ) : isProvider ? (
                 <>
-                  <Link to="/carteira" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                  <Link
+                    to="/planos"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
+                  >
+                    Planos
+                  </Link>
+                  <Link
+                    to="/carteira"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
+                  >
                     Carteira
                   </Link>
-                  <Link to="/agenda-profissional" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                  <Link
+                    to="/agenda-profissional"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
+                  >
                     Meus alunos
                   </Link>
-                  <Link to="/meus-servicos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                  <Link
+                    to="/meus-servicos"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
+                  >
                     Meus serviços
                   </Link>
-                  <Link to="/perfil" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                  <Link
+                    to="/perfil"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
+                  >
                     Perfil
                   </Link>
                 </>
               ) : (
                 <>
-                  <Link to="/buscar" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                  <Link
+                    to="/buscar"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
+                  >
                     Buscar
                   </Link>
-                  <Link to="/quem-somos" onClick={() => setIsMenuOpen(false)} className="text-primary font-semibold hover:text-primary/80 transition-colors py-2 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-primary" />
-                    Quem somos
+                  <Link
+                    to="/planos"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
+                  >
+                    Planos
                   </Link>
                   {isAuthenticated && (
-                    <Link to="/meus-agendamentos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                    <Link
+                      to="/meus-agendamentos"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
+                    >
                       Meus agendamentos
                     </Link>
                   )}
                   {isAuthenticated && (
-                    <Link to="/carteira" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                    <Link
+                      to="/carteira"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
+                    >
                       Carteira
                     </Link>
                   )}
                   {isAuthenticated && (
-                    <Link to="/perfil" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                    <Link
+                      to="/perfil"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
+                    >
                       Perfil
-                    </Link>
-                  )}
-                  {!isAuthenticated && (
-                    <Link to="/#planos" onClick={() => setIsMenuOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
-                      Planos
                     </Link>
                   )}
                 </>
