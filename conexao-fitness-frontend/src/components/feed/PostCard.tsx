@@ -25,6 +25,7 @@ import {
   toggleFollowUser,
 } from "@/services/posts";
 import { SharePostModal } from "./SharePostModal";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 import type { Post, PostComment } from "@/types/community";
 
 interface PostCardProps {
@@ -303,31 +304,54 @@ export const PostCard: React.FC<PostCardProps> = ({
         )}
 
         {/* FOTOS / GALERIA ANEXADA */}
-        {post.mediaUrls && post.mediaUrls.length > 0 && (
-          <div
-            className={`grid gap-2 rounded-xl overflow-hidden mt-2 ${
-              post.mediaUrls.length === 1
-                ? "grid-cols-1 max-h-96"
-                : post.mediaUrls.length === 2
-                ? "grid-cols-2 max-h-80"
-                : "grid-cols-2 sm:grid-cols-3 max-h-80"
-            }`}
-          >
-            {post.mediaUrls.map((url, idx) => (
-              <div
-                key={idx}
-                className="relative overflow-hidden bg-muted group rounded-lg"
-              >
-                <img
-                  src={url}
-                  alt={`Foto ${idx + 1}`}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 min-h-48 max-h-96"
-                  loading="lazy"
-                />
-              </div>
-            ))}
-          </div>
-        )}
+        {(() => {
+          const sanitizedMediaUrls = (post.mediaUrls || [])
+            .map((item: any) => {
+              if (!item) return "";
+              if (typeof item === "object" && item.url) return String(item.url);
+              if (typeof item === "string") return item;
+              return "";
+            })
+            .filter(
+              (url) =>
+                Boolean(url) &&
+                !url.includes("[object Object]") &&
+                !url.startsWith("blob:") &&
+                url.trim().length > 5
+            )
+            .map((url) => resolveMediaUrl(url));
+
+          if (sanitizedMediaUrls.length === 0) return null;
+
+          return (
+            <div
+              className={`grid gap-2 rounded-2xl overflow-hidden mt-3 ${
+                sanitizedMediaUrls.length === 1
+                  ? "grid-cols-1 max-h-[500px]"
+                  : sanitizedMediaUrls.length === 2
+                  ? "grid-cols-2 max-h-96"
+                  : "grid-cols-2 sm:grid-cols-3 max-h-96"
+              }`}
+            >
+              {sanitizedMediaUrls.map((url, idx) => (
+                <div
+                  key={idx}
+                  className="relative overflow-hidden bg-muted/60 group rounded-xl border border-border/40"
+                >
+                  <img
+                    src={url}
+                    alt={`Foto ${idx + 1}`}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 min-h-48 max-h-[500px]"
+                    loading="lazy"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = "none";
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* EMBED DO POST ORIGINAL COMPARTILHADO */}
         {post.sharedPost && (

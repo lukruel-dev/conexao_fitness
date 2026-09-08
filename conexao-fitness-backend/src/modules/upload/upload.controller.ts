@@ -41,6 +41,28 @@ export class UploadController {
     return { url: fileUrl };
   }
 
+  @Post('image')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Nenhum arquivo enviado');
+    }
+    const fileUrl = await this.uploadService.uploadFile(file, 'posts');
+    return { url: fileUrl };
+  }
+
+  @Post('post')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadPostImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Nenhum arquivo enviado');
+    }
+    const fileUrl = await this.uploadService.uploadFile(file, 'posts');
+    return { url: fileUrl };
+  }
+
   @Get('file/:folder/:filename')
   getFile(
     @Param('folder') folder: string,

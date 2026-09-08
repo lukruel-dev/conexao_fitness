@@ -15,6 +15,8 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { createPost } from "@/services/posts";
 import { uploadPortfolio } from "@/services/uploads";
+import { compressImage } from "@/lib/imageCompressor";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 import { WorkoutBuilderModal } from "./WorkoutBuilderModal";
 import type { Post, WorkoutRoutine } from "@/types/community";
 
@@ -66,29 +68,47 @@ export const CreatePostCard: React.FC<CreatePostCardProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Se usuário tiver sessão autenticada, faz upload real
-    if (isAuthenticated) {
-      setUploadingImage(true);
-      try {
-        const uploadedUrl = await uploadPortfolio(file);
-        setMediaUrls((prev) => [...prev, uploadedUrl]);
-        toast({ title: "Foto anexada com sucesso!" });
-      } catch (err) {
-        // Fallback para preview local
-        const previewUrl = URL.createObjectURL(file);
-        setMediaUrls((prev) => [...prev, previewUrl]);
-        toast({ title: "Foto anexada (modo preview local)!" });
-      } finally {
-        setUploadingImage(false);
+    setUploadingImage(true);
+    try {
+      // 1. Comprime a imagem no cliente para garantir upload ultra rápido e leve
+      const { file: compressedFile, dataUrl } = await compressImage(file);
+
+      let finalUrl = "";
+
+      // 2. Se autenticado, tenta fazer upload da foto no servidor
+      if (isAuthenticated) {
+        try {
+          const res = await uploadPortfolio(compressedFile);
+          if (res && typeof res === "object" && res.url) {
+            finalUrl = resolveMediaUrl(String(res.url));
+          } else if (typeof res === "string") {
+            finalUrl = resolveMediaUrl(res);
+          }
+        } catch (uploadErr) {
+          console.warn("Upload no servidor não respondeu, utilizando imagem otimizada em base64:", uploadErr);
+        }
       }
-    } else {
-      // Cria preview local com ObjectURL
-      const previewUrl = URL.createObjectURL(file);
-      setMediaUrls((prev) => [...prev, previewUrl]);
+
+      // 3. Fallback inteligente: se não recebeu URL remota ou estiver offline, usa o dataUrl comprimido
+      if (!finalUrl) {
+        finalUrl = dataUrl;
+      }
+
+      setMediaUrls((prev) => [...prev, finalUrl]);
       toast({
         title: "Foto anexada!",
-        description: "Pré-visualização gerada para publicação.",
+        description: "A imagem foi otimizada e está pronta para o post.",
       });
+    } catch (err: any) {
+      console.error("Erro ao processar imagem:", err);
+      toast({
+        title: "Erro ao anexar foto",
+        description: "Não foi possível carregar esta imagem. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingImage(false);
+      e.target.value = "";
     }
   };
 
