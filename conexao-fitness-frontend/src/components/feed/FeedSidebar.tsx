@@ -70,7 +70,7 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
           <h3>Comunidade Conexão</h3>
         </div>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Compartilhe suas evoluções, tire dúvidas biomecânicas com personais credenciados e conecte-se com parceiros de treino em Uruguaiana e todo o Brasil!
+          Compartilhe suas evoluções, tire dúvidas com profissionais credenciados (Personais, Nutricionistas, Fisioterapeutas) e conecte-se com parceiros em Uruguaiana e todo o Brasil!
         </p>
 
         <div className="pt-2 border-t border-border/50 flex flex-col gap-2">
@@ -87,10 +87,10 @@ export const FeedSidebar: React.FC<FeedSidebarProps> = ({
       <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm space-y-3">
         <div className="flex items-center gap-2 text-foreground font-bold text-sm">
           <Award className="h-4 w-4 text-amber-500" />
-          <h3>É Personal ou Academia?</h3>
+          <h3>É Profissional ou Academia?</h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          Divulgue seus serviços, gerencie sua agenda e conquiste novos alunos na plataforma.
+          Divulgue seus serviços, gerencie sua agenda e conquiste novos alunos e clientes na plataforma.
         </p>
         <Button
           size="sm"

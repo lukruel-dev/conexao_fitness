@@ -119,7 +119,7 @@ const Index: React.FC = () => {
               </div>
 
               <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground leading-tight">
-                Conecte-se com as <span className="text-primary underline decoration-primary/40">Melhores Academias</span>, Personais e a Comunidade
+                Conecte-se com as <span className="text-primary underline decoration-primary/40">Melhores Academias</span>, Profissionais e a Comunidade
               </h1>
 
               <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
@@ -131,7 +131,7 @@ const Index: React.FC = () => {
                 <div className="relative flex-1">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar treinos, personais, academias ou tags..."
+                    placeholder="Buscar treinos, profissionais, academias ou tags..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && fetchFeed()}
@@ -286,7 +286,7 @@ const Index: React.FC = () => {
                     </h3>
                     <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                       {activeFeedTab === "following"
-                        ? "Explore a comunidade, siga personais e amigos para ver as postagens deles aqui na sua aba Seguindo!"
+                        ? "Explore a comunidade, siga profissionais e amigos para ver as postagens deles aqui na sua aba Seguindo!"
                         : "Seja o primeiro a compartilhar uma rotina de treino ou dica nesta categoria!"}
                     </p>
                     {activeFeedTab === "following" && (
