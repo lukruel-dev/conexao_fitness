@@ -7,6 +7,11 @@ import { API_BASE_URL } from "./apiConfig";
 export function resolveMediaUrl(url?: string | null): string {
   if (!url) return "";
   
+  // Imagens base64 ou blobs não precisam de prefixo
+  if (url.startsWith("data:") || url.startsWith("blob:")) {
+    return url;
+  }
+  
   // Se for caminho relativo (/uploads/folder/filename)
   if (url.startsWith("/uploads/")) {
     const clean = url.replace(/^\/uploads\//, "");

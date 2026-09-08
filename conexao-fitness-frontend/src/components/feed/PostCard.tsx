@@ -379,7 +379,6 @@ export const PostCard: React.FC<PostCardProps> = ({
               (url) =>
                 Boolean(url) &&
                 !url.includes("[object Object]") &&
-                !url.startsWith("blob:") &&
                 url.trim().length > 5
             )
             .map((url) => resolveMediaUrl(url));
@@ -406,9 +405,6 @@ export const PostCard: React.FC<PostCardProps> = ({
                     alt={`Foto ${idx + 1}`}
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 min-h-48 max-h-[500px]"
                     loading="lazy"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = "none";
-                    }}
                   />
                 </div>
               ))}

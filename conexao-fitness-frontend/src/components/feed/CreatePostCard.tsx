@@ -70,34 +70,17 @@ export const CreatePostCard: React.FC<CreatePostCardProps> = ({
 
     setUploadingImage(true);
     try {
-      // 1. Comprime a imagem no cliente para garantir upload ultra rápido e leve
-      const { file: compressedFile, dataUrl } = await compressImage(file);
+      // Comprime a imagem no cliente (800x800px, 0.75 qualidade -> ~60kb leve, nítida e persistida no banco)
+      const { dataUrl } = await compressImage(file, 800, 800, 0.75);
 
-      let finalUrl = "";
-
-      // 2. Se autenticado, tenta fazer upload da foto no servidor
-      if (isAuthenticated) {
-        try {
-          const res = await uploadPortfolio(compressedFile);
-          if (res && typeof res === "object" && res.url) {
-            finalUrl = resolveMediaUrl(String(res.url));
-          } else if (typeof res === "string") {
-            finalUrl = resolveMediaUrl(res);
-          }
-        } catch (uploadErr) {
-          console.warn("Upload no servidor não respondeu, utilizando imagem otimizada em base64:", uploadErr);
-        }
+      if (!dataUrl || !dataUrl.startsWith("data:image/")) {
+        throw new Error("Falha ao codificar imagem");
       }
 
-      // 3. Fallback inteligente: se não recebeu URL remota ou estiver offline, usa o dataUrl comprimido
-      if (!finalUrl) {
-        finalUrl = dataUrl;
-      }
-
-      setMediaUrls((prev) => [...prev, finalUrl]);
+      setMediaUrls((prev) => [...prev, dataUrl]);
       toast({
-        title: "Foto anexada!",
-        description: "A imagem foi otimizada e está pronta para o post.",
+        title: "Foto anexada com sucesso!",
+        description: "A imagem foi otimizada e será salva na sua publicação.",
       });
     } catch (err: any) {
       console.error("Erro ao processar imagem:", err);
