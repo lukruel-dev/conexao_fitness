@@ -19,6 +19,10 @@ export class CreatePostDto {
   mediaUrls?: string[];
 
   @IsOptional()
+  @IsString()
+  sharedPostId?: string;
+
+  @IsOptional()
   workoutRoutine?: {
     title?: string;
     level?: string;

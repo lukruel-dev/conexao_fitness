@@ -4,6 +4,7 @@ import {
   Heart,
   MessageCircle,
   Share2,
+  Repeat,
   Dumbbell,
   ShieldCheck,
   UserPlus,
@@ -23,20 +24,28 @@ import {
   addComment,
   toggleFollowUser,
 } from "@/services/posts";
+import { SharePostModal } from "./SharePostModal";
 import type { Post, PostComment } from "@/types/community";
 
 interface PostCardProps {
   post: Post;
   onTagClick?: (tag: string) => void;
+  onPostShared?: (newPost: Post) => void;
 }
 
-export const PostCard: React.FC<PostCardProps> = ({ post, onTagClick }) => {
+export const PostCard: React.FC<PostCardProps> = ({
+  post,
+  onTagClick,
+  onPostShared,
+}) => {
   const { user } = useAuth();
   const [isLiked, setIsLiked] = useState(post.isLiked ?? false);
   const [likesCount, setLikesCount] = useState(post.likesCount || 0);
+  const [sharesCount, setSharesCount] = useState(post.sharesCount || 0);
   const [isFollowing, setIsFollowing] = useState(post.isFollowingAuthor ?? false);
   const [followLoading, setFollowLoading] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [comments, setComments] = useState<PostComment[]>([]);
   const [commentsCount, setCommentsCount] = useState(post.commentsCount || 0);
   const [commentsLoading, setCommentsLoading] = useState(false);
@@ -143,27 +152,11 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onTagClick }) => {
     }
   };
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: `Post de ${post.author?.name} na Conexão Fitness`,
-        text: post.content,
-        url: window.location.href,
-      }).catch(() => {});
-    } else {
-      navigator.clipboard?.writeText(window.location.href);
-      toast({
-        title: "Link copiado!",
-        description: "Compartilhe esta publicação com seus amigos.",
-      });
+  const authorRoleLabel = (author = post.author) => {
+    if (author?.role === "PERSONAL") {
+      return author.personalProfile?.professionTitle || "Personal Trainer";
     }
-  };
-
-  const authorRoleLabel = () => {
-    if (post.author?.role === "PERSONAL") {
-      return post.author.personalProfile?.professionTitle || "Personal Trainer";
-    }
-    if (post.author?.role === "ACADEMIA") {
+    if (author?.role === "ACADEMIA") {
       return "Academia Parceira";
     }
     return "Atleta & Aluno";
@@ -171,6 +164,16 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onTagClick }) => {
 
   return (
     <article className="rounded-2xl border border-border/80 bg-card p-4 sm:p-5 shadow-sm transition-all duration-200 hover:border-primary/30 mb-5">
+      {/* BANNER SE FOR REPOST/COMPARTILHAMENTO */}
+      {post.sharedPost && (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold mb-3 bg-primary/5 px-3 py-1.5 rounded-xl border border-primary/15">
+          <Repeat className="h-3.5 w-3.5 text-primary" />
+          <span>
+            <strong className="text-foreground">{post.author?.name}</strong> compartilhou esta publicação
+          </span>
+        </div>
+      )}
+
       {/* CABEÇALHO DO AUTOR */}
       <div className="flex items-start justify-between gap-3 mb-3.5">
         <div className="flex items-center gap-3">
@@ -196,7 +199,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onTagClick }) => {
                 {post.author?.name || "Usuário Conexão"}
               </h3>
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                {authorRoleLabel()}
+                {authorRoleLabel(post.author)}
               </span>
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -325,6 +328,42 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onTagClick }) => {
             ))}
           </div>
         )}
+
+        {/* EMBED DO POST ORIGINAL COMPARTILHADO */}
+        {post.sharedPost && (
+          <div className="rounded-xl border border-border/80 bg-muted/20 p-3.5 space-y-2 mt-2">
+            <div className="flex items-center gap-2.5">
+              <img
+                src={
+                  post.sharedPost.author?.avatarUrl ||
+                  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"
+                }
+                alt="Autor Original"
+                className="h-8 w-8 rounded-full object-cover ring-1 ring-primary/30"
+              />
+              <div>
+                <span className="text-xs font-bold text-foreground block leading-tight">
+                  {post.sharedPost.author?.name}
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  {authorRoleLabel(post.sharedPost.author)}
+                </span>
+              </div>
+            </div>
+            <p className="text-xs text-foreground/90 whitespace-pre-line line-clamp-3">
+              {post.sharedPost.content}
+            </p>
+            {post.sharedPost.mediaUrls && post.sharedPost.mediaUrls.length > 0 && (
+              <div className="h-40 rounded-lg overflow-hidden mt-2">
+                <img
+                  src={post.sharedPost.mediaUrls[0]}
+                  alt="Mídia compartilhada"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* BARRA DE AÇÕES (CURTIR, COMENTAR, COMPARTILHAR) */}
@@ -357,12 +396,22 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onTagClick }) => {
             <MessageCircle className="h-4 w-4" />
             <span>{commentsCount}</span>
           </button>
+
+          {/* Compartilhar / Repostar */}
+          <button
+            type="button"
+            onClick={() => setIsShareModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
+          >
+            <Repeat className="h-4 w-4" />
+            <span>{sharesCount > 0 ? sharesCount : ""}</span>
+          </button>
         </div>
 
-        {/* Compartilhar */}
+        {/* Compartilhar Geral */}
         <button
           type="button"
-          onClick={handleShare}
+          onClick={() => setIsShareModalOpen(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
         >
           <Share2 className="h-4 w-4" />
@@ -426,6 +475,17 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onTagClick }) => {
           )}
         </div>
       )}
+
+      {/* MODAL DE COMPARTILHAMENTO / REPOST */}
+      <SharePostModal
+        open={isShareModalOpen}
+        onOpenChange={setIsShareModalOpen}
+        post={post}
+        onShared={(newPost) => {
+          setSharesCount((prev) => prev + 1);
+          if (onPostShared) onPostShared(newPost);
+        }}
+      />
     </article>
   );
 };

@@ -276,6 +276,7 @@ function getDefaultCommentsMap(): Record<string, PostComment[]> {
 
 export async function listPosts(params?: {
   feed?: "explore" | "following";
+  authorId?: string;
   tag?: string;
   category?: string;
   page?: number;
@@ -284,6 +285,7 @@ export async function listPosts(params?: {
   try {
     const query = new URLSearchParams();
     if (params?.feed) query.set("feed", params.feed);
+    if (params?.authorId) query.set("authorId", params.authorId);
     if (params?.tag) query.set("tag", params.tag);
     if (params?.category) query.set("category", params.category);
     if (params?.page) query.set("page", String(params.page));
@@ -311,7 +313,13 @@ export async function listPosts(params?: {
     isFollowingAuthor: localFollows.has(p.authorId) || p.isFollowingAuthor,
   }));
 
-  if (params?.feed === "following") {
+  if (params?.authorId) {
+    localPosts = localPosts.filter(
+      (p) =>
+        p.authorId === params.authorId ||
+        (params.authorId === "user-me" && p.authorId === "user-me")
+    );
+  } else if (params?.feed === "following") {
     localPosts = localPosts.filter((p) => localFollows.has(p.authorId));
   }
 
@@ -333,7 +341,7 @@ export async function listPosts(params?: {
   };
 }
 
-export async function createPost(dto: CreatePostDto): Promise<Post> {
+export async function createPost(dto: CreatePostDto, currentUser?: any): Promise<Post> {
   try {
     const res = await apiClient.post<Post>("/posts", dto);
     if (res && res.id) {
@@ -345,23 +353,37 @@ export async function createPost(dto: CreatePostDto): Promise<Post> {
 
   // Fallback local
   const currentLocalPosts = getLocalPosts();
+  let originalPost: Post | undefined;
+  if (dto.sharedPostId) {
+    originalPost = currentLocalPosts.find((p) => p.id === dto.sharedPostId);
+    if (originalPost) {
+      originalPost.sharesCount = (originalPost.sharesCount || 0) + 1;
+    }
+  }
+
+  const authorId = currentUser?.id || "user-me";
   const newPost: Post = {
     id: "post-" + Date.now(),
-    authorId: "user-me",
+    authorId,
     author: {
-      id: "user-me",
-      name: "Você (Atleta Conexão)",
-      role: "STUDENT",
-      avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
-      cityBase: "Uruguaiana - RS",
+      id: authorId,
+      name: currentUser?.name || "Você (Atleta Conexão)",
+      role: currentUser?.role || "STUDENT",
+      avatarUrl:
+        currentUser?.avatarUrl ||
+        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
+      cityBase: currentUser?.cityBase || "Uruguaiana - RS",
     },
     content: dto.content,
     category: dto.category || "Geral",
-    tags: dto.tags || ["#Comunidade", "#Treino"],
+    tags: dto.tags || ["#Comunidade"],
     mediaUrls: dto.mediaUrls || [],
     workoutRoutine: dto.workoutRoutine,
+    sharedPostId: dto.sharedPostId,
+    sharedPost: originalPost,
     likesCount: 0,
     commentsCount: 0,
+    sharesCount: 0,
     isLiked: false,
     isFollowingAuthor: false,
     createdAt: new Date().toISOString(),
@@ -370,6 +392,23 @@ export async function createPost(dto: CreatePostDto): Promise<Post> {
   const updated = [newPost, ...currentLocalPosts];
   saveLocalPosts(updated);
   return newPost;
+}
+
+export async function sharePost(
+  postId: string,
+  commentary?: string,
+  currentUser?: any
+): Promise<Post> {
+  const content = commentary?.trim() || "🔄 Compartilhou uma publicação da comunidade:";
+  return createPost(
+    {
+      content,
+      category: "Geral",
+      tags: ["#Compartilhado", "#Comunidade"],
+      sharedPostId: postId,
+    },
+    currentUser
+  );
 }
 
 export async function toggleLikePost(

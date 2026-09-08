@@ -36,6 +36,7 @@ export class PostsService {
   async findAll(
     query: {
       feed?: 'explore' | 'following';
+      authorId?: string;
       tag?: string;
       category?: string;
       page?: number;
@@ -68,9 +69,18 @@ export class PostsService {
       .leftJoinAndSelect('author.alunoProfile', 'alunoProfile')
       .leftJoinAndSelect('author.personalProfile', 'personalProfile')
       .leftJoinAndSelect('author.academiaProfile', 'academiaProfile')
+      .leftJoinAndSelect('post.sharedPost', 'sharedPost')
+      .leftJoinAndSelect('sharedPost.author', 'sharedAuthor')
+      .leftJoinAndSelect('sharedAuthor.alunoProfile', 'sharedAlunoProfile')
+      .leftJoinAndSelect('sharedAuthor.personalProfile', 'sharedPersonalProfile')
+      .leftJoinAndSelect('sharedAuthor.academiaProfile', 'sharedAcademiaProfile')
       .orderBy('post.createdAt', 'DESC')
       .skip(skip)
       .take(limit);
+
+    if (query.authorId) {
+      qb.andWhere('post.authorId = :authorId', { authorId: query.authorId });
+    }
 
     if (query.feed === 'following' && followingIds.length > 0) {
       qb.andWhere('post.authorId IN (:...followingIds)', { followingIds });
@@ -133,6 +143,11 @@ export class PostsService {
         'author.alunoProfile',
         'author.personalProfile',
         'author.academiaProfile',
+        'sharedPost',
+        'sharedPost.author',
+        'sharedPost.author.alunoProfile',
+        'sharedPost.author.personalProfile',
+        'sharedPost.author.academiaProfile',
       ],
     });
 
@@ -172,6 +187,18 @@ export class PostsService {
       throw new NotFoundException('Usuário não encontrado');
     }
 
+    let sharedPost: Post | null = null;
+    if (dto.sharedPostId) {
+      sharedPost = await this.postsRepo.findOne({
+        where: { id: dto.sharedPostId },
+        relations: ['author', 'author.alunoProfile', 'author.personalProfile', 'author.academiaProfile'],
+      });
+      if (sharedPost) {
+        sharedPost.sharesCount = (sharedPost.sharesCount || 0) + 1;
+        await this.postsRepo.save(sharedPost);
+      }
+    }
+
     const post = this.postsRepo.create({
       authorId,
       author,
@@ -180,8 +207,11 @@ export class PostsService {
       tags: dto.tags || [],
       mediaUrls: dto.mediaUrls || [],
       workoutRoutine: dto.workoutRoutine,
+      sharedPostId: dto.sharedPostId,
+      sharedPost: sharedPost ?? undefined,
       likesCount: 0,
       commentsCount: 0,
+      sharesCount: 0,
     });
 
     const saved = await this.postsRepo.save(post);

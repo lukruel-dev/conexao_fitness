@@ -22,11 +22,12 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
-  @ApiOperation({ summary: 'Listar postagens do feed (Explorar ou Seguindo)' })
+  @ApiOperation({ summary: 'Listar postagens do feed (Explorar, Seguindo ou por Autor)' })
   @UseGuards(OptionalJwtAuthGuard)
   @Get()
   async findAll(
     @Query('feed') feed: 'explore' | 'following' = 'explore',
+    @Query('authorId') authorId?: string,
     @Query('tag') tag?: string,
     @Query('category') category?: string,
     @Query('page') page?: number,
@@ -34,7 +35,7 @@ export class PostsController {
     @CurrentUser() user?: any,
   ) {
     return this.postsService.findAll(
-      { feed, tag, category, page, limit },
+      { feed, authorId, tag, category, page, limit },
       user?.id,
     );
   }

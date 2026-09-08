@@ -50,6 +50,9 @@ export interface Post {
   workoutRoutine?: WorkoutRoutine;
   likesCount: number;
   commentsCount: number;
+  sharesCount?: number;
+  sharedPostId?: string;
+  sharedPost?: Post;
   isLiked?: boolean;
   isFollowingAuthor?: boolean;
   createdAt: string;
@@ -61,6 +64,7 @@ export interface CreatePostDto {
   category?: string;
   tags?: string[];
   mediaUrls?: string[];
+  sharedPostId?: string;
   workoutRoutine?: WorkoutRoutine;
 }
 

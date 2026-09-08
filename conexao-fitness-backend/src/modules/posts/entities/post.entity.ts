@@ -59,6 +59,16 @@ export class Post {
   @Column({ type: 'int', default: 0 })
   commentsCount: number;
 
+  @Column({ type: 'int', default: 0 })
+  sharesCount: number;
+
+  @Column({ type: 'uuid', nullable: true })
+  sharedPostId?: string;
+
+  @ManyToOne(() => Post, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'sharedPostId' })
+  sharedPost?: Post;
+
   @OneToMany(() => PostLike, (like) => like.post)
   likes: PostLike[];
 
