@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   Building2,
   Dumbbell,
@@ -9,116 +10,25 @@ import {
   ShieldCheck,
   Calendar,
   Sparkles,
+  ArrowRight,
+  UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface GymFeatured {
-  id: string;
-  name: string;
-  tagline: string;
-  location: string;
-  rating: number;
-  reviewsCount: number;
-  imageUrl: string;
-  dayPassPrice: string;
-  features: string[];
-}
-
-interface ProfessionalFeatured {
-  id: string;
-  name: string;
-  roleTitle: string;
-  cref: string;
-  location: string;
-  rating: number;
-  reviewsCount: number;
-  imageUrl: string;
-  hourlyPrice: string;
-  specialties: string[];
-}
-
-const FEATURED_GYMS: GymFeatured[] = [
-  {
-    id: "gym-1",
-    name: "Academia Conexão VIP",
-    tagline: "Musculação, Cardio Climatizado & Vestiários Premium",
-    location: "Centro • Uruguaiana - RS",
-    rating: 4.9,
-    reviewsCount: 128,
-    imageUrl:
-      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop",
-    dayPassPrice: "R$ 25,00",
-    features: ["Climatizado", "Biomecânica", "Vestiário"],
-  },
-  {
-    id: "gym-2",
-    name: "Iron Box CrossFit & Performance",
-    tagline: "Boxes de Cross Training, LPO e Treino Funcional",
-    location: "São Miguel • Uruguaiana - RS",
-    rating: 4.8,
-    reviewsCount: 94,
-    imageUrl:
-      "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=600&auto=format&fit=crop",
-    dayPassPrice: "R$ 35,00",
-    features: ["WOD", "LPO", "Coach Dedicado"],
-  },
-  {
-    id: "gym-3",
-    name: "Studio Pilates & Movimento Vital",
-    tagline: "Pilates Clínico em Aparelhos & Reeducação Postural",
-    location: "Bela Vista • Porto Alegre - RS",
-    rating: 5.0,
-    reviewsCount: 76,
-    imageUrl:
-      "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&auto=format&fit=crop",
-    dayPassPrice: "R$ 45,00",
-    features: ["Reformer", "Cadillac", "Avaliação"],
-  },
-];
-
-const FEATURED_PROS: ProfessionalFeatured[] = [
-  {
-    id: "pro-1",
-    name: "Prof. Diego Silva",
-    roleTitle: "Personal Trainer & Preparador Físico",
-    cref: "CREF 012345-G/RS",
-    location: "Uruguaiana - RS (Presencial e Online)",
-    rating: 4.9,
-    reviewsCount: 48,
-    imageUrl:
-      "https://images.unsplash.com/photo-1567013127542-490d757e51fc?w=300&auto=format&fit=crop",
-    hourlyPrice: "R$ 75,00 / sessão",
-    specialties: ["Musculação", "Hipertrofia", "Consultoria"],
-  },
-  {
-    id: "pro-2",
-    name: "Dra. Camila Santos",
-    roleTitle: "Nutricionista Esportiva & Clínica",
-    cref: "CRN 98765/RS",
-    location: "Uruguaiana - RS (Consultório e Online)",
-    rating: 5.0,
-    reviewsCount: 32,
-    imageUrl:
-      "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&auto=format&fit=crop",
-    hourlyPrice: "R$ 140,00 / consulta",
-    specialties: ["Bioimpedância", "Emagrecimento", "Suplementação"],
-  },
-  {
-    id: "pro-3",
-    name: "Dr. Rodrigo Oliveira",
-    roleTitle: "Fisioterapeuta Desportivo & Osteopata",
-    cref: "CREFITO 54321/RS",
-    location: "Uruguaiana - RS",
-    rating: 4.9,
-    reviewsCount: 29,
-    imageUrl:
-      "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=300&auto=format&fit=crop",
-    hourlyPrice: "R$ 130,00 / sessão",
-    specialties: ["Reabilitação", "Liberação Miofascial", "Ventosaterapia"],
-  },
-];
+import { listServices } from "@/services/services";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
+import { formatBRL } from "@/lib/format";
 
 export const FeaturedSpotlight: React.FC = () => {
+  const { data: services, isLoading } = useQuery({
+    queryKey: ["featured-services"],
+    queryFn: () => listServices(),
+    staleTime: 1000 * 60 * 3,
+  });
+
+  const allServices = services || [];
+  const gymServices = allServices.filter((s) => s.providerType === "ACADEMIA").slice(0, 3);
+  const proServices = allServices.filter((s) => s.providerType === "PERSONAL").slice(0, 3);
+
   return (
     <div className="space-y-8 mb-8">
       {/* SEÇÃO 1: ACADEMIAS EM DESTAQUE */}
@@ -131,14 +41,14 @@ export const FeaturedSpotlight: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold tracking-tight text-foreground">
-                  Academias em Destaque
+                  Academias & Estúdios
                 </h2>
                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-primary/15 text-primary px-2 py-0.5 rounded-full">
-                  <Sparkles className="h-3 w-3" /> Day Pass Disponível
+                  <Sparkles className="h-3 w-3" /> Day Pass & Treinos
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Treine nas melhores academias e estúdios parceiros sem mensalidade fixa
+                Treine nas melhores academias parceiras credenciadas
               </p>
             </div>
           </div>
@@ -150,76 +60,89 @@ export const FeaturedSpotlight: React.FC = () => {
           </Link>
         </div>
 
-        {/* CARDS DE ACADEMIAS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {FEATURED_GYMS.map((gym) => (
-            <div
-              key={gym.id}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-border/70 bg-card hover:border-primary/50 transition-all duration-300 hover:shadow-md"
-            >
-              <div className="relative h-36 w-full overflow-hidden bg-muted">
-                <img
-                  src={gym.imageUrl}
-                  alt={gym.name}
-                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between">
-                  <div>
-                    <h3 className="font-bold text-white text-sm drop-shadow-sm leading-tight">
-                      {gym.name}
-                    </h3>
-                    <div className="flex items-center gap-1 text-[11px] text-white/90">
-                      <MapPin className="h-3 w-3 text-primary" /> {gym.location}
+        {/* CARDS DE ACADEMIAS REAIS */}
+        {gymServices.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {gymServices.map((gym) => (
+              <div
+                key={gym.id}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-border/70 bg-card hover:border-primary/50 transition-all duration-300 hover:shadow-md"
+              >
+                <div className="relative h-36 w-full overflow-hidden bg-muted">
+                  <img
+                    src={
+                      resolveMediaUrl(gym.providerAvatar) ||
+                      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop"
+                    }
+                    alt={gym.providerName || gym.name}
+                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between">
+                    <div>
+                      <h3 className="font-bold text-white text-sm drop-shadow-sm leading-tight">
+                        {gym.providerName || gym.name}
+                      </h3>
+                      <div className="flex items-center gap-1 text-[11px] text-white/90">
+                        <MapPin className="h-3 w-3 text-primary" /> {gym.city || "Uruguaiana - RS"}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-md text-[11px] font-bold text-amber-400 border border-amber-400/20">
-                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                    {gym.rating.toFixed(1)}
+                    {gym.providerRating && (
+                      <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-md text-[11px] font-bold text-amber-400 border border-amber-400/20">
+                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                        {Number(gym.providerRating).toFixed(1)}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
 
-              <div className="p-3.5 flex flex-col justify-between flex-1 gap-3">
-                <p className="text-xs text-muted-foreground line-clamp-2">
-                  {gym.tagline}
-                </p>
+                <div className="p-3.5 flex flex-col justify-between flex-1 gap-3">
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {gym.description || `${gym.modality} • Treino de alta performance e estrutura completa`}
+                  </p>
 
-                <div className="flex flex-wrap gap-1">
-                  {gym.features.map((f, i) => (
-                    <span
-                      key={i}
-                      className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-foreground/80 font-medium"
+                  <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block">
+                        Valor
+                      </span>
+                      <span className="text-sm font-black text-primary">
+                        {formatBRL(gym.price)}
+                      </span>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="h-8 text-xs font-semibold px-3 gap-1 shadow-sm"
+                      asChild
                     >
-                      {f}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                  <div>
-                    <span className="text-[10px] text-muted-foreground block">
-                      A partir de
-                    </span>
-                    <span className="text-sm font-black text-primary">
-                      {gym.dayPassPrice}
-                    </span>
+                      <Link to={`/servico/${gym.id}`}>
+                        Ver Detalhes
+                      </Link>
+                    </Button>
                   </div>
-                  <Button
-                    size="sm"
-                    className="h-8 text-xs font-semibold px-3 gap-1 shadow-sm"
-                    asChild
-                  >
-                    <Link to="/buscar?providerType=ACADEMIA">
-                      Garantir Day Pass
-                    </Link>
-                  </Button>
                 </div>
               </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-border/80 p-6 text-center space-y-2.5 bg-card/40">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto">
+              <Building2 className="h-5 w-5" />
             </div>
-          ))}
-        </div>
+            <p className="text-xs font-semibold text-foreground">
+              Nenhuma academia parceira cadastrada na sua região ainda
+            </p>
+            <p className="text-[11px] text-muted-foreground max-w-sm mx-auto">
+              É proprietário de academia ou box funcional? Cadastre sua unidade no Conexão Fitness!
+            </p>
+            <Button size="sm" variant="outline" className="h-7 text-xs font-bold gap-1 mt-1" asChild>
+              <Link to="/cadastro">
+                Cadastrar Academia <ArrowRight className="h-3 w-3" />
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* SEÇÃO 2: PROFISSIONAIS EM DESTAQUE */}
@@ -232,14 +155,14 @@ export const FeaturedSpotlight: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold tracking-tight text-foreground">
-                  Profissionais em Destaque
+                  Profissionais da Saúde & Fitness
                 </h2>
                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-emerald-500/15 text-emerald-500 px-2 py-0.5 rounded-full">
                   <ShieldCheck className="h-3 w-3" /> Verificados
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
-                Personais, Nutricionistas e Fisioterapeutas avaliados pela comunidade
+                Personais, Nutricionistas e Fisioterapeutas credenciados
               </p>
             </div>
           </div>
@@ -251,61 +174,55 @@ export const FeaturedSpotlight: React.FC = () => {
           </Link>
         </div>
 
-        {/* CARDS DE PROFISSIONAIS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {FEATURED_PROS.map((pro) => (
-            <div
-              key={pro.id}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-border/70 bg-card hover:border-primary/50 transition-all duration-300 hover:shadow-md p-4"
-            >
-              <Link
-                to={`/perfil/${pro.id}`}
-                className="flex items-start gap-3 group/link hover:opacity-95 transition-opacity"
+        {/* CARDS DE PROFISSIONAIS REAIS */}
+        {proServices.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {proServices.map((pro) => (
+              <div
+                key={pro.id}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-border/70 bg-card hover:border-primary/50 transition-all duration-300 hover:shadow-md p-4"
               >
-                <div className="relative">
-                  <img
-                    src={pro.imageUrl}
-                    alt={pro.name}
-                    className="h-14 w-14 rounded-full object-cover ring-2 ring-primary/30 group-hover/link:ring-primary transition-all"
-                  />
-                  <span className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5">
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-sm text-foreground truncate group-hover/link:text-primary transition-colors">
-                      {pro.name}
-                    </h3>
-                    <div className="flex items-center gap-1 text-xs font-bold text-amber-400">
-                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                      {pro.rating.toFixed(1)}
-                    </div>
-                  </div>
-                  <p className="text-xs font-medium text-primary line-clamp-1">
-                    {pro.roleTitle}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {pro.cref}
-                  </p>
-                </div>
-              </Link>
-
-              <div className="mt-3 pt-3 border-t border-border/50 flex flex-col gap-2">
-                <div className="flex flex-wrap gap-1">
-                  {pro.specialties.map((s, idx) => (
-                    <span
-                      key={idx}
-                      className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-foreground/80 font-medium"
-                    >
-                      {s}
+                <Link
+                  to={`/perfil/${pro.providerId}`}
+                  className="flex items-start gap-3 group/link hover:opacity-95 transition-opacity"
+                >
+                  <div className="relative shrink-0">
+                    <img
+                      src={
+                        resolveMediaUrl(pro.providerAvatar) ||
+                        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"
+                      }
+                      alt={pro.providerName || pro.name}
+                      className="h-14 w-14 rounded-full object-cover ring-2 ring-primary/30 group-hover/link:ring-primary transition-all"
+                    />
+                    <span className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5">
+                      <ShieldCheck className="h-3.5 w-3.5" />
                     </span>
-                  ))}
-                </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-bold text-sm text-foreground truncate group-hover/link:text-primary transition-colors">
+                        {pro.providerName || pro.name}
+                      </h3>
+                      {pro.providerRating && (
+                        <div className="flex items-center gap-1 text-xs font-bold text-amber-400">
+                          <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                          {Number(pro.providerRating).toFixed(1)}
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs font-medium text-primary line-clamp-1">
+                      {pro.professionTitle || pro.modality || "Personal Trainer"}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {pro.city || "Uruguaiana - RS"}
+                    </p>
+                  </div>
+                </Link>
 
-                <div className="flex items-center justify-between mt-1">
+                <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between">
                   <span className="text-xs font-bold text-foreground">
-                    {pro.hourlyPrice}
+                    {formatBRL(pro.price)} / sessão
                   </span>
                   <Button
                     size="sm"
@@ -313,15 +230,39 @@ export const FeaturedSpotlight: React.FC = () => {
                     className="h-8 text-xs font-semibold px-3 gap-1 hover:bg-primary hover:text-white border-primary/30"
                     asChild
                   >
-                    <Link to="/buscar?providerType=PERSONAL">
-                      <Calendar className="h-3 w-3" /> Agendar
+                    <Link to={`/perfil/${pro.providerId}`}>
+                      <Calendar className="h-3 w-3" /> Ver Perfil
                     </Link>
                   </Button>
                 </div>
               </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-border/80 p-6 text-center space-y-2.5 bg-card/40">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto">
+              <Dumbbell className="h-5 w-5" />
             </div>
-          ))}
-        </div>
+            <p className="text-xs font-semibold text-foreground">
+              Descubra novos profissionais ou seja um credenciado
+            </p>
+            <p className="text-[11px] text-muted-foreground max-w-sm mx-auto">
+              Você é Personal Trainer, Nutricionista ou Fisioterapeuta? Crie sua conta e receba agendamentos online.
+            </p>
+            <div className="flex items-center justify-center gap-2 pt-1">
+              <Button size="sm" variant="default" className="h-7 text-xs font-bold gap-1" asChild>
+                <Link to="/cadastro">
+                  <UserPlus className="h-3.5 w-3.5" /> Criar Conta Profissional
+                </Link>
+              </Button>
+              <Button size="sm" variant="outline" className="h-7 text-xs font-bold gap-1" asChild>
+                <Link to="/buscar?providerType=PERSONAL">
+                  Buscar no Catálogo
+                </Link>
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

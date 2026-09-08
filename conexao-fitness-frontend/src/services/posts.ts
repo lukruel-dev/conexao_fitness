@@ -6,151 +6,6 @@ import type {
   CreateCommentDto,
 } from "@/types/community";
 
-// Posts de demonstração ricos com fotos reais para exibição inicial e fallback
-export const INITIAL_DEMO_POSTS: Post[] = [
-  {
-    id: "demo-post-1",
-    authorId: "user-personal-1",
-    author: {
-      id: "user-personal-1",
-      name: "Prof. Diego Silva",
-      avatarUrl: "https://images.unsplash.com/photo-1567013127542-490d757e51fc?w=150",
-      role: "PERSONAL",
-      cityBase: "Uruguaiana - RS",
-      averageRating: 4.9,
-      personalProfile: {
-        professionTitle: "Personal Trainer & Preparador Físico",
-        cref: "012345-G/RS",
-      },
-    },
-    content:
-      "🔥 Dica de Ouro para Hipertrofia de Quadríceps:\nFoque no tempo sob tensão na fase excêntrica (3 segundos descendo no agachamento livre). O controle de carga e a amplitude máxima na fase profunda ativam muito mais unidades motoras do que socar peso com amplitude encurtada!\n\nConfiram a ficha que montei abaixo e me digam o que acharam nos comentários! 👇",
-    category: "Treino",
-    tags: ["#Treino", "#Hipertrofia", "#Pernas", "#Biomecanica"],
-    mediaUrls: [
-      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=900&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=900&auto=format&fit=crop",
-    ],
-    workoutRoutine: {
-      title: "Protocolo Foco em Quadríceps & Isquiotibiais",
-      level: "Intermediário / Avançado",
-      exercises: [
-        {
-          name: "Agachamento Livre com Barra",
-          sets: "4",
-          reps: "8-10",
-          restSeconds: 90,
-          notes: "3s na descida, subida explosiva",
-        },
-        {
-          name: "Leg Press 45º",
-          sets: "4",
-          reps: "12-15",
-          restSeconds: 60,
-          notes: "Pés na base inferior para ênfase no quadríceps",
-        },
-        {
-          name: "Cadeira Extensora (Drop-Set)",
-          sets: "3",
-          reps: "10+10",
-          restSeconds: 60,
-          notes: "Segurar 2s no ponto de contração máxima",
-        },
-        {
-          name: "Mesa Flexora",
-          sets: "4",
-          reps: "12",
-          restSeconds: 60,
-          notes: "Tronco firme, sem balanço lombar",
-        },
-      ],
-    },
-    likesCount: 38,
-    commentsCount: 6,
-    isLiked: false,
-    isFollowingAuthor: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
-  },
-  {
-    id: "demo-post-2",
-    authorId: "user-nutri-1",
-    author: {
-      id: "user-nutri-1",
-      name: "Dra. Camila Santos",
-      avatarUrl: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150",
-      role: "PERSONAL",
-      cityBase: "Uruguaiana - RS",
-      averageRating: 5.0,
-      personalProfile: {
-        professionTitle: "Nutricionista Esportiva",
-        cref: "CRN 98765/RS",
-      },
-    },
-    content:
-      "🥗 Mito ou Verdade: Carboidrato à noite engorda?\nMITO! O que determina ganho ou perda de gordura é o balanço energético total do dia (superávit ou déficit calórico). Consumir uma fonte limpa de carboidrato (como aveia, batata-doce ou arroz) no jantar pode inclusive melhorar a síntese de melatonina e a qualidade do sono reparador!\n\nQual o carboidrato favorito de vocês na janta?",
-    category: "Dieta",
-    tags: ["#NutricaoEsportiva", "#DietaSemTerrorismo", "#Carboidratos", "#Saude"],
-    mediaUrls: [
-      "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=900&auto=format&fit=crop",
-    ],
-    likesCount: 52,
-    commentsCount: 11,
-    isLiked: false,
-    isFollowingAuthor: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-  },
-  {
-    id: "demo-post-3",
-    authorId: "user-aluno-1",
-    author: {
-      id: "user-aluno-1",
-      name: "Lucas Menezes",
-      avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
-      role: "STUDENT",
-      cityBase: "Uruguaiana - RS",
-    },
-    content:
-      "Resultado de 5 meses com foco em treino e plano nutricional! 💪\nSaí de 84kg para 76kg com aumento notável de força no supino e agachamento. Seguir a comunidade e as orientações aqui tem feito toda a diferença. Bora pra cima que o ano está só começando!",
-    category: "Evolução",
-    tags: ["#EvolucaoFitness", "#Superacao", "#Foco", "#Musculacao"],
-    mediaUrls: [
-      "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=900&auto=format&fit=crop",
-    ],
-    likesCount: 89,
-    commentsCount: 14,
-    isLiked: true,
-    isFollowingAuthor: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
-  },
-  {
-    id: "demo-post-4",
-    authorId: "user-academia-1",
-    author: {
-      id: "user-academia-1",
-      name: "Academia Conexão VIP",
-      avatarUrl: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=150",
-      role: "ACADEMIA",
-      cityBase: "Uruguaiana - RS",
-      averageRating: 4.8,
-      academiaProfile: {
-        nomeFantasia: "Conexão VIP Uruguaiana",
-      },
-    },
-    content:
-      "🚨 Novos equipamentos de biomecânica chegaram na nossa área de musculação!\nVenha conhecer nossa estrutura climatizada, vestiários premium e espaço funcional. Garanta seu Day Pass direto pelo app Conexão Fitness com desconto exclusivo nesta semana!",
-    category: "Destaques",
-    tags: ["#AcademiaVIP", "#DayPass", "#Infraestrutura", "#Fitness"],
-    mediaUrls: [
-      "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=900&auto=format&fit=crop",
-    ],
-    likesCount: 64,
-    commentsCount: 4,
-    isLiked: false,
-    isFollowingAuthor: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 720).toISOString(),
-  },
-];
-
 // Cache local em memória e storage para persistência de interações locais
 const STORAGE_POSTS_KEY = "cf_local_posts";
 const STORAGE_LIKES_KEY = "cf_local_likes";
@@ -160,11 +15,15 @@ const STORAGE_COMMENTS_KEY = "cf_local_comments";
 function getLocalPosts(): Post[] {
   try {
     const raw = localStorage.getItem(STORAGE_POSTS_KEY);
-    if (!raw) return INITIAL_DEMO_POSTS;
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_DEMO_POSTS;
+    // Filtrar posts de demo legados
+    if (Array.isArray(parsed)) {
+      return parsed.filter((p: any) => !p.id?.startsWith("demo-post-") && !p.authorId?.startsWith("user-"));
+    }
+    return [];
   } catch {
-    return INITIAL_DEMO_POSTS;
+    return [];
   }
 }
 
@@ -196,9 +55,9 @@ function saveLocalLikes(likes: Set<string>) {
 export function getLocalFollows(): Set<string> {
   try {
     const raw = localStorage.getItem(STORAGE_FOLLOWS_KEY);
-    return new Set(raw ? JSON.parse(raw) : ["user-personal-1", "user-academia-1"]);
+    return new Set(raw ? JSON.parse(raw) : []);
   } catch {
-    return new Set(["user-personal-1", "user-academia-1"]);
+    return new Set();
   }
 }
 
@@ -213,10 +72,10 @@ export function saveLocalFollows(follows: Set<string>) {
 function getLocalCommentsMap(): Record<string, PostComment[]> {
   try {
     const raw = localStorage.getItem(STORAGE_COMMENTS_KEY);
-    if (!raw) return getDefaultCommentsMap();
+    if (!raw) return {};
     return JSON.parse(raw);
   } catch {
-    return getDefaultCommentsMap();
+    return {};
   }
 }
 
@@ -226,52 +85,6 @@ function saveLocalCommentsMap(map: Record<string, PostComment[]>) {
   } catch (e) {
     console.error("Erro salvando comentários:", e);
   }
-}
-
-function getDefaultCommentsMap(): Record<string, PostComment[]> {
-  return {
-    "demo-post-1": [
-      {
-        id: "c1",
-        postId: "demo-post-1",
-        authorId: "user-aluno-1",
-        author: {
-          id: "user-aluno-1",
-          name: "Lucas Menezes",
-          role: "STUDENT",
-        },
-        content: "Excelente dica, professor! Fiz o agachamento cadenciado e o estímulo foi surreal.",
-        createdAt: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
-      },
-      {
-        id: "c2",
-        postId: "demo-post-1",
-        authorId: "user-nutri-1",
-        author: {
-          id: "user-nutri-1",
-          name: "Dra. Camila Santos",
-          role: "PERSONAL",
-          personalProfile: { professionTitle: "Nutricionista" },
-        },
-        content: "Perfeito! E não se esqueçam de caprichar na ingestão de água e aminoácidos no pós-treino!",
-        createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-      },
-    ],
-    "demo-post-2": [
-      {
-        id: "c3",
-        postId: "demo-post-2",
-        authorId: "user-personal-1",
-        author: {
-          id: "user-personal-1",
-          name: "Prof. Diego Silva",
-          role: "PERSONAL",
-        },
-        content: "Muito importante desmistificar isso! Sem energia não há treino de alta intensidade.",
-        createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-      },
-    ],
-  };
 }
 
 export async function listPosts(params?: {
