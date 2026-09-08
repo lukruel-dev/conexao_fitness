@@ -221,31 +221,37 @@ export const PostCard: React.FC<PostCardProps> = ({
 
       {/* CABEÇALHO DO AUTOR */}
       <div className="flex items-start justify-between gap-3 mb-3.5">
-        <Link
-          to={`/perfil/${post.authorId}`}
-          className="flex items-center gap-3 group/author hover:opacity-90 transition-opacity"
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            const targetId = post.authorId || post.author?.id;
+            if (targetId) {
+              window.location.href = `/perfil/${targetId}`;
+            }
+          }}
+          className="flex items-center gap-3 group/author cursor-pointer select-none hover:opacity-95 transition-all"
         >
-          <div className="relative">
+          <div className="relative shrink-0">
             <img
               src={
                 post.author?.avatarUrl ||
                 "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"
               }
               alt={post.author?.name || "Autor"}
-              className="h-11 w-11 rounded-full object-cover ring-2 ring-primary/20 group-hover/author:ring-primary transition-all"
+              className="h-11 w-11 rounded-full object-cover ring-2 ring-primary/30 group-hover/author:ring-primary transition-all shadow-sm"
               loading="lazy"
             />
             {post.author?.role === "PERSONAL" && (
-              <span className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5">
+              <span className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5 shadow">
                 <ShieldCheck className="h-3.5 w-3.5" />
               </span>
             )}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-sm text-foreground group-hover/author:text-primary transition-colors">
+              <span className="font-bold text-sm text-foreground group-hover/author:text-primary group-hover/author:underline transition-colors">
                 {post.author?.name || "Usuário Conexão"}
-              </h3>
+              </span>
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                 {authorRoleLabel(post.author)}
               </span>
@@ -260,10 +266,10 @@ export const PostCard: React.FC<PostCardProps> = ({
               )}
             </div>
           </div>
-        </Link>
+        </div>
 
         {/* AÇÕES DO CABEÇALHO: SEGUIR OU EXCLUIR */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 shrink-0">
           {user?.id !== post.authorId && (
             <Button
               type="button"

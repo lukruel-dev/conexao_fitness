@@ -294,11 +294,11 @@ export async function listPosts(params?: {
     const res = await apiClient.get<{ items: Post[]; total: number; hasMore: boolean }>(
       `/posts?${query.toString()}`
     );
-    if (res && Array.isArray(res.items) && res.items.length > 0) {
+    if (res && Array.isArray(res.items)) {
       return res;
     }
   } catch (err) {
-    console.warn("API de posts indisponível ou vazia, usando repositório local enriquecido:", err);
+    console.warn("API de posts indisponível, usando repositório local:", err);
   }
 
   // Fallback local enriquecido
