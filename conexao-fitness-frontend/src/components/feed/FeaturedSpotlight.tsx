@@ -258,12 +258,15 @@ export const FeaturedSpotlight: React.FC = () => {
               key={pro.id}
               className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-border/70 bg-card hover:border-primary/50 transition-all duration-300 hover:shadow-md p-4"
             >
-              <div className="flex items-start gap-3">
+              <Link
+                to={`/perfil/${pro.id}`}
+                className="flex items-start gap-3 group/link hover:opacity-95 transition-opacity"
+              >
                 <div className="relative">
                   <img
                     src={pro.imageUrl}
                     alt={pro.name}
-                    className="h-14 w-14 rounded-full object-cover ring-2 ring-primary/30 group-hover:ring-primary transition-all"
+                    className="h-14 w-14 rounded-full object-cover ring-2 ring-primary/30 group-hover/link:ring-primary transition-all"
                   />
                   <span className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5">
                     <ShieldCheck className="h-3.5 w-3.5" />
@@ -271,7 +274,7 @@ export const FeaturedSpotlight: React.FC = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-sm text-foreground truncate">
+                    <h3 className="font-bold text-sm text-foreground truncate group-hover/link:text-primary transition-colors">
                       {pro.name}
                     </h3>
                     <div className="flex items-center gap-1 text-xs font-bold text-amber-400">
@@ -286,7 +289,7 @@ export const FeaturedSpotlight: React.FC = () => {
                     {pro.cref}
                   </p>
                 </div>
-              </div>
+              </Link>
 
               <div className="mt-3 pt-3 border-t border-border/50 flex flex-col gap-2">
                 <div className="flex flex-wrap gap-1">

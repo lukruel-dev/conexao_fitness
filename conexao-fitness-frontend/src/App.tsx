@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
 import RecuperarSenha from "./pages/RecuperarSenha";
 import Perfil from "./pages/Perfil";
+import PerfilPublico from "./pages/PerfilPublico";
 import MinhaAgenda from "./pages/MinhaAgenda";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
@@ -67,6 +68,8 @@ const App = () => (
               <Route path="/recuperar-senha" element={<RecuperarSenha />} />
               <Route path="/cadastro" element={<Cadastro />} />
               <Route path="/perfil" element={<Perfil />} />
+              <Route path="/perfil/:id" element={<PerfilPublico />} />
+              <Route path="/profissional/:id" element={<PerfilPublico />} />
               <Route path="/minha-agenda" element={<MinhaAgenda />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/usuarios" element={<AdminUsers />} />

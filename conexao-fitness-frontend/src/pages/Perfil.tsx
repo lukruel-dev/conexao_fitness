@@ -31,11 +31,18 @@ import {
   Dumbbell,
   Loader2,
   Settings,
+  Sparkles,
+  ShieldAlert,
+  Eye,
+  Save,
+  Check,
 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
 import { CameraCaptureModal } from "@/components/CameraCaptureModal";
 import { isNativePlatform, captureNativePhoto } from "@/utils/nativeCamera";
+import { validateBioContent } from "@/lib/bioValidator";
+import { updateMyBio } from "@/services/users";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,6 +69,57 @@ const Perfil = () => {
   // Estado das postagens do perfil do usuário
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [postsLoading, setPostsLoading] = useState(false);
+
+  // Estado e validação da Biografia (Bio)
+  const [bioText, setBioText] = useState(user?.bio || "");
+  const [bioError, setBioError] = useState<string | null>(null);
+  const [isBioDirty, setIsBioDirty] = useState(false);
+  const [savingBio, setSavingBio] = useState(false);
+
+  useEffect(() => {
+    if (user?.bio !== undefined && !isBioDirty) {
+      setBioText(user.bio || "");
+    }
+  }, [user?.bio, isBioDirty]);
+
+  const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setBioText(val);
+    setIsBioDirty(true);
+
+    const validation = validateBioContent(val);
+    if (!validation.isValid) {
+      setBioError(validation.errorMessage || "Conteúdo não permitido na biografia.");
+    } else {
+      setBioError(null);
+    }
+  };
+
+  const handleSaveBio = async () => {
+    const validation = validateBioContent(bioText);
+    if (!validation.isValid) {
+      setBioError(validation.errorMessage || "Não é permitido colocar números de telefone ou contatos na bio.");
+      toast.error("Não foi possível salvar a biografia", {
+        description: validation.errorMessage,
+      });
+      return;
+    }
+
+    setSavingBio(true);
+    try {
+      const updated = await updateMyBio(bioText);
+      setUser(updated);
+      setIsBioDirty(false);
+      setBioError(null);
+      toast.success("Biografia atualizada com sucesso!");
+    } catch (err: any) {
+      toast.error("Erro ao salvar biografia", {
+        description: err.message || "Tente novamente mais tarde.",
+      });
+    } finally {
+      setSavingBio(false);
+    }
+  };
 
   const fetchUserFeed = async () => {
     if (!user) return;
@@ -309,27 +367,113 @@ const Perfil = () => {
                   )}
                 </div>
 
-                {/* ESTATÍSTICAS SOCIAIS DO PERFIL */}
-                <div className="flex items-center gap-4 pt-2 border-t border-border/50 text-xs text-muted-foreground">
-                  <div>
-                    <strong className="text-foreground font-bold text-sm mr-1">{userPosts.length}</strong>
-                    <span>publicações</span>
+                {/* ESTATÍSTICAS SOCIAIS DO PERFIL & BOTÃO PERFIL PÚBLICO */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/50 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <strong className="text-foreground font-bold text-sm mr-1">{userPosts.length}</strong>
+                      <span>publicações</span>
+                    </div>
+                    <div>
+                      <strong className="text-foreground font-bold text-sm mr-1">
+                        {user.role === "PERSONAL" ? (user as any).followersCount || 14 : 8}
+                      </strong>
+                      <span>seguidores</span>
+                    </div>
+                    <div>
+                      <strong className="text-foreground font-bold text-sm mr-1">12</strong>
+                      <span>seguindo</span>
+                    </div>
                   </div>
-                  <div>
-                    <strong className="text-foreground font-bold text-sm mr-1">
-                      {user.role === "PERSONAL" ? (user as any).followersCount || 14 : 8}
-                    </strong>
-                    <span>seguidores</span>
-                  </div>
-                  <div>
-                    <strong className="text-foreground font-bold text-sm mr-1">12</strong>
-                    <span>seguindo</span>
-                  </div>
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs font-semibold gap-1.5 border-primary/30 text-primary hover:bg-primary hover:text-white"
+                    asChild
+                  >
+                    <Link to={`/perfil/${user.id}`}>
+                      <Eye className="w-3.5 h-3.5" /> Ver Perfil Público
+                    </Link>
+                  </Button>
                 </div>
 
                 {avatarMutation.isPending && (
                   <p className="text-xs text-muted-foreground mt-1 animate-pulse">Enviando foto...</p>
                 )}
+              </div>
+            </div>
+          </div>
+
+          {/* CARD DE BIOGRAFIA (COM VALIDAÇÃO ANTI-TELEFONE) */}
+          <div className="bg-card border border-border rounded-3xl p-5 sm:p-6 mb-6 shadow-sm space-y-3.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-base text-foreground">
+                    Minha Biografia & Apresentação
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Apresente suas especialidades e metodologia para novos alunos no seu perfil público
+                  </p>
+                </div>
+              </div>
+
+              <span className={`text-xs font-semibold ${bioText.length > 500 ? "text-amber-500" : "text-muted-foreground"}`}>
+                {bioText.length}/500
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <textarea
+                value={bioText}
+                onChange={handleBioChange}
+                placeholder="Ex: Especialista em hipertrofia, emagrecimento consciente e consultoria de treino. Formado em Educação Física com foco em resultados consistentes..."
+                maxLength={500}
+                rows={3}
+                className={`w-full rounded-2xl bg-muted/40 border px-3.5 py-2.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 transition-all resize-none ${
+                  bioError
+                    ? "border-destructive/60 focus:ring-destructive/30"
+                    : "border-border/70 focus:ring-primary/40 focus:border-primary"
+                }`}
+              />
+
+              {/* ALERTA VISUAL ANTI-TELEFONE / ANTI-DESINTERMEDIAÇÃO */}
+              {bioError && (
+                <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-xs text-destructive">
+                  <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-bold">Regra de Segurança da Plataforma:</p>
+                    <p className="text-destructive/90">{bioError}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-1">
+                <p className="text-[11px] text-muted-foreground">
+                  * Não é permitido colocar números de telefone ou WhatsApp na bio.
+                </p>
+
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleSaveBio}
+                  disabled={savingBio || Boolean(bioError) || (!isBioDirty && bioText === (user.bio || ""))}
+                  className="h-8 text-xs font-bold gap-1.5 px-4 shadow-sm"
+                >
+                  {savingBio ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-3.5 h-3.5" /> Salvar Bio
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           </div>

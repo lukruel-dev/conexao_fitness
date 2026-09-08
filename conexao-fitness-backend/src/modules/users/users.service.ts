@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -8,6 +8,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreatePersonalProfileDto } from './dto/create-personal-profile.dto';
 import { CreateAcademiaProfileDto } from './dto/create-academia-profile.dto';
+import { validateBioContent } from '../../common/utils/bio-validator';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -168,4 +169,61 @@ export class UsersService {
     user.kycRejectionReason = null as any;
     return this.usersRepo.save(user);
   }
+
+  async updateBio(userId: string, rawBio: string): Promise<User> {
+    const user = await this.findOneOrFail(userId);
+    const trimmedBio = (rawBio || '').trim();
+
+    if (trimmedBio) {
+      const validation = validateBioContent(trimmedBio);
+      if (!validation.isValid) {
+        throw new BadRequestException(validation.errorMessage);
+      }
+    }
+
+    user.bio = trimmedBio;
+    await this.usersRepo.save(user);
+
+    if (user.role === 'PERSONAL') {
+      let profile = user.personalProfile;
+      if (!profile) {
+        profile = this.personalProfileRepo.create({
+          userId: user.id,
+          publicName: user.name,
+          professionTitle: 'Personal Trainer',
+        });
+      }
+      profile.bio = trimmedBio;
+      await this.personalProfileRepo.save(profile);
+    }
+
+    return this.findOneOrFail(userId);
+  }
+
+  async getPublicProfile(id: string) {
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException('Perfil de profissional ou usuário não encontrado.');
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      role: user.role,
+      status: user.status,
+      cityBase: user.cityBase || 'Uruguaiana - RS',
+      averageRating: user.averageRating || 5.0,
+      totalReviews: user.totalReviews || 0,
+      professionTitle: user.personalProfile?.professionTitle || (user.role === 'PERSONAL' ? 'Personal Trainer' : undefined),
+      cref: user.personalProfile?.cref,
+      bio: user.personalProfile?.bio || user.bio || '',
+      modalities: user.personalProfile?.modalities || [],
+      baseHourlyPrice: user.personalProfile?.baseHourlyPrice,
+      qualityScore: user.personalProfile?.qualityScore ?? 5.0,
+      responseRate: user.personalProfile?.responseRate ?? 100,
+      createdAt: user.createdAt,
+    };
+  }
 }
+

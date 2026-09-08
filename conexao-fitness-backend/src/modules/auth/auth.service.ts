@@ -48,6 +48,7 @@ export class AuthService {
 
     const documentUrl = fullUser.personalProfile?.documentUrl || fullUser.academiaProfile?.documentUrl || undefined;
     const cref = fullUser.personalProfile?.cref || undefined;
+    const bio = fullUser.personalProfile?.bio || fullUser.bio || undefined;
 
     return {
       accessToken: this.jwtService.sign(payload),
@@ -61,6 +62,7 @@ export class AuthService {
         planName,
         documentUrl,
         cref,
+        bio,
         kycRejectionReason: fullUser.kycRejectionReason,
       }
     };
@@ -86,6 +88,7 @@ export class AuthService {
 
     const documentUrl = user.personalProfile?.documentUrl || user.academiaProfile?.documentUrl || undefined;
     const cref = user.personalProfile?.cref || undefined;
+    const bio = user.personalProfile?.bio || user.bio || undefined;
 
     return {
         id: user.id,
@@ -98,6 +101,7 @@ export class AuthService {
         planName,
         documentUrl,
         cref,
+        bio,
         kycRejectionReason: user.kycRejectionReason,
     };
   }

@@ -221,7 +221,10 @@ export const PostCard: React.FC<PostCardProps> = ({
 
       {/* CABEÇALHO DO AUTOR */}
       <div className="flex items-start justify-between gap-3 mb-3.5">
-        <div className="flex items-center gap-3">
+        <Link
+          to={`/perfil/${post.authorId}`}
+          className="flex items-center gap-3 group/author hover:opacity-90 transition-opacity"
+        >
           <div className="relative">
             <img
               src={
@@ -229,7 +232,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                 "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"
               }
               alt={post.author?.name || "Autor"}
-              className="h-11 w-11 rounded-full object-cover ring-2 ring-primary/20"
+              className="h-11 w-11 rounded-full object-cover ring-2 ring-primary/20 group-hover/author:ring-primary transition-all"
               loading="lazy"
             />
             {post.author?.role === "PERSONAL" && (
@@ -240,7 +243,7 @@ export const PostCard: React.FC<PostCardProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-sm text-foreground">
+              <h3 className="font-bold text-sm text-foreground group-hover/author:text-primary transition-colors">
                 {post.author?.name || "Usuário Conexão"}
               </h3>
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
@@ -257,7 +260,7 @@ export const PostCard: React.FC<PostCardProps> = ({
               )}
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* AÇÕES DO CABEÇALHO: SEGUIR OU EXCLUIR */}
         <div className="flex items-center gap-1.5">

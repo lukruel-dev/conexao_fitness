@@ -125,10 +125,33 @@ export interface AuthUser {
   professionTitle?: string | null;
   cpf?: string | null;
   phone?: string | null;
+  bio?: string | null;
   planName?: string;
   documentUrl?: string | null;
   cref?: string | null;
   kycRejectionReason?: string | null;
+}
+
+export interface PublicUserProfile {
+  id: string;
+  name: string;
+  avatarUrl?: string | null;
+  role: UserRole;
+  status?: UserStatus;
+  cityBase?: string;
+  averageRating?: number;
+  totalReviews?: number;
+  professionTitle?: string | null;
+  cref?: string | null;
+  bio?: string | null;
+  modalities?: string[];
+  baseHourlyPrice?: string | null;
+  qualityScore?: number;
+  responseRate?: number;
+  followersCount?: number;
+  followingCount?: number;
+  postsCount?: number;
+  createdAt?: string;
 }
 
 export interface LoginDto {

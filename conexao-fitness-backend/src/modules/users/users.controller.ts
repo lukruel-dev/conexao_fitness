@@ -18,6 +18,11 @@ export class UsersController {
     return this.usersService.create(dto);
   }
 
+  @Get('public/:id')
+  getPublicProfile(@Param('id') id: string) {
+    return this.usersService.getPublicProfile(id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOneOrFail(id);
@@ -47,6 +52,15 @@ export class UsersController {
     @Body('avatarUrl') avatarUrl: string,
   ) {
     return this.usersService.updateAvatar(user.id, avatarUrl);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/bio')
+  async updateBio(
+    @CurrentUser() user: any,
+    @Body('bio') bio: string,
+  ) {
+    return this.usersService.updateBio(user.id, bio);
   }
 
   @UseGuards(JwtAuthGuard)
