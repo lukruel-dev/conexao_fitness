@@ -107,19 +107,8 @@ export async function getPublicUserProfile(id: string): Promise<PublicUserProfil
     console.error(e);
   }
 
-  // 6. Fallback final garantido
-  return {
-    id,
-    name: "Profissional Conexão Fitness",
-    role: "PERSONAL",
-    status: "ATIVO",
-    cityBase: "Uruguaiana - RS",
-    averageRating: 5.0,
-    totalReviews: 0,
-    bio: "",
-    followersCount: 10,
-    followingCount: 5,
-  };
+  // 6. Se realmente não existir
+  throw new Error("Perfil de usuário ou profissional não encontrado.");
 }
 
 export async function updateMyBio(bio: string): Promise<AuthUser> {

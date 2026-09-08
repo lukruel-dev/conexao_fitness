@@ -1,39 +1,95 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In, Like, Not } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { faker } from '@faker-js/faker/locale/pt_BR';
 
-import { User, UserRole, UserStatus } from './modules/users/entities/user.entity';
+import { User } from './modules/users/entities/user.entity';
+import { ServiceCatalog } from './modules/service-catalog/entities/service-catalog.entity';
+import { Service as AppService, ServiceType } from './modules/services/entities/service.entity';
+import { ScheduleSlot } from './modules/services/entities/schedule-slot.entity';
+import { Post } from './modules/posts/entities/post.entity';
+import { PostComment } from './modules/posts/entities/post-comment.entity';
+import { PostLike } from './modules/posts/entities/post-like.entity';
+import { UserFollow } from './modules/posts/entities/user-follow.entity';
 import { PersonalProfile } from './modules/users/entities/personal-profile.entity';
 import { AlunoProfile } from './modules/users/entities/aluno-profile.entity';
 import { AcademiaProfile } from './modules/users/entities/academia-profile.entity';
-import { ServiceCatalog } from './modules/service-catalog/entities/service-catalog.entity';
-import { Service as AppService, ProviderType, ServiceType } from './modules/services/entities/service.entity';
-import { ScheduleSlot } from './modules/services/entities/schedule-slot.entity';
-import { ScheduleSlotStatus } from './modules/services/enums/schedule-slot-status.enum';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
 
   const usersRepo = app.get<Repository<User>>(getRepositoryToken(User));
+  const catalogRepo = app.get<Repository<ServiceCatalog>>(getRepositoryToken(ServiceCatalog));
+  const servicesRepo = app.get<Repository<AppService>>(getRepositoryToken(AppService));
+  const slotsRepo = app.get<Repository<ScheduleSlot>>(getRepositoryToken(ScheduleSlot));
+  const postsRepo = app.get<Repository<Post>>(getRepositoryToken(Post));
+  const commentsRepo = app.get<Repository<PostComment>>(getRepositoryToken(PostComment));
+  const likesRepo = app.get<Repository<PostLike>>(getRepositoryToken(PostLike));
+  const followsRepo = app.get<Repository<UserFollow>>(getRepositoryToken(UserFollow));
   const personalRepo = app.get<Repository<PersonalProfile>>(getRepositoryToken(PersonalProfile));
   const alunoRepo = app.get<Repository<AlunoProfile>>(getRepositoryToken(AlunoProfile));
   const academiaRepo = app.get<Repository<AcademiaProfile>>(getRepositoryToken(AcademiaProfile));
-  const servicesRepo = app.get<Repository<AppService>>(getRepositoryToken(AppService));
-  const slotsRepo = app.get<Repository<ScheduleSlot>>(getRepositoryToken(ScheduleSlot));
-  const catalogRepo = app.get<Repository<ServiceCatalog>>(getRepositoryToken(ServiceCatalog));
 
-  const passwordHash = await bcrypt.hash('123456', 10);
-  console.log('🚀 Iniciando Seeding do Banco de Dados Conexão Fitness...');
+  console.log('🚀 Iniciando Seeding Limpo (Apenas Admin & Catálogo Oficial)...');
 
-  // 1. Criar ADMIN Fixo
-  const existingAdmin = await usersRepo.findOne({ where: { email: 'admin@conexaofitness.com.br' } });
+  // 1. Limpeza de Bots e Contas Fictícias de Teste Anteriores
+  const testBotEmails = [
+    'aluno@conexaofitness.com.br',
+    'personal@conexaofitness.com.br',
+    'nutri@conexaofitness.com.br',
+    'fisio@conexaofitness.com.br',
+    'academia@conexaofitness.com.br',
+  ];
+
+  console.log('🧹 Verificando e removendo contas de bots/testes legadas...');
+  const botUsers = await usersRepo.find({
+    where: [
+      { email: In(testBotEmails) },
+    ],
+  });
+
+  if (botUsers.length > 0) {
+    const botIds = botUsers.map((u) => u.id);
+    console.log(`Encontrados ${botUsers.length} usuários bots legados para remoção.`);
+
+    // 1.1 Remover interações e posts associados aos bots
+    try {
+      await followsRepo.delete({ followerId: In(botIds) });
+      await followsRepo.delete({ followingId: In(botIds) });
+      await likesRepo.delete({ userId: In(botIds) });
+      await commentsRepo.delete({ authorId: In(botIds) });
+      await postsRepo.delete({ authorId: In(botIds) });
+
+      // 1.2 Remover serviços e slots associados
+      const botServices = await servicesRepo.find({ where: { providerId: In(botIds) } });
+      if (botServices.length > 0) {
+        const serviceIds = botServices.map((s) => s.id);
+        await slotsRepo.delete({ serviceId: In(serviceIds) });
+        await servicesRepo.delete({ id: In(serviceIds) });
+      }
+
+      // 1.3 Remover perfis
+      await personalRepo.delete({ userId: In(botIds) });
+      await alunoRepo.delete({ userId: In(botIds) });
+      await academiaRepo.delete({ userId: In(botIds) });
+
+      // 1.4 Remover usuários bots
+      await usersRepo.delete({ id: In(botIds) });
+      console.log('✅ Contas bots e dados fictícios removidos com sucesso.');
+    } catch (cleanErr) {
+      console.warn('Nota na limpeza de bots:', cleanErr);
+    }
+  }
+
+  // 2. Criar ou Garantir ADMIN Principal
+  const adminEmail = 'admin@conexaofitness.com.br';
+  const existingAdmin = await usersRepo.findOne({ where: { email: adminEmail } });
   if (!existingAdmin) {
+    const passwordHash = await bcrypt.hash('123456', 10);
     const admin = usersRepo.create({
       name: 'Administrador Conexão Fitness',
-      email: 'admin@conexaofitness.com.br',
+      email: adminEmail,
       passwordHash,
       role: 'ADMIN',
       status: 'ATIVO',
@@ -42,306 +98,13 @@ async function bootstrap() {
       cityBase: 'Uruguaiana - RS',
     });
     await usersRepo.save(admin);
-    console.log('✅ Admin criado (admin@conexaofitness.com.br | 123456)');
+    console.log(`✅ Administrador criado com sucesso: ${adminEmail}`);
+  } else {
+    console.log(`ℹ️ Administrador já existe no banco: ${adminEmail}`);
   }
 
-  // 2. Criar ALUNO Teste Fixo
-  const existingAluno = await usersRepo.findOne({ where: { email: 'aluno@conexaofitness.com.br' } });
-  if (!existingAluno) {
-    const userAluno = usersRepo.create({
-      name: 'Lucas Aluno Teste',
-      email: 'aluno@conexaofitness.com.br',
-      passwordHash,
-      role: 'STUDENT',
-      status: 'ATIVO',
-      phone: '(55) 99999-1111',
-      cityBase: 'Uruguaiana - RS',
-      lastLat: -29.7578,
-      lastLng: -57.0872,
-    });
-    const savedAluno = await usersRepo.save(userAluno);
-    const alunoProfile = alunoRepo.create({
-      user: savedAluno,
-      fullName: savedAluno.name,
-      preferredModalities: ['Musculação', 'Nutrição Esportiva', 'Fisioterapia'],
-    });
-    await alunoRepo.save(alunoProfile);
-    console.log('✅ Aluno Teste criado (aluno@conexaofitness.com.br | 123456)');
-  }
-
-  // 3. Criar PERSONAL TESTE FIXO (Uruguaiana - RS)
-  const existingPersonal = await usersRepo.findOne({ where: { email: 'personal@conexaofitness.com.br' } });
-  if (!existingPersonal) {
-    const userPersonal = usersRepo.create({
-      name: 'Prof. Diego Silva (CREF)',
-      email: 'personal@conexaofitness.com.br',
-      passwordHash,
-      role: 'PERSONAL',
-      status: 'ATIVO',
-      avatarUrl: 'https://images.unsplash.com/photo-1567013127542-490d757e51fc?w=150',
-      phone: '(55) 99999-2222',
-      cityBase: 'Uruguaiana - RS',
-      lastLat: -29.7580,
-      lastLng: -57.0870,
-      averageRating: 4.9,
-      totalReviews: 48,
-    });
-    const savedPersonalUser = await usersRepo.save(userPersonal);
-
-    const personalProfile = personalRepo.create({
-      user: savedPersonalUser,
-      publicName: savedPersonalUser.name,
-      professionTitle: 'Personal Trainer & Preparador Físico',
-      bio: 'Especialista em musculação, emagrecimento e condicionamento físico de alta performance em Uruguaiana - RS.',
-      modalities: ['Presencial', 'Consultoria Online', 'Treino em Domicílio'],
-      serviceRadiusKm: 25,
-      baseHourlyPrice: '75.00',
-      cref: '012345-G/RS',
-    });
-    await personalRepo.save(personalProfile);
-
-    const servicePersonal = servicesRepo.create({
-      providerType: ProviderType.PERSONAL,
-      providerId: savedPersonalUser.id,
-      name: 'Treino Personalizado Individual (60 min)',
-      description: 'Sessão individual com acompanhamento biomecânico, ajuste de carga e foco no seu objetivo.',
-      price: '75.00',
-      durationMinutes: 60,
-      modality: 'Musculação',
-      type: ServiceType.SESSAO,
-      isActive: true,
-    });
-    await servicesRepo.save(servicePersonal);
-    console.log('✅ Personal Trainer Criado (personal@conexaofitness.com.br | 123456)');
-  }
-
-  // 4. Criar NUTRICIONISTA TESTE FIXO (Uruguaiana - RS)
-  const existingNutri = await usersRepo.findOne({ where: { email: 'nutri@conexaofitness.com.br' } });
-  if (!existingNutri) {
-    const userNutri = usersRepo.create({
-      name: 'Dra. Camila Santos (Nutricionista)',
-      email: 'nutri@conexaofitness.com.br',
-      passwordHash,
-      role: 'PERSONAL',
-      status: 'ATIVO',
-      avatarUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150',
-      phone: '(55) 99999-3333',
-      cityBase: 'Uruguaiana - RS',
-      lastLat: -29.7565,
-      lastLng: -57.0860,
-      averageRating: 5.0,
-      totalReviews: 32,
-    });
-    const savedNutriUser = await usersRepo.save(userNutri);
-
-    const nutriProfile = personalRepo.create({
-      user: savedNutriUser,
-      publicName: savedNutriUser.name,
-      professionTitle: 'Nutricionista Esportiva & Clinica',
-      bio: 'Especializada em reeducação alimentar, hipertrofia, perda de gordura e acompanhamento nutricional para atletas.',
-      modalities: ['Consulta Presencial', 'Teleconsulta Online'],
-      serviceRadiusKm: 30,
-      baseHourlyPrice: '140.00',
-      cref: 'CRN 98765/RS',
-    });
-    await personalRepo.save(nutriProfile);
-
-    const serviceNutri = servicesRepo.create({
-      providerType: ProviderType.PERSONAL,
-      providerId: savedNutriUser.id,
-      name: 'Consulta Nutricional Esportiva + Bioimpedância',
-      description: 'Avaliação da composição corporal, plano alimentar individualizado e orientação de suplementação.',
-      price: '140.00',
-      durationMinutes: 60,
-      modality: 'Nutrição',
-      type: ServiceType.SESSAO,
-      isActive: true,
-    });
-    await servicesRepo.save(serviceNutri);
-    console.log('✅ Nutricionista Criada (nutri@conexaofitness.com.br | 123456)');
-  }
-
-  // 5. Criar FISIOTERAPEUTA TESTE FIXO (Uruguaiana - RS)
-  const existingFisio = await usersRepo.findOne({ where: { email: 'fisio@conexaofitness.com.br' } });
-  if (!existingFisio) {
-    const userFisio = usersRepo.create({
-      name: 'Dr. Rodrigo Oliveira (Fisioterapeuta)',
-      email: 'fisio@conexaofitness.com.br',
-      passwordHash,
-      role: 'PERSONAL',
-      status: 'ATIVO',
-      avatarUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150',
-      phone: '(55) 99999-4444',
-      cityBase: 'Uruguaiana - RS',
-      lastLat: -29.7590,
-      lastLng: -57.0880,
-      averageRating: 4.9,
-      totalReviews: 29,
-    });
-    const savedFisioUser = await usersRepo.save(userFisio);
-
-    const fisioProfile = personalRepo.create({
-      user: savedFisioUser,
-      publicName: savedFisioUser.name,
-      professionTitle: 'Fisioterapeuta Desportivo & Osteopata',
-      bio: 'Reabilitação de lesões articulares e musculares, fisioterapia preventiva desportiva e liberação miofascial.',
-      modalities: ['Atendimento em Consultório', 'Domiciliar'],
-      serviceRadiusKm: 20,
-      baseHourlyPrice: '130.00',
-      cref: 'CREFITO 54321/RS',
-    });
-    await personalRepo.save(fisioProfile);
-
-    const serviceFisio = servicesRepo.create({
-      providerType: ProviderType.PERSONAL,
-      providerId: savedFisioUser.id,
-      name: 'Sessão de Fisioterapia & Liberação Miofascial',
-      description: 'Tratamento de dores crônicas, recuperação muscular pós-treino e alinhamento postural.',
-      price: '130.00',
-      durationMinutes: 50,
-      modality: 'Fisioterapia',
-      type: ServiceType.SESSAO,
-      isActive: true,
-    });
-    await servicesRepo.save(serviceFisio);
-    console.log('✅ Fisioterapeuta Criado (fisio@conexaofitness.com.br | 123456)');
-  }
-
-  // 6. Criar ACADEMIA TESTE FIXA (Uruguaiana - RS)
-  const existingAcademia = await usersRepo.findOne({ where: { email: 'academia@conexaofitness.com.br' } });
-  if (!existingAcademia) {
-    const userAcademia = usersRepo.create({
-      name: 'Academia Conexão VIP Uruguaiana',
-      email: 'academia@conexaofitness.com.br',
-      passwordHash,
-      role: 'ACADEMIA',
-      status: 'ATIVO',
-      avatarUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=150',
-      phone: '(55) 3411-9999',
-      cityBase: 'Uruguaiana - RS',
-      lastLat: -29.7570,
-      lastLng: -57.0850,
-      averageRating: 4.8,
-      totalReviews: 120,
-    });
-    const savedAcademiaUser = await usersRepo.save(userAcademia);
-
-    const academiaProfile = academiaRepo.create({
-      user: savedAcademiaUser,
-      razaoSocial: 'Academia Conexão VIP LTDA',
-      nomeFantasia: 'Conexão VIP Uruguaiana',
-      cnpj: '12345678000199',
-    });
-    await academiaRepo.save(academiaProfile);
-
-    const serviceAcademiaDayPass = servicesRepo.create({
-      providerType: ProviderType.ACADEMIA,
-      providerId: savedAcademiaUser.id,
-      name: 'Day Pass (Passe Diário) - Musculação & Cardio',
-      description: 'Acesso total durante um dia inteiro aos equipamentos de musculação, área cardiovascular e vestiários climatizados.',
-      price: '25.00',
-      durationMinutes: 1440,
-      modality: 'Academia',
-      type: ServiceType.DIARIA,
-      isActive: true,
-    });
-    await servicesRepo.save(serviceAcademiaDayPass);
-    console.log('✅ Academia VIP Criada (academia@conexaofitness.com.br | 123456)');
-  }
-
-  // 7. Criar massa de dados fictícia adicional no Brasil (Alunos, Personals, Nutricionistas, Fisioterapeutas e Academias)
-  console.log('📦 Criando massa complementar de 20 profissionais e 10 academias no Brasil...');
-  const roles = ['Personal Trainer', 'Nutricionista', 'Fisioterapeuta', 'Massoterapeuta'];
-
-  for (let i = 0; i < 20; i++) {
-    const pTitle = faker.helpers.arrayElement(roles);
-    const user = usersRepo.create({
-      name: faker.person.fullName(),
-      email: faker.internet.email(),
-      passwordHash,
-      role: 'PERSONAL',
-      status: 'ATIVO',
-      avatarUrl: faker.image.avatar(),
-      phone: faker.phone.number(),
-      cityBase: faker.helpers.arrayElement(['Porto Alegre - RS', 'São Paulo - SP', 'Curitiba - PR', 'Uruguaiana - RS']),
-      lastLat: faker.location.latitude({ max: -22, min: -30 }),
-      lastLng: faker.location.longitude({ max: -43, min: -57 }),
-      averageRating: faker.number.float({ min: 4.3, max: 5.0, fractionDigits: 1 }),
-      totalReviews: faker.number.int({ min: 8, max: 80 }),
-    });
-    const savedUser = await usersRepo.save(user);
-
-    const personal = personalRepo.create({
-      user: savedUser,
-      publicName: savedUser.name,
-      professionTitle: pTitle,
-      bio: faker.lorem.sentence(),
-      modalities: ['Presencial', 'Online'],
-      serviceRadiusKm: faker.number.int({ min: 10, max: 40 }),
-      baseHourlyPrice: faker.commerce.price({ min: 60, max: 180, dec: 2 }),
-      cref: `${pTitle.slice(0, 3).toUpperCase()} ${faker.string.numeric(5)}/RS`,
-    });
-    await personalRepo.save(personal);
-
-    const assignedModality = pTitle === 'Personal Trainer' ? 'Musculação' : pTitle === 'Nutricionista' ? 'Nutrição' : pTitle === 'Fisioterapeuta' ? 'Fisioterapia' : 'Massoterapia';
-
-    const service = servicesRepo.create({
-      providerType: ProviderType.PERSONAL,
-      providerId: savedUser.id,
-      name: `Atendimento de ${pTitle}`,
-      description: faker.lorem.sentence(),
-      price: personal.baseHourlyPrice || '90.00',
-      durationMinutes: 60,
-      modality: assignedModality,
-      type: ServiceType.SESSAO,
-      isActive: true,
-    });
-    await servicesRepo.save(service);
-  }
-
-  // 8. Gerar horários (vagas) para teste em TODOS os serviços cadastrados
-  console.log('⏰ Gerando horários (ScheduleSlots) nas agendas para testes...');
-  const allServices = await servicesRepo.find();
-  const timesToGenerate = [8, 10, 14, 16, 18, 19]; // 6 horários por dia
-  const slotsToInsert: ScheduleSlot[] = [];
-
-  for (const srv of allServices) {
-    const now = new Date();
-    const isDayPass =
-      srv.type === ServiceType.DIARIA ||
-      srv.type === ServiceType.DAY_PASS ||
-      (srv.durationMinutes && srv.durationMinutes >= 720) ||
-      srv.name.toLowerCase().includes('day pass') ||
-      srv.providerType === ProviderType.ACADEMIA;
-    const hours = isDayPass ? [6] : timesToGenerate;
-
-    for (let dayOffset = 1; dayOffset <= 3; dayOffset++) {
-      for (const hour of hours) {
-        const startsAt = new Date(now);
-        startsAt.setDate(now.getDate() + dayOffset);
-        startsAt.setHours(hour, 0, 0, 0);
-
-        const duration = isDayPass ? 1440 : (srv.durationMinutes || 60);
-        const endsAt = new Date(startsAt.getTime() + duration * 60000);
-
-        const slot = slotsRepo.create({
-          serviceId: srv.id,
-          startsAt,
-          endsAt,
-          status: ScheduleSlotStatus.AVAILABLE,
-        });
-        slotsToInsert.push(slot);
-      }
-    }
-  }
-
-  if (slotsToInsert.length > 0) {
-    await slotsRepo.save(slotsToInsert);
-    console.log(`✅ ${slotsToInsert.length} horários criados nas agendas!`);
-  }
-
-  // 9. Populando o Catálogo Base de Serviços
-  console.log('📚 Populando Catálogo Base de Serviços...');
+  // 3. Populando o Catálogo Base de Serviços Oficiais (Modelos para os profissionais usarem)
+  console.log('📚 Populando Catálogo Base Oficial de Serviços...');
   const baseCatalogItems = [
     { name: 'Treino Personalizado de Musculação (Hipertrofia/Força)', modality: 'Musculação', durationMinutes: 60, type: ServiceType.SESSAO, description: 'Acompanhamento individual focado em hipertrofia, biomecânica dos exercícios e controle de cargas.' },
     { name: 'Avaliação Física Completa + Bioimpedância', modality: 'Musculação', durationMinutes: 45, type: ServiceType.SESSAO, description: 'Medição de dobras cutâneas, percentual de gordura, massa magra e teste de carga máxima.' },
@@ -386,69 +149,13 @@ async function bootstrap() {
       await catalogRepo.save(catalogEntry);
     }
   }
-  console.log(`✅ ${baseCatalogItems.length} itens do Catálogo Base processados no banco!`);
+  console.log(`✅ Catálogo Base com ${baseCatalogItems.length} opções disponíveis para profissionais reais.`);
 
-  // 10. Criar Postagens Iniciais da Comunidade (Feed & Fórum)
-  console.log('💬 Criando postagens e interações da comunidade...');
-  const postsRepo = app.get<Repository<any>>('PostRepository');
-  const followsRepo = app.get<Repository<any>>('UserFollowRepository');
-
-  if (existingPersonal && existingAluno && postsRepo) {
-    const existingPostsCount = await postsRepo.count();
-    if (existingPostsCount === 0) {
-      // Follow de teste
-      if (followsRepo) {
-        const testFollow = followsRepo.create({
-          followerId: existingAluno.id,
-          followingId: existingPersonal.id,
-        });
-        await followsRepo.save(testFollow);
-      }
-
-      const samplePosts = [
-        {
-          authorId: existingPersonal.id,
-          content: '🔥 Dica de Ouro para Hipertrofia de Quadríceps:\nFoque no tempo sob tensão na fase excêntrica (3 segundos descendo no agachamento). O controle de carga e amplitude faz mais diferença do que adicionar peso com execução encurtada!\n\nDeixem suas dúvidas sobre divisão de treino nos comentários!',
-          category: 'Treino',
-          tags: ['#Treino', '#Hipertrofia', '#Pernas', '#DicaDoPersonal'],
-          mediaUrls: ['https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop'],
-          likesCount: 24,
-          commentsCount: 5,
-          workoutRoutine: {
-            title: 'Protocolo Foco em Quadríceps',
-            level: 'Intermediário / Avançado',
-            exercises: [
-              { name: 'Agachamento Livre (Barra)', sets: '4', reps: '8-10', restSeconds: 90, notes: 'Fase excêntrica 3s' },
-              { name: 'Leg Press 45º', sets: '4', reps: '12-15', restSeconds: 60, notes: 'Pés na base inferior' },
-              { name: 'Cadeira Extensora (Drop-set)', sets: '3', reps: '10+10', restSeconds: 60, notes: 'Isometria de 2s no topo' },
-              { name: 'Passada com Halteres', sets: '3', reps: '12 cada perna', restSeconds: 60, notes: 'Passos controlados' },
-            ]
-          }
-        },
-        {
-          authorId: existingAluno.id,
-          content: 'Evolução de 6 meses de treino consistente e acompanhamento nutricional! 💪\nSaí de 86kg para 77kg mantendo massa magra. Agradecimento especial ao @personal pela periodização dos treinos!\n\nQual o objetivo de vocês para este semestre?',
-          category: 'Evolução',
-          tags: ['#Evolução', '#AntesEDepois', '#Motivação', '#Constância'],
-          mediaUrls: ['https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=800&auto=format&fit=crop'],
-          likesCount: 42,
-          commentsCount: 8,
-        }
-      ];
-
-      for (const p of samplePosts) {
-        const createdPost = postsRepo.create(p);
-        await postsRepo.save(createdPost);
-      }
-      console.log('✅ Postagens comunitárias iniciais criadas!');
-    }
-  }
-
-  console.log('🎉 Seeding, Catálogo Base e Comunidade concluídos com sucesso!');
+  console.log('🎉 Seeding concluído com sucesso: Zero bots, 100% focado em usuários e profissionais reais!');
   await app.close();
 }
 
-bootstrap().catch(err => {
+bootstrap().catch((err) => {
   console.error('❌ Erro no seeding:', err);
   process.exit(1);
 });
