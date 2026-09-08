@@ -288,18 +288,25 @@ export class PostsService {
     return savedComment;
   }
 
-  async deletePost(postId: string, userId: string) {
+  async deletePost(postId: string, userId: string, userRole?: string) {
     const post = await this.postsRepo.findOne({ where: { id: postId } });
     if (!post) {
       throw new NotFoundException('Postagem não encontrada');
     }
 
-    if (post.authorId !== userId) {
+    const isAuthor = post.authorId === userId;
+    const isAdmin = userRole === 'ADMIN';
+
+    if (!isAuthor && !isAdmin) {
       throw new ForbiddenException('Você não tem permissão para excluir esta postagem');
     }
 
+    // Remove curtidas e comentários associados para evitar violação de chave estrangeira
+    await this.likesRepo.delete({ postId });
+    await this.commentsRepo.delete({ postId });
+
     await this.postsRepo.remove(post);
-    return { success: true };
+    return { success: true, message: 'Postagem excluída com sucesso' };
   }
 
   // --- Sistema de Seguir (Follows) ---

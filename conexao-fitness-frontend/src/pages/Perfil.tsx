@@ -1,11 +1,10 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useNavigate, useSearchParams, Navigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import { useNavigate, Navigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { onboardProvider, createSubscription } from "@/services/payments";
 import { uploadAvatar, updateMyAvatar, uploadDocument, updateMyDocument } from "@/services/uploads";
 import { listPosts } from "@/services/posts";
 import { CreatePostCard } from "@/components/feed/CreatePostCard";
@@ -22,7 +21,6 @@ import {
   List, 
   LogOut, 
   FileCheck, 
-  FileText, 
   AlertCircle, 
   CheckCircle2, 
   Clock, 
@@ -30,12 +28,10 @@ import {
   ExternalLink, 
   Image as ImageIcon,
   MessageSquare,
-  Sparkles,
   Dumbbell,
   Loader2,
   Settings,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useRef, useState, useEffect } from "react";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
 import { CameraCaptureModal } from "@/components/CameraCaptureModal";
@@ -92,6 +88,10 @@ const Perfil = () => {
 
   const handlePostShared = (newPost: Post) => {
     setUserPosts((prev) => [newPost, ...prev]);
+  };
+
+  const handlePostDeleted = (deletedId: string) => {
+    setUserPosts((prev) => prev.filter((p) => p.id !== deletedId));
   };
 
   const avatarMutation = useMutation({
@@ -392,6 +392,7 @@ const Perfil = () => {
                       key={post.id}
                       post={post}
                       onPostShared={handlePostShared}
+                      onPostDeleted={handlePostDeleted}
                     />
                   ))}
                 </div>

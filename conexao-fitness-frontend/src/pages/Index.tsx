@@ -102,6 +102,10 @@ const Index: React.FC = () => {
     setPosts((prev) => [newPost, ...prev]);
   };
 
+  const handlePostDeleted = (deletedId: string) => {
+    setPosts((prev) => prev.filter((p) => p.id !== deletedId));
+  };
+
   const handleTagClick = (tag: string) => {
     setActiveTag((prev) => (prev.toLowerCase() === tag.toLowerCase() ? "" : tag));
   };
@@ -307,6 +311,7 @@ const Index: React.FC = () => {
                         key={post.id}
                         post={post}
                         onTagClick={handleTagClick}
+                        onPostDeleted={handlePostDeleted}
                       />
                     ))}
                   </div>

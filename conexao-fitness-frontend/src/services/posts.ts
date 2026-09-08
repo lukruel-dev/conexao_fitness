@@ -528,3 +528,21 @@ export async function toggleFollowUser(
 
   return { following: !isFollowing };
 }
+
+export async function deletePost(
+  postId: string
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    const res = await apiClient.delete<{ success: boolean; message?: string }>(
+      `/posts/${postId}`
+    );
+    const local = getLocalPosts();
+    saveLocalPosts(local.filter((p) => p.id !== postId));
+    return res || { success: true };
+  } catch (err: any) {
+    console.warn("Delete post remoto falhou ou offline, removendo do cache local:", err);
+    const local = getLocalPosts();
+    saveLocalPosts(local.filter((p) => p.id !== postId));
+    return { success: true };
+  }
+}

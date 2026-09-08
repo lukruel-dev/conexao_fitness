@@ -13,6 +13,8 @@ import {
   Loader2,
   Clock,
   Sparkles,
+  Trash2,
+  ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +25,18 @@ import {
   listComments,
   addComment,
   toggleFollowUser,
+  deletePost,
 } from "@/services/posts";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { SharePostModal } from "./SharePostModal";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
 import type { Post, PostComment } from "@/types/community";
@@ -32,12 +45,14 @@ interface PostCardProps {
   post: Post;
   onTagClick?: (tag: string) => void;
   onPostShared?: (newPost: Post) => void;
+  onPostDeleted?: (postId: string) => void;
 }
 
 export const PostCard: React.FC<PostCardProps> = ({
   post,
   onTagClick,
   onPostShared,
+  onPostDeleted,
 }) => {
   const { user } = useAuth();
   const [isLiked, setIsLiked] = useState(post.isLiked ?? false);
@@ -47,6 +62,8 @@ export const PostCard: React.FC<PostCardProps> = ({
   const [followLoading, setFollowLoading] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [comments, setComments] = useState<PostComment[]>([]);
   const [commentsCount, setCommentsCount] = useState(post.commentsCount || 0);
   const [commentsLoading, setCommentsLoading] = useState(false);
@@ -163,6 +180,33 @@ export const PostCard: React.FC<PostCardProps> = ({
     return "Atleta & Aluno";
   };
 
+  const canDelete = Boolean(
+    user && (user.id === post.authorId || user.role === "ADMIN")
+  );
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deletePost(post.id);
+      setIsDeleteDialogOpen(false);
+      toast({
+        title: "Publicação excluída!",
+        description: "A postagem foi removida com sucesso.",
+      });
+      if (onPostDeleted) {
+        onPostDeleted(post.id);
+      }
+    } catch (err: any) {
+      toast({
+        title: "Erro ao excluir publicação",
+        description: err.message || "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <article className="rounded-2xl border border-border/80 bg-card p-4 sm:p-5 shadow-sm transition-all duration-200 hover:border-primary/30 mb-5">
       {/* BANNER SE FOR REPOST/COMPARTILHAMENTO */}
@@ -215,31 +259,50 @@ export const PostCard: React.FC<PostCardProps> = ({
           </div>
         </div>
 
-        {/* BOTÃO SEGUIR */}
-        {user?.id !== post.authorId && (
-          <Button
-            type="button"
-            variant={isFollowing ? "secondary" : "outline"}
-            size="sm"
-            onClick={handleToggleFollow}
-            disabled={followLoading}
-            className={`h-8 text-xs font-semibold gap-1 rounded-lg px-3 transition-all ${
-              isFollowing
-                ? "bg-muted text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                : "border-primary/40 text-primary hover:bg-primary hover:text-white"
-            }`}
-          >
-            {isFollowing ? (
-              <>
-                <UserCheck className="h-3.5 w-3.5" /> Seguindo
-              </>
-            ) : (
-              <>
-                <UserPlus className="h-3.5 w-3.5" /> Seguir
-              </>
-            )}
-          </Button>
-        )}
+        {/* AÇÕES DO CABEÇALHO: SEGUIR OU EXCLUIR */}
+        <div className="flex items-center gap-1.5">
+          {user?.id !== post.authorId && (
+            <Button
+              type="button"
+              variant={isFollowing ? "secondary" : "outline"}
+              size="sm"
+              onClick={handleToggleFollow}
+              disabled={followLoading}
+              className={`h-8 text-xs font-semibold gap-1 rounded-lg px-3 transition-all ${
+                isFollowing
+                  ? "bg-muted text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  : "border-primary/40 text-primary hover:bg-primary hover:text-white"
+              }`}
+            >
+              {isFollowing ? (
+                <>
+                  <UserCheck className="h-3.5 w-3.5" /> Seguindo
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-3.5 w-3.5" /> Seguir
+                </>
+              )}
+            </Button>
+          )}
+
+          {canDelete && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsDeleteDialogOpen(true)}
+              className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+              title={
+                user?.role === "ADMIN" && user?.id !== post.authorId
+                  ? "Excluir publicação (Ação de Administrador)"
+                  : "Excluir minha publicação"
+              }
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* CONTEÚDO DO POST */}
@@ -510,6 +573,52 @@ export const PostCard: React.FC<PostCardProps> = ({
           if (onPostShared) onPostShared(newPost);
         }}
       />
+
+      {/* DIÁLOGO DE CONFIRMAÇÃO DE EXCLUSÃO */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="h-5 w-5" />
+              Excluir publicação?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-muted-foreground">
+              {user?.role === "ADMIN" && user?.id !== post.authorId ? (
+                <span>
+                  Você está prestes a excluir esta publicação de{" "}
+                  <strong className="text-foreground">{post.author?.name}</strong> como{" "}
+                  <strong className="text-destructive font-semibold">Administrador</strong>. Essa
+                  ação é irreversível e removerá permanentemente o post do feed.
+                </span>
+              ) : (
+                <span>
+                  Tem certeza que deseja excluir sua postagem? Ela será removida
+                  permanentemente do feed e do seu perfil.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4 gap-2">
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground font-semibold"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Excluindo...
+                </>
+              ) : (
+                "Sim, excluir"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </article>
   );
 };

@@ -61,7 +61,7 @@ export class PostsController {
     return this.postsService.create(dto, user.id);
   }
 
-  @ApiOperation({ summary: 'Excluir postagem' })
+  @ApiOperation({ summary: 'Excluir postagem (Autor ou Administrador)' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
@@ -69,7 +69,7 @@ export class PostsController {
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: any,
   ) {
-    return this.postsService.deletePost(id, user.id);
+    return this.postsService.deletePost(id, user.id, user?.role);
   }
 
   @ApiOperation({ summary: 'Curtir ou descurtir uma postagem' })
