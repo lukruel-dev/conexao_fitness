@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -12,7 +12,7 @@ import { validateBioContent } from '../../common/utils/bio-validator';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
-export class UsersService {
+export class UsersService implements OnApplicationBootstrap {
   constructor(
     @InjectRepository(User)
     private readonly usersRepo: Repository<User>,
@@ -21,6 +21,95 @@ export class UsersService {
     @InjectRepository(AcademiaProfile)
     private readonly academiaProfileRepo: Repository<AcademiaProfile>,
   ) {}
+
+  async onApplicationBootstrap() {
+    try {
+      const testEmails = [
+        'aluno@conexaofitness.com.br',
+        'personal@conexaofitness.com.br',
+        'nutri@conexaofitness.com.br',
+        'fisio@conexaofitness.com.br',
+        'academia@conexaofitness.com.br',
+      ];
+
+      // 1. Identificar bots por email de teste
+      const botUsers = await this.usersRepo
+        .createQueryBuilder('u')
+        .where('u.email IN (:...emails)', { emails: testEmails })
+        .getMany();
+
+      // 2. Identificar provedores de serviços gerados por bots faker
+      const rawFakerProviders = await this.usersRepo.query(
+        `SELECT DISTINCT "providerId" FROM services WHERE "name" ILIKE 'Atendimento de %' OR "name" = 'Day Pass (Passe Diário) - Musculação & Cardio' OR "name" = 'Treino Personalizado Individual (60 min)' OR "name" = 'Consulta Nutricional Esportiva + Bioimpedância' OR "name" = 'Sessão de Fisioterapia & Liberação Miofascial'`
+      ).catch(() => []);
+
+      const fakerProviderIds = (rawFakerProviders || []).map((r: any) => r.providerId).filter(Boolean);
+      const allBotIds = Array.from(new Set([...botUsers.map((b) => b.id), ...fakerProviderIds]));
+
+      if (allBotIds.length > 0) {
+        console.log(`🧹 [Auto-Purge] Removendo ${allBotIds.length} contas bots e serviços fictícios do banco...`);
+
+        // Deletar agendamentos e slots
+        await this.usersRepo.query(
+          `DELETE FROM schedule_slots WHERE "serviceId" IN (SELECT id FROM services WHERE "providerId" = ANY($1))`,
+          [allBotIds]
+        ).catch(() => {});
+
+        // Deletar serviços
+        await this.usersRepo.query(
+          `DELETE FROM services WHERE "providerId" = ANY($1)`,
+          [allBotIds]
+        ).catch(() => {});
+
+        // Deletar interações de posts
+        await this.usersRepo.query(
+          `DELETE FROM post_likes WHERE "userId" = ANY($1)`,
+          [allBotIds]
+        ).catch(() => {});
+
+        await this.usersRepo.query(
+          `DELETE FROM post_comments WHERE "authorId" = ANY($1)`,
+          [allBotIds]
+        ).catch(() => {});
+
+        await this.usersRepo.query(
+          `DELETE FROM user_follows WHERE "followerId" = ANY($1) OR "followingId" = ANY($1)`,
+          [allBotIds]
+        ).catch(() => {});
+
+        await this.usersRepo.query(
+          `DELETE FROM posts WHERE "authorId" = ANY($1)`,
+          [allBotIds]
+        ).catch(() => {});
+
+        // Deletar perfis
+        await this.usersRepo.query(
+          `DELETE FROM personal_profiles WHERE "userId" = ANY($1)`,
+          [allBotIds]
+        ).catch(() => {});
+
+        await this.usersRepo.query(
+          `DELETE FROM academia_profiles WHERE "userId" = ANY($1)`,
+          [allBotIds]
+        ).catch(() => {});
+
+        await this.usersRepo.query(
+          `DELETE FROM aluno_profiles WHERE "userId" = ANY($1)`,
+          [allBotIds]
+        ).catch(() => {});
+
+        // Deletar usuários bots (preservando o admin)
+        await this.usersRepo.query(
+          `DELETE FROM users WHERE "id" = ANY($1) AND "email" != 'admin@conexaofitness.com.br'`,
+          [allBotIds]
+        ).catch(() => {});
+
+        console.log('✅ [Auto-Purge] Banco limpo com sucesso! Apenas usuários reais e catálogo oficial permanecem.');
+      }
+    } catch (err) {
+      console.error('Erro na inicialização da purga de bots:', err);
+    }
+  }
 
   async create(dto: CreateUserDto): Promise<User> {
     const salt = await bcrypt.genSalt(10);
