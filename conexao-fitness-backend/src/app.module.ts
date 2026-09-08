@@ -40,6 +40,11 @@ import { PaymentIntent } from './modules/wallet/entities/payment-intent.entity';
 import { QRModule as QrModule } from './modules/qr/qr.module';
 import { ProfessionsModule } from './modules/professions/professions.module';
 import { Profession } from './modules/professions/entities/profession.entity';
+import { PostsModule } from './modules/posts/posts.module';
+import { Post } from './modules/posts/entities/post.entity';
+import { PostLike } from './modules/posts/entities/post-like.entity';
+import { PostComment } from './modules/posts/entities/post-comment.entity';
+import { UserFollow } from './modules/users/entities/user-follow.entity';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -74,6 +79,10 @@ const isDev = process.env.NODE_ENV !== 'production';
               WalletAccount,
               PaymentIntent,
               Profession,
+              Post,
+              PostLike,
+              PostComment,
+              UserFollow,
             ],
             synchronize: true,
             logging: ['error'],
@@ -103,6 +112,10 @@ const isDev = process.env.NODE_ENV !== 'production';
               WalletAccount,
               PaymentIntent,
               Profession,
+              Post,
+              PostLike,
+              PostComment,
+              UserFollow,
             ],
             synchronize: isDev,
             migrationsRun: !isDev,
@@ -125,6 +138,7 @@ const isDev = process.env.NODE_ENV !== 'production';
     ServiceCatalogModule,
     WalletModule,
     ProfessionsModule,
+    PostsModule,
   ],
 })
 export class AppModule {}

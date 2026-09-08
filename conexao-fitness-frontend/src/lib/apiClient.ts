@@ -68,6 +68,19 @@ export async function apiRequest<T>(path: string, opts: RequestOptions = {}): Pr
   return data as T;
 }
 
+export const apiClient = {
+  get: <T>(path: string, query?: RequestOptions["query"]) =>
+    apiRequest<T>(path, { method: "GET", query }),
+  post: <T>(path: string, body?: unknown, query?: RequestOptions["query"]) =>
+    apiRequest<T>(path, { method: "POST", body, query }),
+  patch: <T>(path: string, body?: unknown, query?: RequestOptions["query"]) =>
+    apiRequest<T>(path, { method: "PATCH", body, query }),
+  put: <T>(path: string, body?: unknown, query?: RequestOptions["query"]) =>
+    apiRequest<T>(path, { method: "PUT", body, query }),
+  delete: <T>(path: string, query?: RequestOptions["query"]) =>
+    apiRequest<T>(path, { method: "DELETE", query }),
+};
+
 function safeJsonParse(text: string) {
   try {
     return JSON.parse(text);
@@ -75,3 +88,4 @@ function safeJsonParse(text: string) {
     return text;
   }
 }
+

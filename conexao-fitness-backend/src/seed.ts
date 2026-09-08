@@ -388,7 +388,63 @@ async function bootstrap() {
   }
   console.log(`✅ ${baseCatalogItems.length} itens do Catálogo Base processados no banco!`);
 
-  console.log('🎉 Seeding, Catálogo Base e horários das agendas concluídos com sucesso!');
+  // 10. Criar Postagens Iniciais da Comunidade (Feed & Fórum)
+  console.log('💬 Criando postagens e interações da comunidade...');
+  const postsRepo = app.get<Repository<any>>('PostRepository');
+  const followsRepo = app.get<Repository<any>>('UserFollowRepository');
+
+  if (existingPersonal && existingAluno && postsRepo) {
+    const existingPostsCount = await postsRepo.count();
+    if (existingPostsCount === 0) {
+      // Follow de teste
+      if (followsRepo) {
+        const testFollow = followsRepo.create({
+          followerId: existingAluno.id,
+          followingId: existingPersonal.id,
+        });
+        await followsRepo.save(testFollow);
+      }
+
+      const samplePosts = [
+        {
+          authorId: existingPersonal.id,
+          content: '🔥 Dica de Ouro para Hipertrofia de Quadríceps:\nFoque no tempo sob tensão na fase excêntrica (3 segundos descendo no agachamento). O controle de carga e amplitude faz mais diferença do que adicionar peso com execução encurtada!\n\nDeixem suas dúvidas sobre divisão de treino nos comentários!',
+          category: 'Treino',
+          tags: ['#Treino', '#Hipertrofia', '#Pernas', '#DicaDoPersonal'],
+          mediaUrls: ['https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop'],
+          likesCount: 24,
+          commentsCount: 5,
+          workoutRoutine: {
+            title: 'Protocolo Foco em Quadríceps',
+            level: 'Intermediário / Avançado',
+            exercises: [
+              { name: 'Agachamento Livre (Barra)', sets: '4', reps: '8-10', restSeconds: 90, notes: 'Fase excêntrica 3s' },
+              { name: 'Leg Press 45º', sets: '4', reps: '12-15', restSeconds: 60, notes: 'Pés na base inferior' },
+              { name: 'Cadeira Extensora (Drop-set)', sets: '3', reps: '10+10', restSeconds: 60, notes: 'Isometria de 2s no topo' },
+              { name: 'Passada com Halteres', sets: '3', reps: '12 cada perna', restSeconds: 60, notes: 'Passos controlados' },
+            ]
+          }
+        },
+        {
+          authorId: existingAluno.id,
+          content: 'Evolução de 6 meses de treino consistente e acompanhamento nutricional! 💪\nSaí de 86kg para 77kg mantendo massa magra. Agradecimento especial ao @personal pela periodização dos treinos!\n\nQual o objetivo de vocês para este semestre?',
+          category: 'Evolução',
+          tags: ['#Evolução', '#AntesEDepois', '#Motivação', '#Constância'],
+          mediaUrls: ['https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=800&auto=format&fit=crop'],
+          likesCount: 42,
+          commentsCount: 8,
+        }
+      ];
+
+      for (const p of samplePosts) {
+        const createdPost = postsRepo.create(p);
+        await postsRepo.save(createdPost);
+      }
+      console.log('✅ Postagens comunitárias iniciais criadas!');
+    }
+  }
+
+  console.log('🎉 Seeding, Catálogo Base e Comunidade concluídos com sucesso!');
   await app.close();
 }
 
