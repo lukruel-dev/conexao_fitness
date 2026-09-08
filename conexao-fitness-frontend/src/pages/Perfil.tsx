@@ -273,7 +273,7 @@ const Perfil = () => {
               <div className="relative shrink-0">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden ring-4 ring-primary/20">
                   {user.avatarUrl ? (
-                    <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+                    <img src={resolveMediaUrl(user.avatarUrl)} alt={user.name} className="w-full h-full object-cover" />
                   ) : (
                     <User className="w-10 h-10 text-primary" />
                   )}

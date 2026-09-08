@@ -62,13 +62,25 @@ export class UsersService {
     return savedUser;
   }
 
-  async updateAvatar(userId: string, avatarUrl: string): Promise<User> {
-    const user = await this.findOne(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+  async updateAvatar(userId: string, avatarUrl: string): Promise<any> {
+    const user = await this.findOneOrFail(userId);
     user.avatarUrl = avatarUrl;
-    return this.usersRepo.save(user);
+    await this.usersRepo.save(user);
+
+    const reloaded = await this.findOneOrFail(userId);
+    return {
+      id: reloaded.id,
+      name: reloaded.name,
+      email: reloaded.email,
+      role: reloaded.role,
+      status: reloaded.status,
+      avatarUrl: reloaded.avatarUrl,
+      professionTitle: reloaded.personalProfile?.professionTitle,
+      documentUrl: reloaded.personalProfile?.documentUrl || reloaded.academiaProfile?.documentUrl,
+      cref: reloaded.personalProfile?.cref,
+      bio: reloaded.personalProfile?.bio || reloaded.bio,
+      kycRejectionReason: reloaded.kycRejectionReason,
+    };
   }
 
   async findByEmail(email: string): Promise<User | null> {
