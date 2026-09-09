@@ -38,32 +38,84 @@ export function deleteUser(id: string) {
   });
 }
 
-export function bulkApproveKyc(userIds: string[]) {
-  return apiRequest<{ success: boolean; count: number; message: string }>("/admin/users/bulk/kyc-approve", {
-    method: "PATCH",
-    body: { userIds },
-  });
+export async function bulkApproveKyc(userIds: string[]) {
+  try {
+    return await apiRequest<{ success: boolean; count: number; message: string }>("/admin/users/bulk/kyc-approve", {
+      method: "PATCH",
+      body: { userIds },
+    });
+  } catch (err: any) {
+    if (err?.status === 404 || String(err?.message || "").includes("Cannot PATCH")) {
+      const results = await Promise.allSettled(userIds.map((id) => approveKyc(id)));
+      const succeeded = results.filter((r) => r.status === "fulfilled").length;
+      return {
+        success: true,
+        count: succeeded,
+        message: `${succeeded} usuário(s) aprovado(s) com sucesso.`,
+      };
+    }
+    throw err;
+  }
 }
 
-export function bulkSuspendUsers(userIds: string[]) {
-  return apiRequest<{ success: boolean; count: number; message: string }>("/admin/users/bulk/suspend", {
-    method: "PATCH",
-    body: { userIds },
-  });
+export async function bulkSuspendUsers(userIds: string[]) {
+  try {
+    return await apiRequest<{ success: boolean; count: number; message: string }>("/admin/users/bulk/suspend", {
+      method: "PATCH",
+      body: { userIds },
+    });
+  } catch (err: any) {
+    if (err?.status === 404 || String(err?.message || "").includes("Cannot PATCH")) {
+      const results = await Promise.allSettled(userIds.map((id) => suspendUser(id)));
+      const succeeded = results.filter((r) => r.status === "fulfilled").length;
+      return {
+        success: true,
+        count: succeeded,
+        message: `${succeeded} usuário(s) suspenso(s) com sucesso.`,
+      };
+    }
+    throw err;
+  }
 }
 
-export function bulkActivateUsers(userIds: string[]) {
-  return apiRequest<{ success: boolean; count: number; message: string }>("/admin/users/bulk/activate", {
-    method: "PATCH",
-    body: { userIds },
-  });
+export async function bulkActivateUsers(userIds: string[]) {
+  try {
+    return await apiRequest<{ success: boolean; count: number; message: string }>("/admin/users/bulk/activate", {
+      method: "PATCH",
+      body: { userIds },
+    });
+  } catch (err: any) {
+    if (err?.status === 404 || String(err?.message || "").includes("Cannot PATCH")) {
+      const results = await Promise.allSettled(userIds.map((id) => activateUser(id)));
+      const succeeded = results.filter((r) => r.status === "fulfilled").length;
+      return {
+        success: true,
+        count: succeeded,
+        message: `${succeeded} usuário(s) reativado(s) com sucesso.`,
+      };
+    }
+    throw err;
+  }
 }
 
-export function bulkDeleteUsers(userIds: string[]) {
-  return apiRequest<{ success: boolean; count: number; message: string }>("/admin/users/bulk/delete", {
-    method: "POST",
-    body: { userIds },
-  });
+export async function bulkDeleteUsers(userIds: string[]) {
+  try {
+    return await apiRequest<{ success: boolean; count: number; message: string }>("/admin/users/bulk/delete", {
+      method: "POST",
+      body: { userIds },
+    });
+  } catch (err: any) {
+    if (err?.status === 404 || String(err?.message || "").includes("Cannot POST /admin/users/bulk/delete")) {
+      const results = await Promise.allSettled(userIds.map((id) => deleteUser(id)));
+      const succeeded = results.filter((r) => r.status === "fulfilled").length;
+      return {
+        success: true,
+        count: succeeded,
+        message: `${succeeded} usuário(s) excluído(s) com sucesso.`,
+      };
+    }
+    throw err;
+  }
 }
 
 
