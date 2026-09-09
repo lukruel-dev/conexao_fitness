@@ -25,6 +25,7 @@ describe('AdminService', () => {
 
   const mockUsersRepo = {
     findOne: jest.fn(),
+    find: jest.fn(),
     save: jest.fn().mockImplementation(u => u),
     count: jest.fn(),
     delete: jest.fn(),
@@ -179,4 +180,74 @@ describe('AdminService', () => {
       expect(mockManager.delete).not.toHaveBeenCalled();
     });
   });
+
+  describe('bulkApproveKyc', () => {
+    it('should approve multiple users', async () => {
+      mockUsersRepo.find.mockResolvedValue([
+        { id: 'u1', status: 'PENDENTE_KYC' },
+        { id: 'u2', status: 'PENDENTE_KYC' },
+      ]);
+      const result = await service.bulkApproveKyc(['u1', 'u2']);
+      expect(result.success).toBe(true);
+      expect(result.count).toBe(2);
+      expect(mockUsersRepo.save).toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException if userIds is empty', async () => {
+      await expect(service.bulkApproveKyc([])).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('bulkSuspendUsers', () => {
+    it('should suspend multiple users excluding current admin', async () => {
+      mockUsersRepo.find.mockResolvedValue([
+        { id: 'u1', status: 'ATIVO' },
+        { id: 'u2', status: 'ATIVO' },
+      ]);
+      const result = await service.bulkSuspendUsers(['u1', 'u2', 'admin-id'], 'admin-id');
+      expect(result.success).toBe(true);
+      expect(result.count).toBe(2);
+      expect(mockUsersRepo.save).toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException if only current admin is supplied', async () => {
+      await expect(service.bulkSuspendUsers(['admin-id'], 'admin-id')).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('bulkActivateUsers', () => {
+    it('should activate multiple users', async () => {
+      mockUsersRepo.find.mockResolvedValue([
+        { id: 'u1', status: 'SUSPENSO' },
+        { id: 'u2', status: 'SUSPENSO' },
+      ]);
+      const result = await service.bulkActivateUsers(['u1', 'u2']);
+      expect(result.success).toBe(true);
+      expect(result.count).toBe(2);
+      expect(mockUsersRepo.save).toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException if empty array supplied', async () => {
+      await expect(service.bulkActivateUsers([])).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('bulkDeleteUsers', () => {
+    it('should delete multiple users successfully', async () => {
+      mockUsersRepo.findOne.mockImplementation(({ where }) => {
+        if (where.id === 'u1') return Promise.resolve({ id: 'u1', name: 'User 1' });
+        if (where.id === 'u2') return Promise.resolve({ id: 'u2', name: 'User 2' });
+        return Promise.resolve(null);
+      });
+
+      const result = await service.bulkDeleteUsers(['u1', 'u2', 'admin-id'], 'admin-id');
+      expect(result.success).toBe(true);
+      expect(result.count).toBe(2);
+    });
+
+    it('should throw BadRequestException if userIds list is empty', async () => {
+      await expect(service.bulkDeleteUsers([])).rejects.toThrow(BadRequestException);
+    });
+  });
 });
+

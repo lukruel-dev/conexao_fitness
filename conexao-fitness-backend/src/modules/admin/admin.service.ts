@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { User, UserRole, UserStatus } from '../users/entities/user.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
 import { Service } from '../services/entities/service.entity';
@@ -37,6 +37,56 @@ export class AdminService {
     user.status = 'KYC_REJEITADO'; 
     user.kycRejectionReason = reason;
     return this.usersRepo.save(user);
+  }
+
+  async bulkApproveKyc(userIds: string[]): Promise<{ success: boolean; count: number; message: string }> {
+    if (!userIds || userIds.length === 0) {
+      throw new BadRequestException('Nenhum usuário informado para aprovação.');
+    }
+    const users = await this.usersRepo.find({
+      where: { id: In(userIds) },
+    });
+    if (users.length === 0) {
+      return { success: true, count: 0, message: 'Nenhum usuário correspondente encontrado.' };
+    }
+    for (const u of users) {
+      u.status = 'ATIVO';
+      u.kycRejectionReason = null as any;
+    }
+    await this.usersRepo.save(users);
+    return { success: true, count: users.length, message: `${users.length} usuário(s) aprovado(s) com sucesso.` };
+  }
+
+  async bulkSuspendUsers(userIds: string[], currentAdminId?: string): Promise<{ success: boolean; count: number; message: string }> {
+    if (!userIds || userIds.length === 0) {
+      throw new BadRequestException('Nenhum usuário informado para suspensão.');
+    }
+    const targetIds = currentAdminId ? userIds.filter(id => id !== currentAdminId) : userIds;
+    if (targetIds.length === 0) {
+      throw new BadRequestException('Não é possível suspender o próprio usuário administrador logado.');
+    }
+    const users = await this.usersRepo.find({
+      where: { id: In(targetIds) },
+    });
+    for (const u of users) {
+      u.status = 'SUSPENSO';
+    }
+    await this.usersRepo.save(users);
+    return { success: true, count: users.length, message: `${users.length} usuário(s) suspenso(s) com sucesso.` };
+  }
+
+  async bulkActivateUsers(userIds: string[]): Promise<{ success: boolean; count: number; message: string }> {
+    if (!userIds || userIds.length === 0) {
+      throw new BadRequestException('Nenhum usuário informado para ativação.');
+    }
+    const users = await this.usersRepo.find({
+      where: { id: In(userIds) },
+    });
+    for (const u of users) {
+      u.status = 'ATIVO';
+    }
+    await this.usersRepo.save(users);
+    return { success: true, count: users.length, message: `${users.length} usuário(s) reativado(s) com sucesso.` };
   }
 
   async getDashboardMetrics() {
@@ -153,6 +203,32 @@ export class AdminService {
     return { success: true, message: 'Usuário excluído com sucesso' };
   }
 
+  async bulkDeleteUsers(userIds: string[], currentAdminId?: string): Promise<{ success: boolean; count: number; message: string }> {
+    if (!userIds || userIds.length === 0) {
+      throw new BadRequestException('Nenhum usuário informado para exclusão.');
+    }
+    const targetIds = currentAdminId ? userIds.filter(id => id !== currentAdminId) : userIds;
+    if (targetIds.length === 0) {
+      throw new BadRequestException('Não é possível excluir o próprio usuário administrador logado.');
+    }
+
+    let deletedCount = 0;
+    for (const id of targetIds) {
+      try {
+        await this.deleteUser(id, currentAdminId);
+        deletedCount++;
+      } catch (err) {
+        // Segue para os demais usuários se algum falhar ou já tiver sido excluído
+      }
+    }
+
+    return {
+      success: true,
+      count: deletedCount,
+      message: `${deletedCount} usuário(s) excluído(s) com sucesso.`,
+    };
+  }
+
   async findAllSubscriptions(): Promise<Subscription[]> {
     return this.subscriptionsRepo.find({
       relations: ['user'],
@@ -160,3 +236,4 @@ export class AdminService {
     });
   }
 }
+

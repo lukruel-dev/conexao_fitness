@@ -1,4 +1,4 @@
-import { Controller, Patch, Param, UseGuards, Body, Get, Query, Delete } from '@nestjs/common';
+import { Controller, Patch, Param, UseGuards, Body, Get, Query, Delete, Post } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -15,6 +15,26 @@ import { BookingStatus } from '../bookings/entities/booking.entity';
 @Roles('ADMIN')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
+
+  @Patch('users/bulk/kyc-approve')
+  bulkApproveKyc(@Body('userIds') userIds: string[]) {
+    return this.adminService.bulkApproveKyc(userIds);
+  }
+
+  @Patch('users/bulk/suspend')
+  bulkSuspendUsers(@Body('userIds') userIds: string[], @CurrentUser() currentUser: any) {
+    return this.adminService.bulkSuspendUsers(userIds, currentUser?.id);
+  }
+
+  @Patch('users/bulk/activate')
+  bulkActivateUsers(@Body('userIds') userIds: string[]) {
+    return this.adminService.bulkActivateUsers(userIds);
+  }
+
+  @Post('users/bulk/delete')
+  bulkDeleteUsers(@Body('userIds') userIds: string[], @CurrentUser() currentUser: any) {
+    return this.adminService.bulkDeleteUsers(userIds, currentUser?.id);
+  }
 
   @Patch('users/:id/kyc-approve')
   approveKyc(@Param('id') userId: string) {
@@ -66,3 +86,4 @@ export class AdminController {
     return this.adminService.findAllSubscriptions();
   }
 }
+

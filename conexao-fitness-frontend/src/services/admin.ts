@@ -38,3 +38,32 @@ export function deleteUser(id: string) {
   });
 }
 
+export function bulkApproveKyc(userIds: string[]) {
+  return apiRequest<{ success: boolean; count: number; message: string }>("/admin/users/bulk/kyc-approve", {
+    method: "PATCH",
+    body: { userIds },
+  });
+}
+
+export function bulkSuspendUsers(userIds: string[]) {
+  return apiRequest<{ success: boolean; count: number; message: string }>("/admin/users/bulk/suspend", {
+    method: "PATCH",
+    body: { userIds },
+  });
+}
+
+export function bulkActivateUsers(userIds: string[]) {
+  return apiRequest<{ success: boolean; count: number; message: string }>("/admin/users/bulk/activate", {
+    method: "PATCH",
+    body: { userIds },
+  });
+}
+
+export function bulkDeleteUsers(userIds: string[]) {
+  return apiRequest<{ success: boolean; count: number; message: string }>("/admin/users/bulk/delete", {
+    method: "POST",
+    body: { userIds },
+  });
+}
+
+
