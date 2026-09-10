@@ -11,7 +11,7 @@ import { ScheduleSlot } from './modules/services/entities/schedule-slot.entity';
 import { Post } from './modules/posts/entities/post.entity';
 import { PostComment } from './modules/posts/entities/post-comment.entity';
 import { PostLike } from './modules/posts/entities/post-like.entity';
-import { UserFollow } from './modules/posts/entities/user-follow.entity';
+import { UserFollow } from './modules/users/entities/user-follow.entity';
 import { PersonalProfile } from './modules/users/entities/personal-profile.entity';
 import { AlunoProfile } from './modules/users/entities/aluno-profile.entity';
 import { AcademiaProfile } from './modules/users/entities/academia-profile.entity';
