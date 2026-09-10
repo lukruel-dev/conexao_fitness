@@ -68,6 +68,18 @@ export class Service {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ type: 'varchar', nullable: true, default: 'MONTHLY' })
+  recurrence?: string | null;
+
+  @Column({ type: 'varchar', nullable: true, default: 'PRESENCIAL' })
+  format?: string | null;
+
+  @Column({ type: 'simple-array', nullable: true })
+  benefits?: string[] | null;
+
+  @Column({ type: 'int', nullable: true, default: 20 })
+  maxStudents?: number | null;
+
   @OneToMany(() => ScheduleSlot, (slot) => slot.service, {
     cascade: false,
   })

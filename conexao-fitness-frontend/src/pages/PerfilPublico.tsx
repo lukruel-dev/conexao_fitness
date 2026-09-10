@@ -16,6 +16,7 @@ import { formatBRL } from "@/lib/format";
 import type { PublicUserProfile } from "@/types/api";
 import type { Post } from "@/types/community";
 import { AcademiaProfileView } from "@/components/AcademiaProfileView";
+import { PersonalProfileView } from "@/components/PersonalProfileView";
 import {
   ShieldCheck,
   Star,
@@ -274,6 +275,50 @@ const PerfilPublico: React.FC = () => {
       </div>
     );
   }
+
+  if (profile.role === "PERSONAL") {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-20 md:pt-24 pb-16">
+          <div className="container mx-auto px-4 max-w-5xl space-y-6">
+            {/* BOTÃO VOLTAR */}
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => navigate(-1)}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" /> Voltar
+              </button>
+
+              {isOwnProfile && (
+                <Button size="sm" variant="hero" className="h-8 text-xs gap-1.5 font-bold rounded-xl" asChild>
+                  <Link to="/meus-servicos">
+                    <Edit3 className="w-3.5 h-3.5" /> Gerenciar Planos & Metodologia
+                  </Link>
+                </Button>
+              )}
+            </div>
+
+            <PersonalProfileView
+              profile={profile}
+              posts={posts}
+              postsLoading={postsLoading}
+              isFollowing={isFollowing}
+              followersCount={followersCount}
+              followLoading={followLoading}
+              onToggleFollow={handleToggleFollow}
+              onShare={handleShareProfile}
+              onPostDeleted={handlePostDeleted}
+              isOwnProfile={isOwnProfile}
+            />
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
 
   const roleBadgeLabel =
     profile.role === "PERSONAL"

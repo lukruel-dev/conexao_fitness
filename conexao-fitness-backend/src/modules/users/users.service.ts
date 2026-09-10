@@ -7,6 +7,7 @@ import { AcademiaProfile } from './entities/academia-profile.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreatePersonalProfileDto } from './dto/create-personal-profile.dto';
+import { UpdatePersonalProfileDto } from './dto/update-personal-profile.dto';
 import { CreateAcademiaProfileDto } from './dto/create-academia-profile.dto';
 import { validateBioContent } from '../../common/utils/bio-validator';
 import * as bcrypt from 'bcryptjs';
@@ -294,6 +295,88 @@ export class UsersService implements OnApplicationBootstrap {
     return this.findOneOrFail(userId);
   }
 
+  async getPersonalProfile(userId: string) {
+    const user = await this.findOneOrFail(userId);
+    let profile = user.personalProfile;
+    if (!profile) {
+      const newProfile = this.personalProfileRepo.create({
+        userId: user.id,
+        publicName: user.name,
+        professionTitle: 'Personal Trainer',
+      });
+      profile = await this.personalProfileRepo.save(newProfile);
+    }
+    const safeProfile = profile!;
+
+    return {
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      publicName: safeProfile.publicName || user.name,
+      cref: safeProfile.cref,
+      professionTitle: safeProfile.professionTitle || 'Personal Trainer',
+      bio: safeProfile.bio || user.bio || '',
+      methodology: safeProfile.methodology || '',
+      specialties: safeProfile.specialties || [],
+      serviceLocations: safeProfile.serviceLocations || [],
+      includedBenefits: safeProfile.includedBenefits || [],
+      modalities: safeProfile.modalities || [],
+      galleryUrls: safeProfile.galleryUrls || [],
+      instagram: safeProfile.instagram || '',
+      whatsapp: safeProfile.whatsapp || user.phone || '',
+      cityBase: user.cityBase || 'Uruguaiana - RS',
+      serviceRadiusKm: safeProfile.serviceRadiusKm ?? 5,
+      baseHourlyPrice: safeProfile.baseHourlyPrice,
+      qualityScore: safeProfile.qualityScore ?? 5.0,
+      responseRate: safeProfile.responseRate ?? 100,
+    };
+  }
+
+  async updatePersonalProfile(userId: string, dto: UpdatePersonalProfileDto): Promise<any> {
+    const user = await this.findOneOrFail(userId);
+    if (user.role !== 'PERSONAL') {
+      throw new BadRequestException('Apenas profissionais (Personal) podem atualizar este perfil.');
+    }
+
+    const profile = user.personalProfile ?? this.personalProfileRepo.create({
+      userId: user.id,
+      publicName: user.name,
+      professionTitle: 'Personal Trainer',
+    });
+
+    if (dto.publicName !== undefined) {
+      profile.publicName = dto.publicName;
+      user.name = dto.publicName;
+    }
+    if (dto.professionTitle !== undefined) profile.professionTitle = dto.professionTitle;
+    if (dto.cref !== undefined) profile.cref = dto.cref;
+    if (dto.bio !== undefined) {
+      profile.bio = dto.bio;
+      user.bio = dto.bio;
+    }
+    if (dto.methodology !== undefined) profile.methodology = dto.methodology;
+    if (dto.specialties !== undefined) profile.specialties = dto.specialties;
+    if (dto.serviceLocations !== undefined) profile.serviceLocations = dto.serviceLocations;
+    if (dto.includedBenefits !== undefined) profile.includedBenefits = dto.includedBenefits;
+    if (dto.modalities !== undefined) profile.modalities = dto.modalities;
+    if (dto.galleryUrls !== undefined) profile.galleryUrls = dto.galleryUrls;
+    if (dto.instagram !== undefined) profile.instagram = dto.instagram;
+    if (dto.whatsapp !== undefined) {
+      profile.whatsapp = dto.whatsapp;
+      user.phone = dto.whatsapp;
+    }
+    if (dto.avatarUrl !== undefined) user.avatarUrl = dto.avatarUrl;
+    if (dto.cityBase !== undefined) user.cityBase = dto.cityBase;
+    if (dto.serviceRadiusKm !== undefined) profile.serviceRadiusKm = dto.serviceRadiusKm;
+    if (dto.baseHourlyPrice !== undefined) profile.baseHourlyPrice = dto.baseHourlyPrice;
+
+    await this.usersRepo.save(user);
+    await this.personalProfileRepo.save(profile);
+
+    return this.getPersonalProfile(userId);
+  }
+
   async getAcademiaProfile(userId: string) {
     const user = await this.findOneOrFail(userId);
     let profile = user.academiaProfile;
@@ -391,7 +474,9 @@ export class UsersService implements OnApplicationBootstrap {
     }
 
     const isAcademia = user.role === 'ACADEMIA';
+    const isPersonal = user.role === 'PERSONAL';
     const acadProfile = user.academiaProfile;
+    const personalProfile = user.personalProfile;
 
     return {
       id: user.id,
@@ -403,27 +488,31 @@ export class UsersService implements OnApplicationBootstrap {
       coverUrl: acadProfile?.coverUrl,
       role: user.role,
       status: user.status,
-      cityBase: acadProfile?.city || user.cityBase || 'Uruguaiana - RS',
+      cityBase: isAcademia ? (acadProfile?.city || user.cityBase || 'Uruguaiana - RS') : (user.cityBase || 'Uruguaiana - RS'),
       address: acadProfile?.address,
       state: acadProfile?.state,
       zipCode: acadProfile?.zipCode,
-      phone: acadProfile?.phone || user.phone,
-      whatsapp: acadProfile?.whatsapp || user.phone,
-      instagram: acadProfile?.instagram,
+      phone: isAcademia ? (acadProfile?.phone || user.phone) : (personalProfile?.whatsapp || user.phone),
+      whatsapp: isAcademia ? (acadProfile?.whatsapp || user.phone) : (personalProfile?.whatsapp || user.phone),
+      instagram: isAcademia ? acadProfile?.instagram : personalProfile?.instagram,
       website: acadProfile?.website,
       openingHours: acadProfile?.openingHours,
       facilities: acadProfile?.facilities || [],
-      modalities: isAcademia ? acadProfile?.modalities || [] : user.personalProfile?.modalities || [],
-      galleryUrls: acadProfile?.galleryUrls || [],
+      modalities: isAcademia ? acadProfile?.modalities || [] : personalProfile?.modalities || [],
+      specialties: isPersonal ? personalProfile?.specialties || [] : [],
+      serviceLocations: isPersonal ? personalProfile?.serviceLocations || [] : [],
+      includedBenefits: isPersonal ? personalProfile?.includedBenefits || [] : [],
+      methodology: isPersonal ? personalProfile?.methodology : undefined,
+      galleryUrls: isAcademia ? (acadProfile?.galleryUrls || []) : (personalProfile?.galleryUrls || []),
       dayPassPrice: acadProfile?.dayPassPrice ? Number(acadProfile.dayPassPrice) : undefined,
       averageRating: user.averageRating || 5.0,
       totalReviews: user.totalReviews || 0,
-      professionTitle: isAcademia ? 'Academia' : user.personalProfile?.professionTitle || (user.role === 'PERSONAL' ? 'Personal Trainer' : undefined),
-      cref: user.personalProfile?.cref,
-      bio: isAcademia ? acadProfile?.bio || user.bio || '' : user.personalProfile?.bio || user.bio || '',
-      baseHourlyPrice: user.personalProfile?.baseHourlyPrice,
-      qualityScore: isAcademia ? acadProfile?.qualityScore ?? 5.0 : user.personalProfile?.qualityScore ?? 5.0,
-      responseRate: isAcademia ? acadProfile?.responseRate ?? 100 : user.personalProfile?.responseRate ?? 100,
+      professionTitle: isAcademia ? 'Academia' : personalProfile?.professionTitle || (isPersonal ? 'Personal Trainer' : undefined),
+      cref: personalProfile?.cref,
+      bio: isAcademia ? acadProfile?.bio || user.bio || '' : personalProfile?.bio || user.bio || '',
+      baseHourlyPrice: personalProfile?.baseHourlyPrice,
+      qualityScore: isAcademia ? (acadProfile?.qualityScore ?? 5.0) : (personalProfile?.qualityScore ?? 5.0),
+      responseRate: isAcademia ? (acadProfile?.responseRate ?? 100) : (personalProfile?.responseRate ?? 100),
       createdAt: user.createdAt,
     };
   }

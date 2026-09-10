@@ -66,6 +66,10 @@ export class ServicesService {
       price: dto.price,
       currency: dto.currency ?? 'BRL',
       isActive: dto.isActive ?? true,
+      recurrence: dto.recurrence ?? 'MONTHLY',
+      format: dto.format ?? 'PRESENCIAL',
+      benefits: dto.benefits ?? null,
+      maxStudents: dto.maxStudents ?? 20,
     });
 
     return this.servicesRepo.save(service);
@@ -121,6 +125,14 @@ export class ServicesService {
     
     if (query?.providerType) {
       qb.andWhere('service.providerType = :providerType', { providerType: query.providerType });
+    }
+
+    if (query?.providerId) {
+      qb.andWhere('service.providerId = :providerId', { providerId: query.providerId });
+    }
+
+    if (query?.type) {
+      qb.andWhere('service.type = :sType', { sType: query.type });
     }
 
     qb.andWhere('service.isActive = true');
@@ -213,6 +225,10 @@ export class ServicesService {
     if (dto.price !== undefined) service.price = dto.price;
     if (dto.currency !== undefined) service.currency = dto.currency;
     if (dto.isActive !== undefined) service.isActive = dto.isActive;
+    if (dto.recurrence !== undefined) service.recurrence = dto.recurrence;
+    if (dto.format !== undefined) service.format = dto.format;
+    if (dto.benefits !== undefined) service.benefits = dto.benefits;
+    if (dto.maxStudents !== undefined) service.maxStudents = dto.maxStudents;
 
     return await this.servicesRepo.save(service);
   }

@@ -36,4 +36,14 @@ export class GetServicesDto {
   @Type(() => Number)
   @IsNumber()
   radiusKm?: number;
+
+  @ApiPropertyOptional({ description: 'Filtrar por ID do prestador' })
+  @IsOptional()
+  @IsString()
+  providerId?: string;
+
+  @ApiPropertyOptional({ description: 'Filtrar por tipo (ex: SESSAO, PLANO_MENSAL, DIARIA)' })
+  @IsOptional()
+  @IsString()
+  type?: string;
 }

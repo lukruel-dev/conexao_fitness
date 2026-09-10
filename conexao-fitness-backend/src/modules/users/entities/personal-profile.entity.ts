@@ -37,6 +37,27 @@ export class PersonalProfile {
   @Column({ type: 'jsonb', nullable: true })
   modalities?: string[];
 
+  @Column({ type: 'text', nullable: true })
+  methodology?: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  specialties?: string[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  serviceLocations?: string[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  includedBenefits?: string[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  galleryUrls?: string[];
+
+  @Column({ nullable: true })
+  instagram?: string;
+
+  @Column({ nullable: true })
+  whatsapp?: string;
+
   @Column({ type: 'int', default: 5 })
   serviceRadiusKm: number;
 

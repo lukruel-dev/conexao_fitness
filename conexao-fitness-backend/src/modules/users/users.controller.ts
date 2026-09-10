@@ -40,6 +40,18 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('me/profile/personal')
+  getMyPersonalProfile(@CurrentUser() user: any) {
+    return this.usersService.getPersonalProfile(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/profile/personal')
+  updateMyPersonalProfile(@CurrentUser() user: any, @Body() dto: any) {
+    return this.usersService.updatePersonalProfile(user.id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('me/profile/academia')
   createAcademiaProfile(@CurrentUser() user: any, @Body() dto: CreateAcademiaProfileDto) {
     return this.usersService.createAcademiaProfile(user.id, dto);

@@ -54,6 +54,10 @@ export interface Service {
   price: string; // backend envia decimal como string
   currency: string;
   isActive: boolean;
+  recurrence?: "MONTHLY" | "QUARTERLY" | "SEMIANNUAL" | "ANNUAL" | "SINGLE" | string;
+  format?: "ONLINE" | "PRESENCIAL" | "HIBRIDO" | string;
+  benefits?: string[];
+  maxStudents?: number;
   createdAt: string;
   updatedAt: string;
   // Campos enriquecidos no frontend (futuro: endpoint que já entrega)
@@ -153,6 +157,10 @@ export interface PublicUserProfile {
   openingHours?: Record<string, string> | null;
   facilities?: string[];
   modalities?: string[];
+  specialties?: string[];
+  serviceLocations?: string[];
+  includedBenefits?: string[];
+  methodology?: string | null;
   galleryUrls?: string[];
   dayPassPrice?: number | null;
   averageRating?: number;
@@ -167,6 +175,49 @@ export interface PublicUserProfile {
   followingCount?: number;
   postsCount?: number;
   createdAt?: string;
+}
+
+export interface PersonalProfileData {
+  userId: string;
+  name: string;
+  email: string;
+  avatarUrl?: string | null;
+  publicName?: string | null;
+  cref?: string | null;
+  professionTitle?: string | null;
+  bio?: string | null;
+  methodology?: string | null;
+  specialties?: string[];
+  serviceLocations?: string[];
+  includedBenefits?: string[];
+  modalities?: string[];
+  galleryUrls?: string[];
+  instagram?: string | null;
+  whatsapp?: string | null;
+  cityBase?: string;
+  serviceRadiusKm?: number;
+  baseHourlyPrice?: string | null;
+  qualityScore?: number;
+  responseRate?: number;
+}
+
+export interface UpdatePersonalProfileDto {
+  publicName?: string;
+  cref?: string;
+  professionTitle?: string;
+  bio?: string;
+  methodology?: string;
+  specialties?: string[];
+  serviceLocations?: string[];
+  includedBenefits?: string[];
+  modalities?: string[];
+  galleryUrls?: string[];
+  instagram?: string;
+  whatsapp?: string;
+  avatarUrl?: string;
+  cityBase?: string;
+  serviceRadiusKm?: number;
+  baseHourlyPrice?: string;
 }
 
 export interface AcademiaProfileData {
@@ -215,6 +266,7 @@ export interface UpdateAcademiaProfileDto {
   galleryUrls?: string[];
   dayPassPrice?: number;
 }
+
 
 export interface LoginDto {
   email: string;

@@ -49,4 +49,19 @@ export class UpdateServiceDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsString()
+  recurrence?: string;
+
+  @IsOptional()
+  @IsString()
+  format?: string;
+
+  @IsOptional()
+  benefits?: string[];
+
+  @IsOptional()
+  @IsNumber()
+  maxStudents?: number;
 }
