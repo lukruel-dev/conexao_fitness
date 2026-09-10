@@ -482,44 +482,92 @@ export default function GestaoAcademia() {
       video.play().catch((err) => console.warn('Erro ao reproduzir stream:', err));
     }
 
-    const offscreenCanvas = document.createElement('canvas');
-    const ctx = offscreenCanvas.getContext('2d', { willReadFrequently: true });
+    let nativeDetector: any = null;
+    if (typeof window !== 'undefined' && 'BarcodeDetector' in window) {
+      try {
+        nativeDetector = new (window as any).BarcodeDetector({ formats: ['qr_code'] });
+      } catch (e) {
+        nativeDetector = null;
+      }
+    }
 
-    const scanFrame = () => {
+    const handleDetected = (rawCode: string) => {
+      const codeText = rawCode.trim();
+      if (!codeText) return;
+
+      const now = Date.now();
+      const last = lastScannedRef.current;
+
+      // Evitar leituras duplicadas no mesmo código por 3 segundos
+      if (codeText !== last.code || now - last.timestamp > 3000) {
+        lastScannedRef.current = { code: codeText, timestamp: now };
+        setScanSuccessPulse(true);
+        setTimeout(() => setScanSuccessPulse(false), 1200);
+
+        if (navigator.vibrate) {
+          navigator.vibrate(120);
+        }
+
+        validateAccessMutation.mutate(codeText);
+      }
+    };
+
+    let isProcessing = false;
+
+    const scanFrame = async () => {
       if (!isMounted) return;
 
       const currentVideo = videoRef.current;
-      if (currentVideo && currentVideo.readyState === currentVideo.HAVE_ENOUGH_DATA && ctx) {
-        offscreenCanvas.width = currentVideo.videoWidth;
-        offscreenCanvas.height = currentVideo.videoHeight;
-        ctx.drawImage(currentVideo, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
+      if (currentVideo && currentVideo.readyState === currentVideo.HAVE_ENOUGH_DATA && !isProcessing) {
+        isProcessing = true;
 
-        const imageData = ctx.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-        const qr = jsQR(imageData.data, imageData.width, imageData.height, {
-          inversionAttempts: 'dontInvert',
-        });
-
-        if (qr && qr.data && qr.data.trim()) {
-          const codeText = qr.data.trim();
-          const now = Date.now();
-          const last = lastScannedRef.current;
-
-          // Evitar leituras duplicadas no mesmo código por 3 segundos
-          if (codeText !== last.code || now - last.timestamp > 3000) {
-            lastScannedRef.current = { code: codeText, timestamp: now };
-            setScanSuccessPulse(true);
-            setTimeout(() => setScanSuccessPulse(false), 1000);
-
-            if (navigator.vibrate) {
-              navigator.vibrate(120);
+        // 1. Tentar decodificação nativa por aceleração de hardware (Chrome / Edge / Android)
+        if (nativeDetector) {
+          try {
+            const barcodes = await nativeDetector.detect(currentVideo);
+            if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+              handleDetected(barcodes[0].rawValue);
+              isProcessing = false;
+              if (isMounted) animationFrameRef.current = requestAnimationFrame(scanFrame);
+              return;
             }
-
-            validateAccessMutation.mutate(codeText);
+          } catch (err) {
+            // fallback para jsQR
           }
         }
+
+        // 2. Processamento via jsQR com suporte a inversão de cores e resolução otimizada
+        if (ctx) {
+          const vw = currentVideo.videoWidth;
+          const vh = currentVideo.videoHeight;
+          const scale = Math.min(1, 800 / Math.max(vw, vh));
+          const w = Math.floor(vw * scale);
+          const h = Math.floor(vh * scale);
+
+          offscreenCanvas.width = w;
+          offscreenCanvas.height = h;
+          ctx.drawImage(currentVideo, 0, 0, w, h);
+
+          try {
+            const imageData = ctx.getImageData(0, 0, w, h);
+            const qr = jsQR(imageData.data, imageData.width, imageData.height, {
+              inversionAttempts: 'attemptBoth',
+            });
+
+            if (qr && qr.data) {
+              handleDetected(qr.data);
+            }
+          } catch (e) {
+            // ignore frame error
+          }
+        }
+
+        isProcessing = false;
       }
 
-      animationFrameRef.current = requestAnimationFrame(scanFrame);
+      if (isMounted) {
+        animationFrameRef.current = requestAnimationFrame(scanFrame);
+      }
     };
 
     animationFrameRef.current = requestAnimationFrame(scanFrame);
