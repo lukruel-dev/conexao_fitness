@@ -45,6 +45,10 @@ import { Post } from './modules/posts/entities/post.entity';
 import { PostLike } from './modules/posts/entities/post-like.entity';
 import { PostComment } from './modules/posts/entities/post-comment.entity';
 import { UserFollow } from './modules/users/entities/user-follow.entity';
+import { MembershipPlan } from './modules/memberships/entities/membership-plan.entity';
+import { GymEnrollment } from './modules/memberships/entities/gym-enrollment.entity';
+import { GymAccessLog } from './modules/memberships/entities/gym-access-log.entity';
+import { MembershipsModule } from './modules/memberships/memberships.module';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -83,6 +87,9 @@ const isDev = process.env.NODE_ENV !== 'production';
               PostLike,
               PostComment,
               UserFollow,
+              MembershipPlan,
+              GymEnrollment,
+              GymAccessLog,
             ],
             synchronize: true,
             logging: ['error'],
@@ -116,6 +123,9 @@ const isDev = process.env.NODE_ENV !== 'production';
               PostLike,
               PostComment,
               UserFollow,
+              MembershipPlan,
+              GymEnrollment,
+              GymAccessLog,
             ],
             synchronize: isDev,
             migrationsRun: !isDev,
@@ -139,6 +149,7 @@ const isDev = process.env.NODE_ENV !== 'production';
     WalletModule,
     ProfessionsModule,
     PostsModule,
+    MembershipsModule,
   ],
 })
 export class AppModule {}

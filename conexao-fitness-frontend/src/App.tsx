@@ -26,6 +26,8 @@ import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 import AdminProfessions from "./pages/admin/AdminProfessions";
 import Carteira from "./pages/Carteira";
 import AgendaProfissional from "./pages/AgendaProfissional";
+import GestaoAcademia from "./pages/GestaoAcademia";
+import MinhasMatriculas from "./pages/MinhasMatriculas";
 import QuemSomos from "./pages/QuemSomos";
 import Planos from "./pages/Planos";
 import BottomNav from "@/components/BottomNav";
@@ -63,6 +65,7 @@ const App = () => (
               <Route path="/buscar" element={<Buscar />} />
               <Route path="/servico/:id" element={<ServicoDetalhe />} />
               <Route path="/meus-agendamentos" element={<MeusAgendamentos />} />
+              <Route path="/minhas-matriculas" element={<MinhasMatriculas />} />
               <Route path="/meus-servicos" element={<MeusServicos />} />
               <Route path="/login" element={<Login />} />
               <Route path="/recuperar-senha" element={<RecuperarSenha />} />
@@ -71,6 +74,7 @@ const App = () => (
               <Route path="/perfil/:id" element={<PerfilPublico />} />
               <Route path="/profissional/:id" element={<PerfilPublico />} />
               <Route path="/minha-agenda" element={<MinhaAgenda />} />
+              <Route path="/gestao-academia" element={<GestaoAcademia />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/usuarios" element={<AdminUsers />} />
               <Route path="/admin/agendamentos" element={<AdminBookings />} />

@@ -36,6 +36,7 @@ import {
   Eye,
   Save,
   Check,
+  QrCode,
 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
@@ -664,19 +665,34 @@ const Perfil = () => {
                   <ChevronRight className="w-5 h-5 text-muted-foreground" />
                 </Link>
                 
+                {user.role === "ACADEMIA" && (
+                  <Link to="/gestao-academia" className="bg-card border border-primary/40 bg-primary/5 rounded-2xl p-4 flex items-center justify-between hover:bg-primary/10 transition-colors group shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center">
+                        <QrCode className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="font-bold text-foreground block">Gestão da Academia & Catraca QR</span>
+                        <span className="text-xs text-muted-foreground">Matrículas, alunos, portaria e planos</span>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-primary group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
+                )}
+
                 {isProvider && (
                   <>
                     <Link to="/agenda-profissional" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-3">
                         <Users className="w-5 h-5 text-muted-foreground" />
-                        <span className="font-medium text-foreground">Meus alunos</span>
+                        <span className="font-medium text-foreground">Meus alunos (Agendamentos)</span>
                       </div>
                       <ChevronRight className="w-5 h-5 text-muted-foreground" />
                     </Link>
                     <Link to="/meus-servicos" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-3">
                         <List className="w-5 h-5 text-muted-foreground" />
-                        <span className="font-medium text-foreground">Meus serviços</span>
+                        <span className="font-medium text-foreground">Meus serviços & diárias</span>
                       </div>
                       <ChevronRight className="w-5 h-5 text-muted-foreground" />
                     </Link>
@@ -684,13 +700,28 @@ const Perfil = () => {
                 )}
 
                 {!isProvider && (
-                  <Link to="/meus-agendamentos" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <CalendarDays className="w-5 h-5 text-muted-foreground" />
-                      <span className="font-medium text-foreground">Meus agendamentos</span>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                  </Link>
+                  <>
+                    <Link to="/minhas-matriculas" className="bg-card border border-primary/40 bg-primary/5 rounded-2xl p-4 flex items-center justify-between hover:bg-primary/10 transition-colors group">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center">
+                          <QrCode className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <span className="font-bold text-foreground block">Minhas Matrículas & Passes QR</span>
+                          <span className="text-xs text-muted-foreground">Carteirinhas para liberar entrada</span>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-primary group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+
+                    <Link to="/meus-agendamentos" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <CalendarDays className="w-5 h-5 text-muted-foreground" />
+                        <span className="font-medium text-foreground">Meus agendamentos</span>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                    </Link>
+                  </>
                 )}
 
                 <Link to="/planos" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">

@@ -52,6 +52,18 @@ const Header = () => {
               </Link>
             ) : isProvider ? (
               <>
+                {user?.role === "ACADEMIA" && (
+                  <Link
+                    to="/gestao-academia"
+                    className={`transition-colors font-bold text-sm flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 ${
+                      location.pathname === "/gestao-academia"
+                        ? "text-primary font-bold bg-primary/20"
+                        : "text-primary hover:text-primary/80"
+                    }`}
+                  >
+                    Gestão & Catraca
+                  </Link>
+                )}
                 <Link
                   to="/planos"
                   className={`transition-colors font-medium text-sm ${
@@ -125,6 +137,18 @@ const Header = () => {
                 >
                   Planos
                 </Link>
+                {isAuthenticated && (
+                  <Link
+                    to="/minhas-matriculas"
+                    className={`transition-colors font-medium text-sm ${
+                      location.pathname === "/minhas-matriculas"
+                        ? "text-primary font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Minhas Matrículas
+                  </Link>
+                )}
                 {isAuthenticated && (
                   <Link
                     to="/meus-agendamentos"
@@ -229,6 +253,15 @@ const Header = () => {
                 </Link>
               ) : isProvider ? (
                 <>
+                  {user?.role === "ACADEMIA" && (
+                    <Link
+                      to="/gestao-academia"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="text-primary font-bold hover:text-primary/80 transition-colors py-2 text-sm flex items-center gap-1.5"
+                    >
+                      Gestão da Academia & Catraca QR
+                    </Link>
+                  )}
                   <Link
                     to="/planos"
                     onClick={() => setIsMenuOpen(false)}
@@ -281,6 +314,15 @@ const Header = () => {
                   >
                     Planos
                   </Link>
+                  {isAuthenticated && (
+                    <Link
+                      to="/minhas-matriculas"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="text-primary font-bold hover:text-primary/80 transition-colors py-2 text-sm"
+                    >
+                      Minhas Matrículas & Passes QR
+                    </Link>
+                  )}
                   {isAuthenticated && (
                     <Link
                       to="/meus-agendamentos"

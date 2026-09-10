@@ -7,8 +7,12 @@ import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPublicUserProfile } from "@/services/users";
 import { listPosts, toggleFollowUser } from "@/services/posts";
+import { getPublicPlansByAcademia, MembershipPlan } from "@/services/memberships";
+import { EnrollmentModal } from "@/components/EnrollmentModal";
+import { StudentAccessPassModal } from "@/components/StudentAccessPassModal";
 import { PostCard } from "@/components/feed/PostCard";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
+import { formatBRL } from "@/lib/format";
 import type { PublicUserProfile } from "@/types/api";
 import type { Post } from "@/types/community";
 import {
@@ -33,6 +37,8 @@ import {
   Edit3,
   X,
   Repeat,
+  QrCode,
+  Check,
 } from "lucide-react";
 import {
   Dialog,
@@ -53,8 +59,12 @@ const PerfilPublico: React.FC = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
-  const [viewMode, setViewMode] = useState<"grid" | "feed">("grid");
+  const [viewMode, setViewMode] = useState<"plans" | "grid" | "feed">("grid");
   const [selectedPostModal, setSelectedPostModal] = useState<Post | null>(null);
+  const [gymPlans, setGymPlans] = useState<MembershipPlan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(false);
+  const [selectedPlanForEnrollment, setSelectedPlanForEnrollment] = useState<MembershipPlan | null>(null);
+  const [createdEnrollmentForPass, setCreatedEnrollmentForPass] = useState<any | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -67,6 +77,18 @@ const PerfilPublico: React.FC = () => {
         if (!isMounted) return;
         setProfile(data);
         setFollowersCount(data.followersCount || 18);
+        if (data.role === "ACADEMIA") {
+          setViewMode("plans");
+          setLoadingPlans(true);
+          getPublicPlansByAcademia(data.id)
+            .then((plans) => {
+              if (isMounted) setGymPlans(plans);
+            })
+            .catch((err) => console.error("Erro ao carregar planos da academia:", err))
+            .finally(() => {
+              if (isMounted) setLoadingPlans(false);
+            });
+        }
       })
       .catch((err) => {
         console.error("Erro ao carregar perfil:", err);
@@ -415,11 +437,26 @@ const PerfilPublico: React.FC = () => {
           </div>
 
           {/* BARRA DE NAVEGAÇÃO DE ABAS ESTILO INSTAGRAM */}
-          <div className="flex items-center justify-center border-t border-border/70 pt-2 gap-8">
+          <div className="flex items-center justify-center border-t border-border/70 pt-2 gap-4 sm:gap-8 overflow-x-auto">
+            {profile.role === "ACADEMIA" && (
+              <button
+                type="button"
+                onClick={() => setViewMode("plans")}
+                className={`flex items-center gap-2 py-3 px-3 sm:px-4 text-xs font-bold uppercase tracking-wider transition-all border-t-2 -mt-2 shrink-0 ${
+                  viewMode === "plans"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Dumbbell className="w-4 h-4" />
+                <span>Planos de Matrícula ({gymPlans.length})</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setViewMode("grid")}
-              className={`flex items-center gap-2 py-3 px-4 text-xs font-bold uppercase tracking-wider transition-all border-t-2 -mt-2 ${
+              className={`flex items-center gap-2 py-3 px-3 sm:px-4 text-xs font-bold uppercase tracking-wider transition-all border-t-2 -mt-2 shrink-0 ${
                 viewMode === "grid"
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -432,7 +469,7 @@ const PerfilPublico: React.FC = () => {
             <button
               type="button"
               onClick={() => setViewMode("feed")}
-              className={`flex items-center gap-2 py-3 px-4 text-xs font-bold uppercase tracking-wider transition-all border-t-2 -mt-2 ${
+              className={`flex items-center gap-2 py-3 px-3 sm:px-4 text-xs font-bold uppercase tracking-wider transition-all border-t-2 -mt-2 shrink-0 ${
                 viewMode === "feed"
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -443,88 +480,209 @@ const PerfilPublico: React.FC = () => {
             </button>
           </div>
 
-          {/* CONTEÚDO DAS POSTAGENS */}
-          {postsLoading ? (
-            <div className="rounded-2xl border border-border/60 bg-card p-12 flex flex-col items-center justify-center gap-3 text-center">
-              <Loader2 className="h-7 w-7 animate-spin text-primary" />
-              <p className="text-xs text-muted-foreground">Carregando publicações...</p>
-            </div>
-          ) : posts.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-border p-12 text-center space-y-3 bg-card/40">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto">
-                <Dumbbell className="h-6 w-6" />
-              </div>
-              <h3 className="font-bold text-base text-foreground">
-                Nenhuma publicação ainda
-              </h3>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                {profile.name} ainda não compartilhou fotos ou rotinas de treino.
-              </p>
-            </div>
-          ) : viewMode === "grid" ? (
-            /* ABA 1: GRADE ESTILO INSTAGRAM (3 Colunas Quadradas) */
-            <div className="grid grid-cols-3 gap-1.5 sm:gap-3 rounded-2xl overflow-hidden">
-              {posts.map((post) => {
-                const firstMedia =
-                  post.mediaUrls && post.mediaUrls.length > 0
-                    ? resolveMediaUrl(
-                        typeof post.mediaUrls[0] === "object"
-                          ? (post.mediaUrls[0] as any).url
-                          : post.mediaUrls[0]
-                      )
-                    : null;
+          {/* ABA: PLANOS DE MATRÍCULA DA ACADEMIA */}
+          {viewMode === "plans" && profile.role === "ACADEMIA" && (
+            <div className="space-y-6">
+              {loadingPlans ? (
+                <div className="rounded-2xl border border-border/60 bg-card p-12 flex flex-col items-center justify-center gap-3 text-center">
+                  <Loader2 className="h-7 w-7 animate-spin text-primary" />
+                  <p className="text-xs text-muted-foreground">Carregando planos de matrícula...</p>
+                </div>
+              ) : gymPlans.length === 0 ? (
+                <div className="rounded-3xl border border-dashed border-border p-12 text-center space-y-3 bg-card/40">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto">
+                    <Dumbbell className="h-6 w-6" />
+                  </div>
+                  <h3 className="font-bold text-base text-foreground">
+                    Nenhum plano disponível no momento
+                  </h3>
+                  <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                    A academia ainda não disponibilizou planos para matrícula online. Entre em contato pelo WhatsApp para mais informações.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {gymPlans.map((plan) => (
+                    <div
+                      key={plan.id}
+                      className="p-6 rounded-3xl bg-card border border-border shadow-sm hover:border-primary/50 transition-all flex flex-col justify-between space-y-5 relative overflow-hidden group"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <span className="text-[10px] uppercase font-bold tracking-wider text-primary px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20">
+                              {plan.durationDays} dias
+                            </span>
+                            <h4 className="font-display font-bold text-xl text-foreground mt-1.5">
+                              {plan.name}
+                            </h4>
+                          </div>
 
-                return (
-                  <div
-                    key={post.id}
-                    onClick={() => setSelectedPostModal(post)}
-                    className="group relative aspect-square bg-muted/60 overflow-hidden rounded-lg sm:rounded-xl cursor-pointer border border-border/40"
-                  >
-                    {firstMedia ? (
-                      <img
-                        src={firstMedia}
-                        alt="Publicação"
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="h-full w-full flex flex-col items-center justify-center p-3 text-center bg-card">
-                        <Dumbbell className="h-6 w-6 text-primary mb-1 opacity-70" />
-                        <p className="text-[10px] text-foreground font-medium line-clamp-3">
-                          {post.content}
-                        </p>
-                      </div>
-                    )}
+                          <div className="text-right shrink-0">
+                            <span className="text-2xl font-bold font-display text-foreground block">
+                              {formatBRL(Number(plan.price))}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">
+                              / {plan.durationDays} dias
+                            </span>
+                          </div>
+                        </div>
 
-                    {/* Overlay Escuro com Likes e Comentários ao passar o mouse */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 text-white font-bold text-xs sm:text-sm">
-                      <div className="flex items-center gap-1">
-                        <Heart className="w-4 h-4 fill-white" />
-                        <span>{post.likesCount || 0}</span>
+                        {plan.description && (
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {plan.description}
+                          </p>
+                        )}
+
+                        {plan.benefits && plan.benefits.length > 0 && (
+                          <div className="space-y-1.5 pt-2 border-t border-border/40">
+                            <span className="text-[11px] font-semibold text-foreground block">
+                              Incluso na matrícula:
+                            </span>
+                            {plan.benefits.map((b, i) => (
+                              <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                <span className="truncate">{b}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-1">
-                        <MessageCircle className="w-4 h-4 fill-white" />
-                        <span>{post.commentsCount || 0}</span>
+
+                      <div className="pt-2">
+                        <Button
+                          variant="hero"
+                          onClick={() => setSelectedPlanForEnrollment(plan)}
+                          className="w-full rounded-2xl gap-2 font-bold shadow-sm"
+                        >
+                          <QrCode className="w-4 h-4" /> Fazer Matrícula Online
+                        </Button>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  ))}
+                </div>
+              )}
             </div>
-          ) : (
-            /* ABA 2: FEED DETALHADO VERTICAL */
-            <div className="space-y-5">
-              {posts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  onPostDeleted={handlePostDeleted}
-                />
-              ))}
-            </div>
+          )}
+
+          {/* CONTEÚDO DAS POSTAGENS */}
+          {viewMode !== "plans" && (
+            postsLoading ? (
+              <div className="rounded-2xl border border-border/60 bg-card p-12 flex flex-col items-center justify-center gap-3 text-center">
+                <Loader2 className="h-7 w-7 animate-spin text-primary" />
+                <p className="text-xs text-muted-foreground">Carregando publicações...</p>
+              </div>
+            ) : posts.length === 0 ? (
+              <div className="rounded-3xl border border-dashed border-border p-12 text-center space-y-3 bg-card/40">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto">
+                  <Dumbbell className="h-6 w-6" />
+                </div>
+                <h3 className="font-bold text-base text-foreground">
+                  Nenhuma publicação ainda
+                </h3>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  {profile.name} ainda não compartilhou fotos ou rotinas de treino.
+                </p>
+              </div>
+            ) : viewMode === "grid" ? (
+              /* ABA 1: GRADE ESTILO INSTAGRAM (3 Colunas Quadradas) */
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-3 rounded-2xl overflow-hidden">
+                {posts.map((post) => {
+                  const firstMedia =
+                    post.mediaUrls && post.mediaUrls.length > 0
+                      ? resolveMediaUrl(
+                          typeof post.mediaUrls[0] === "object"
+                            ? (post.mediaUrls[0] as any).url
+                            : post.mediaUrls[0]
+                        )
+                      : null;
+
+                  return (
+                    <div
+                      key={post.id}
+                      onClick={() => setSelectedPostModal(post)}
+                      className="group relative aspect-square bg-muted/60 overflow-hidden rounded-lg sm:rounded-xl cursor-pointer border border-border/40"
+                    >
+                      {firstMedia ? (
+                        <img
+                          src={firstMedia}
+                          alt="Publicação"
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="h-full w-full flex flex-col items-center justify-center p-3 text-center bg-card">
+                          <Dumbbell className="h-6 w-6 text-primary mb-1 opacity-70" />
+                          <p className="text-[10px] text-foreground font-medium line-clamp-3">
+                            {post.content}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Overlay Escuro com Likes e Comentários ao passar o mouse */}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 text-white font-bold text-xs sm:text-sm">
+                        <div className="flex items-center gap-1">
+                          <Heart className="w-4 h-4 fill-white" />
+                          <span>{post.likesCount || 0}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MessageCircle className="w-4 h-4 fill-white" />
+                          <span>{post.commentsCount || 0}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* ABA 2: FEED DETALHADO VERTICAL */
+              <div className="space-y-5">
+                {posts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onPostDeleted={handlePostDeleted}
+                  />
+                ))}
+              </div>
+            )
           )}
         </div>
       </main>
+
+      {/* MODAL DE MATRÍCULA ONLINE */}
+      {selectedPlanForEnrollment && (
+        <EnrollmentModal
+          open={!!selectedPlanForEnrollment}
+          onOpenChange={(open) => !open && setSelectedPlanForEnrollment(null)}
+          plan={selectedPlanForEnrollment}
+          academiaName={profile.name}
+          academiaId={profile.id}
+          onEnrollmentSuccess={(enrollment) => {
+            setCreatedEnrollmentForPass({
+              ...enrollment,
+              student: {
+                name: user?.name,
+                avatarUrl: user?.avatarUrl,
+                cpf: user?.cpf,
+                email: user?.email,
+              },
+              academia: {
+                name: profile.name,
+                avatarUrl: profile.avatarUrl,
+                cityBase: profile.cityBase,
+              },
+            });
+          }}
+        />
+      )}
+
+      {/* MODAL DE PASSE DE ACESSO COM QR CODE PÓS-MATRÍCULA */}
+      <StudentAccessPassModal
+        open={!!createdEnrollmentForPass}
+        onOpenChange={(open) => !open && setCreatedEnrollmentForPass(null)}
+        enrollment={createdEnrollmentForPass}
+      />
 
       {/* MODAL ESTILO INSTAGRAM PARA VISUALIZAÇÃO DE POST */}
       <Dialog
@@ -549,3 +707,4 @@ const PerfilPublico: React.FC = () => {
 };
 
 export default PerfilPublico;
+
