@@ -48,6 +48,7 @@ import {
   MembershipPlan,
   ValidateAccessResponse,
 } from '@/services/memberships';
+import { getMyAcademiaProfile, updateMyAcademiaProfile } from '@/services/users';
 import { formatBRL } from '@/lib/format';
 import { toast } from 'sonner';
 import {
@@ -82,13 +83,21 @@ import {
   Coins,
   SwitchCamera,
   ScanLine,
+  Building2,
+  ImageIcon,
+  MapPin,
+  Phone,
+  MessageCircle,
+  Save,
+  Eye,
+  Trash2,
 } from 'lucide-react';
 
 export default function GestaoAcademia() {
   const { user, isAuthenticated } = useAuth();
   const qc = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState<'enrollments' | 'turnstile' | 'plans' | 'logs'>('enrollments');
+  const [activeTab, setActiveTab] = useState<'enrollments' | 'turnstile' | 'plans' | 'logs' | 'profile'>('enrollments');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<EnrollmentStatus | ''>('');
 
@@ -178,6 +187,120 @@ export default function GestaoAcademia() {
   });
 
   const [dayPassCustomAmount, setDayPassCustomAmount] = useState<number | ''>('');
+
+  // Perfil da Academia (Customização Completa)
+  const { data: gymProfileData, isLoading: loadingGymProfile } = useQuery({
+    queryKey: ['my-gym-profile', user?.id],
+    queryFn: getMyAcademiaProfile,
+    enabled: !!user && isGym,
+  });
+
+  const [profileForm, setProfileForm] = useState({
+    nomeFantasia: '',
+    razaoSocial: '',
+    cnpj: '',
+    bio: '',
+    avatarUrl: '',
+    coverUrl: '',
+    address: '',
+    city: '',
+    state: 'RS',
+    zipCode: '',
+    phone: '',
+    whatsapp: '',
+    instagram: '',
+    website: '',
+    monday_friday: '06:00 às 23:00',
+    saturday: '08:00 às 18:00',
+    sunday_holidays: '09:00 às 14:00',
+    facilities: [] as string[],
+    modalities: [] as string[],
+    galleryUrls: [] as string[],
+    dayPassPrice: 25.0,
+  });
+  const [newFacilityInput, setNewFacilityInput] = useState('');
+  const [newModalityInput, setNewModalityInput] = useState('');
+  const [newGalleryInput, setNewGalleryInput] = useState('');
+
+  useEffect(() => {
+    if (gymProfileData) {
+      setProfileForm({
+        nomeFantasia: gymProfileData.nomeFantasia || gymProfileData.name || '',
+        razaoSocial: gymProfileData.razaoSocial || gymProfileData.name || '',
+        cnpj: gymProfileData.cnpj || '',
+        bio: gymProfileData.bio || '',
+        avatarUrl: gymProfileData.avatarUrl || '',
+        coverUrl: gymProfileData.coverUrl || '',
+        address: gymProfileData.address || '',
+        city: gymProfileData.city || 'Uruguaiana',
+        state: gymProfileData.state || 'RS',
+        zipCode: gymProfileData.zipCode || '',
+        phone: gymProfileData.phone || '',
+        whatsapp: gymProfileData.whatsapp || gymProfileData.phone || '',
+        instagram: gymProfileData.instagram || '',
+        website: gymProfileData.website || '',
+        monday_friday: gymProfileData.openingHours?.monday_friday || '06:00 às 23:00',
+        saturday: gymProfileData.openingHours?.saturday || '08:00 às 18:00',
+        sunday_holidays: gymProfileData.openingHours?.sunday_holidays || '09:00 às 14:00',
+        facilities:
+          gymProfileData.facilities && gymProfileData.facilities.length > 0
+            ? gymProfileData.facilities
+            : [
+                'Musculação Completa',
+                'Área Cardio Climatizada',
+                'Vestiários com Chuveiro',
+                'Wi-Fi Gratuito',
+                'Estacionamento',
+              ],
+        modalities:
+          gymProfileData.modalities && gymProfileData.modalities.length > 0
+            ? gymProfileData.modalities
+            : ['Musculação', 'Spinning', 'Cross Training', 'Pilates'],
+        galleryUrls: gymProfileData.galleryUrls || [],
+        dayPassPrice: gymProfileData.dayPassPrice ? Number(gymProfileData.dayPassPrice) : 25.0,
+      });
+    }
+  }, [gymProfileData]);
+
+  const updateProfileMutation = useMutation({
+    mutationFn: () =>
+      updateMyAcademiaProfile({
+        nomeFantasia: profileForm.nomeFantasia,
+        razaoSocial: profileForm.razaoSocial,
+        cnpj: profileForm.cnpj,
+        bio: profileForm.bio,
+        avatarUrl: profileForm.avatarUrl,
+        coverUrl: profileForm.coverUrl,
+        address: profileForm.address,
+        city: profileForm.city,
+        state: profileForm.state,
+        zipCode: profileForm.zipCode,
+        phone: profileForm.phone,
+        whatsapp: profileForm.whatsapp,
+        instagram: profileForm.instagram,
+        website: profileForm.website,
+        openingHours: {
+          monday_friday: profileForm.monday_friday,
+          saturday: profileForm.saturday,
+          sunday_holidays: profileForm.sunday_holidays,
+        },
+        facilities: profileForm.facilities,
+        modalities: profileForm.modalities,
+        galleryUrls: profileForm.galleryUrls,
+        dayPassPrice: Number(profileForm.dayPassPrice),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['my-gym-profile'] });
+      qc.invalidateQueries({ queryKey: ['public-user-profile'] });
+      qc.invalidateQueries({ queryKey: ['gym-daypass-price'] });
+      toast.success('Perfil público da academia atualizado com sucesso!', {
+        description: 'Os alunos já podem visualizar as informações atualizadas.',
+      });
+    },
+    onError: (err: any) => {
+      toast.error('Erro ao salvar perfil da academia', { description: err.message });
+    },
+  });
 
   const hasEssencialAccess = statsData?.tier?.hasAccess ?? true;
 
@@ -771,6 +894,17 @@ export default function GestaoAcademia() {
             }`}
           >
             <History className="w-4 h-4" /> Histórico de Acessos
+          </button>
+
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
+              activeTab === 'profile'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-card text-muted-foreground hover:text-foreground border border-border/60'
+            }`}
+          >
+            <Building2 className="w-4 h-4" /> 🎨 Perfil Público & Estrutura
           </button>
         </div>
 
@@ -1513,6 +1647,457 @@ export default function GestaoAcademia() {
                   )}
                 </TableBody>
               </Table>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* ABA 5: PERFIL PÚBLICO & ESTRUTURA DA ACADEMIA */}
+        {/* ========================================================================= */}
+        {activeTab === 'profile' && (
+          <div className="space-y-8 animate-fade-in">
+            {/* Header com CTA de Visualização */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card border border-border p-6 rounded-3xl shadow-sm">
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-primary uppercase tracking-wider">
+                  Personalização da Academia
+                </span>
+                <h2 className="font-display font-black text-2xl text-foreground">
+                  Perfil Público Profissional
+                </h2>
+                <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl">
+                  Personalize como os alunos veem a sua academia no marketplace, incluindo fotos da estrutura, horários, comodidades, valor do Day Pass e modalidades.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl font-bold gap-2 text-xs"
+                  asChild
+                >
+                  <Link to={`/perfil/${user?.id}`} target="_blank">
+                    <Eye className="w-4 h-4 text-primary" /> Ver Como os Alunos Veem
+                  </Link>
+                </Button>
+
+                <Button
+                  variant="hero"
+                  size="sm"
+                  onClick={() => updateProfileMutation.mutate()}
+                  disabled={updateProfileMutation.isPending}
+                  className="rounded-xl font-black gap-2 text-xs shadow-glow"
+                >
+                  <Save className="w-4 h-4" />
+                  {updateProfileMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Formulário em Grid de 2 Colunas */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Coluna 1: Identidade & Mídia */}
+              <div className="space-y-6">
+                {/* Card 1: Identidade e Marca */}
+                <div className="bg-card border border-border p-6 rounded-3xl space-y-4 shadow-sm">
+                  <h3 className="font-display font-bold text-base text-foreground flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-primary" /> Identidade & Dados Cadastrais
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-xs font-semibold">Nome Fantasia (Exibido aos alunos) *</Label>
+                      <Input
+                        value={profileForm.nomeFantasia}
+                        onChange={(e) => setProfileForm({ ...profileForm, nomeFantasia: e.target.value })}
+                        placeholder="Ex: Iron Gym Fitness"
+                        className="rounded-xl mt-1 text-xs"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs font-semibold">Razão Social</Label>
+                        <Input
+                          value={profileForm.razaoSocial}
+                          onChange={(e) => setProfileForm({ ...profileForm, razaoSocial: e.target.value })}
+                          placeholder="Ex: Iron Academia Ltda"
+                          className="rounded-xl mt-1 text-xs"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-xs font-semibold">CNPJ</Label>
+                        <Input
+                          value={profileForm.cnpj}
+                          onChange={(e) => setProfileForm({ ...profileForm, cnpj: e.target.value })}
+                          placeholder="00.000.000/0001-00"
+                          className="rounded-xl mt-1 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-xs font-semibold">Apresentação / Sobre a Academia (Bio)</Label>
+                      <textarea
+                        value={profileForm.bio}
+                        onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                        placeholder="Conte sobre o espaço, equipamentos importados, metodologia, equipe de professores..."
+                        rows={3}
+                        className="w-full mt-1 p-3 rounded-xl bg-background border border-input text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 2: Fotos & Imagens (Avatar e Banner de Capa) */}
+                <div className="bg-card border border-border p-6 rounded-3xl space-y-4 shadow-sm">
+                  <h3 className="font-display font-bold text-base text-foreground flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4 text-primary" /> Imagens da Marca
+                  </h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-xs font-semibold">Foto de Capa / Banner (URL)</Label>
+                      <Input
+                        value={profileForm.coverUrl}
+                        onChange={(e) => setProfileForm({ ...profileForm, coverUrl: e.target.value })}
+                        placeholder="https://images.unsplash.com/..."
+                        className="rounded-xl mt-1 text-xs"
+                      />
+                      {profileForm.coverUrl && (
+                        <div className="mt-2 h-28 rounded-xl overflow-hidden border border-border">
+                          <img src={profileForm.coverUrl} alt="Preview Capa" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label className="text-xs font-semibold">Logo / Foto de Perfil (URL)</Label>
+                      <Input
+                        value={profileForm.avatarUrl}
+                        onChange={(e) => setProfileForm({ ...profileForm, avatarUrl: e.target.value })}
+                        placeholder="https://images.unsplash.com/..."
+                        className="rounded-xl mt-1 text-xs"
+                      />
+                      {profileForm.avatarUrl && (
+                        <div className="mt-2 w-16 h-16 rounded-xl overflow-hidden border border-border">
+                          <img src={profileForm.avatarUrl} alt="Preview Logo" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 3: Preço do Day Pass Finex */}
+                <div className="bg-gradient-to-br from-card via-card to-secondary/10 border-2 border-secondary/40 p-6 rounded-3xl space-y-4 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-display font-black text-base text-foreground flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-secondary fill-secondary" /> Preço do Day Pass (Treino Avulso)
+                    </h3>
+                    <span className="text-[10px] font-bold bg-secondary text-secondary-foreground px-2.5 py-0.5 rounded-full">
+                      Débito Instantâneo Finex
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Valor cobrado automaticamente quando um aluno avulso escanear o QR Code na sua catraca ou adquirir pelo app.
+                  </p>
+
+                  <div className="flex items-center gap-3">
+                    <div className="relative flex-1 max-w-[200px]">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">
+                        R$
+                      </span>
+                      <Input
+                        type="number"
+                        step="0.50"
+                        value={profileForm.dayPassPrice}
+                        onChange={(e) => setProfileForm({ ...profileForm, dayPassPrice: Number(e.target.value) })}
+                        className="pl-9 rounded-xl text-sm font-bold"
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground">por dia de treino avulso</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Coluna 2: Localização, Horários, Comodidades e Galeria */}
+              <div className="space-y-6">
+                {/* Card 4: Localização e Contato */}
+                <div className="bg-card border border-border p-6 rounded-3xl space-y-4 shadow-sm">
+                  <h3 className="font-display font-bold text-base text-foreground flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-primary" /> Localização & Atendimento
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-xs font-semibold">Endereço Completo (Rua, Número, Bairro)</Label>
+                      <Input
+                        value={profileForm.address}
+                        onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
+                        placeholder="Ex: Av. Presidente Vargas, 1420 - Centro"
+                        className="rounded-xl mt-1 text-xs"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <div>
+                        <Label className="text-xs font-semibold">Cidade</Label>
+                        <Input
+                          value={profileForm.city}
+                          onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
+                          placeholder="Uruguaiana"
+                          className="rounded-xl mt-1 text-xs"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-xs font-semibold">Estado (UF)</Label>
+                        <Input
+                          value={profileForm.state}
+                          onChange={(e) => setProfileForm({ ...profileForm, state: e.target.value })}
+                          placeholder="RS"
+                          className="rounded-xl mt-1 text-xs"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-xs font-semibold">CEP</Label>
+                        <Input
+                          value={profileForm.zipCode}
+                          onChange={(e) => setProfileForm({ ...profileForm, zipCode: e.target.value })}
+                          placeholder="97500-000"
+                          className="rounded-xl mt-1 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                      <div>
+                        <Label className="text-xs font-semibold">WhatsApp de Atendimento</Label>
+                        <Input
+                          value={profileForm.whatsapp}
+                          onChange={(e) => setProfileForm({ ...profileForm, whatsapp: e.target.value })}
+                          placeholder="(55) 99999-9999"
+                          className="rounded-xl mt-1 text-xs"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-xs font-semibold">Instagram (@academia)</Label>
+                        <Input
+                          value={profileForm.instagram}
+                          onChange={(e) => setProfileForm({ ...profileForm, instagram: e.target.value })}
+                          placeholder="@irongymfitness"
+                          className="rounded-xl mt-1 text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 5: Horários de Funcionamento */}
+                <div className="bg-card border border-border p-6 rounded-3xl space-y-4 shadow-sm">
+                  <h3 className="font-display font-bold text-base text-foreground flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-primary" /> Horários de Funcionamento
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <Label className="text-[11px] font-semibold">Segunda a Sexta</Label>
+                      <Input
+                        value={profileForm.monday_friday}
+                        onChange={(e) => setProfileForm({ ...profileForm, monday_friday: e.target.value })}
+                        placeholder="06:00 às 23:00"
+                        className="rounded-xl mt-1 text-xs"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-[11px] font-semibold">Sábados</Label>
+                      <Input
+                        value={profileForm.saturday}
+                        onChange={(e) => setProfileForm({ ...profileForm, saturday: e.target.value })}
+                        placeholder="08:00 às 18:00"
+                        className="rounded-xl mt-1 text-xs"
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-[11px] font-semibold">Domingos / Feriados</Label>
+                      <Input
+                        value={profileForm.sunday_holidays}
+                        onChange={(e) => setProfileForm({ ...profileForm, sunday_holidays: e.target.value })}
+                        placeholder="09:00 às 14:00"
+                        className="rounded-xl mt-1 text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 6: Comodidades & Diferenciais */}
+                <div className="bg-card border border-border p-6 rounded-3xl space-y-4 shadow-sm">
+                  <h3 className="font-display font-bold text-base text-foreground flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" /> Comodidades & Infraestrutura
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Clique para adicionar ou remover as facilidades oferecidas:
+                  </p>
+
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      'Musculação Completa',
+                      'Área Cardio Climatizada',
+                      'Vestiários com Chuveiro',
+                      'Armários Individuais',
+                      'Wi-Fi Gratuito',
+                      'Estacionamento',
+                      'Lanchonete Fit',
+                      'Avaliação por Bioimpedância',
+                    ].map((item) => {
+                      const selected = profileForm.facilities.includes(item);
+                      return (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() => {
+                            const next = selected
+                              ? profileForm.facilities.filter((f) => f !== item)
+                              : [...profileForm.facilities, item];
+                            setProfileForm({ ...profileForm, facilities: next });
+                          }}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                            selected
+                              ? 'bg-primary text-primary-foreground shadow-sm scale-[1.02]'
+                              : 'bg-muted text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          {selected ? '✓ ' : '+ '} {item}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Input
+                      value={newFacilityInput}
+                      onChange={(e) => setNewFacilityInput(e.target.value)}
+                      placeholder="Outra comodidade..."
+                      className="rounded-xl text-xs"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && newFacilityInput.trim()) {
+                          e.preventDefault();
+                          if (!profileForm.facilities.includes(newFacilityInput.trim())) {
+                            setProfileForm({
+                              ...profileForm,
+                              facilities: [...profileForm.facilities, newFacilityInput.trim()],
+                            });
+                          }
+                          setNewFacilityInput('');
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="rounded-xl text-xs"
+                      onClick={() => {
+                        if (newFacilityInput.trim() && !profileForm.facilities.includes(newFacilityInput.trim())) {
+                          setProfileForm({
+                            ...profileForm,
+                            facilities: [...profileForm.facilities, newFacilityInput.trim()],
+                          });
+                          setNewFacilityInput('');
+                        }
+                      }}
+                    >
+                      Adicionar
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Card 7: Galeria de Fotos da Estrutura */}
+                <div className="bg-card border border-border p-6 rounded-3xl space-y-4 shadow-sm">
+                  <h3 className="font-display font-bold text-base text-foreground flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4 text-primary" /> Fotos da Estrutura ({profileForm.galleryUrls.length})
+                  </h3>
+
+                  <div className="flex gap-2">
+                    <Input
+                      value={newGalleryInput}
+                      onChange={(e) => setNewGalleryInput(e.target.value)}
+                      placeholder="URL da foto (ex: https://images.unsplash.com/...)"
+                      className="rounded-xl text-xs"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="hero"
+                      className="rounded-xl text-xs"
+                      onClick={() => {
+                        if (newGalleryInput.trim()) {
+                          setProfileForm({
+                            ...profileForm,
+                            galleryUrls: [...profileForm.galleryUrls, newGalleryInput.trim()],
+                          });
+                          setNewGalleryInput('');
+                        }
+                      }}
+                    >
+                      Adicionar Foto
+                    </Button>
+                  </div>
+
+                  {profileForm.galleryUrls.length > 0 && (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 pt-2">
+                      {profileForm.galleryUrls.map((url, i) => (
+                        <div key={i} className="relative group aspect-square rounded-xl overflow-hidden border border-border">
+                          <img src={url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setProfileForm({
+                                ...profileForm,
+                                galleryUrls: profileForm.galleryUrls.filter((_, idx) => idx !== i),
+                              });
+                            }}
+                            className="absolute top-1 right-1 p-1 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Barra Inferior Fixa/Flutuante de Salvar */}
+            <div className="flex justify-end gap-3 pt-4 border-t border-border/60">
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-2xl font-bold"
+                asChild
+              >
+                <Link to={`/perfil/${user?.id}`} target="_blank">
+                  <Eye className="w-4 h-4 mr-2" /> Pré-visualizar Perfil dos Alunos
+                </Link>
+              </Button>
+
+              <Button
+                variant="hero"
+                size="lg"
+                onClick={() => updateProfileMutation.mutate()}
+                disabled={updateProfileMutation.isPending}
+                className="rounded-2xl font-black px-8 shadow-glow"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {updateProfileMutation.isPending ? 'Salvando...' : 'Salvar Todas as Alterações'}
+              </Button>
             </div>
           </div>
         )}

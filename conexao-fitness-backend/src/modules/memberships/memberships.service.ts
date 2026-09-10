@@ -464,6 +464,15 @@ export class MembershipsService {
    * Obtém o valor configurado do Day Pass da academia
    */
   async getDayPassPrice(academiaId: string): Promise<number> {
+    const gymUser = await this.userRepo.findOne({
+      where: { id: academiaId },
+      relations: ['academiaProfile'],
+    });
+
+    if (gymUser?.academiaProfile?.dayPassPrice && Number(gymUser.academiaProfile.dayPassPrice) > 0) {
+      return Number(gymUser.academiaProfile.dayPassPrice);
+    }
+
     const dayPassService = await this.serviceRepo.findOne({
       where: [
         { providerId: academiaId, type: ServiceType.DAY_PASS, isActive: true },
@@ -476,7 +485,7 @@ export class MembershipsService {
       return Number(dayPassService.price);
     }
 
-    return 25.0; // Valor padrão de Day Pass caso a academia não tenha cadastrado serviço
+    return 25.0; // Valor padrão de Day Pass caso a academia não tenha configurado
   }
 
   /**

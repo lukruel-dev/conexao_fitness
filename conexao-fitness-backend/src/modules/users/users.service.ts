@@ -301,28 +301,138 @@ export class UsersService implements OnApplicationBootstrap {
     return this.findOneOrFail(userId);
   }
 
+  async getAcademiaProfile(userId: string) {
+    const user = await this.findOneOrFail(userId);
+    let profile = user.academiaProfile;
+    if (!profile) {
+      profile = this.academiaProfileRepo.create({
+        userId: user.id,
+        razaoSocial: user.name,
+        nomeFantasia: user.name,
+        cnpj: user.cpf || '',
+      });
+      profile = await this.academiaProfileRepo.save(profile);
+    }
+
+    return {
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      coverUrl: profile.coverUrl,
+      razaoSocial: profile.razaoSocial,
+      nomeFantasia: profile.nomeFantasia,
+      cnpj: profile.cnpj,
+      bio: profile.bio || user.bio || '',
+      address: profile.address,
+      city: profile.city || user.cityBase,
+      state: profile.state,
+      zipCode: profile.zipCode,
+      phone: profile.phone || user.phone,
+      whatsapp: profile.whatsapp,
+      instagram: profile.instagram,
+      website: profile.website,
+      openingHours: profile.openingHours,
+      facilities: profile.facilities || [],
+      modalities: profile.modalities || [],
+      galleryUrls: profile.galleryUrls || [],
+      dayPassPrice: profile.dayPassPrice ? Number(profile.dayPassPrice) : undefined,
+    };
+  }
+
+  async updateAcademiaProfile(userId: string, dto: any): Promise<any> {
+    const user = await this.findOneOrFail(userId);
+    if (user.role !== 'ACADEMIA') {
+      throw new BadRequestException('Apenas contas de Academia podem atualizar este perfil.');
+    }
+
+    let profile = user.academiaProfile;
+    if (!profile) {
+      profile = this.academiaProfileRepo.create({
+        userId: user.id,
+        razaoSocial: dto.razaoSocial || user.name,
+        nomeFantasia: dto.nomeFantasia || user.name,
+        cnpj: dto.cnpj || user.cpf || '',
+      });
+    }
+
+    if (dto.nomeFantasia !== undefined) profile.nomeFantasia = dto.nomeFantasia;
+    if (dto.razaoSocial !== undefined) profile.razaoSocial = dto.razaoSocial;
+    if (dto.cnpj !== undefined) profile.cnpj = dto.cnpj;
+    if (dto.bio !== undefined) {
+      profile.bio = dto.bio;
+      user.bio = dto.bio;
+    }
+    if (dto.coverUrl !== undefined) profile.coverUrl = dto.coverUrl;
+    if (dto.avatarUrl !== undefined) {
+      user.avatarUrl = dto.avatarUrl;
+    }
+    if (dto.address !== undefined) profile.address = dto.address;
+    if (dto.city !== undefined) {
+      profile.city = dto.city;
+      user.cityBase = dto.city;
+    }
+    if (dto.state !== undefined) profile.state = dto.state;
+    if (dto.zipCode !== undefined) profile.zipCode = dto.zipCode;
+    if (dto.phone !== undefined) {
+      profile.phone = dto.phone;
+      user.phone = dto.phone;
+    }
+    if (dto.whatsapp !== undefined) profile.whatsapp = dto.whatsapp;
+    if (dto.instagram !== undefined) profile.instagram = dto.instagram;
+    if (dto.website !== undefined) profile.website = dto.website;
+    if (dto.openingHours !== undefined) profile.openingHours = dto.openingHours;
+    if (dto.facilities !== undefined) profile.facilities = dto.facilities;
+    if (dto.modalities !== undefined) profile.modalities = dto.modalities;
+    if (dto.galleryUrls !== undefined) profile.galleryUrls = dto.galleryUrls;
+    if (dto.dayPassPrice !== undefined) profile.dayPassPrice = dto.dayPassPrice;
+
+    await this.usersRepo.save(user);
+    await this.academiaProfileRepo.save(profile);
+
+    return this.getAcademiaProfile(userId);
+  }
+
   async getPublicProfile(id: string) {
     const user = await this.findOne(id);
     if (!user) {
       throw new NotFoundException('Perfil de profissional ou usuário não encontrado.');
     }
 
+    const isAcademia = user.role === 'ACADEMIA';
+    const acadProfile = user.academiaProfile;
+
     return {
       id: user.id,
-      name: user.name,
+      name: isAcademia ? acadProfile?.nomeFantasia || user.name : user.name,
+      razaoSocial: acadProfile?.razaoSocial,
+      nomeFantasia: acadProfile?.nomeFantasia,
+      cnpj: acadProfile?.cnpj,
       avatarUrl: user.avatarUrl,
+      coverUrl: acadProfile?.coverUrl,
       role: user.role,
       status: user.status,
-      cityBase: user.cityBase || 'Uruguaiana - RS',
+      cityBase: acadProfile?.city || user.cityBase || 'Uruguaiana - RS',
+      address: acadProfile?.address,
+      state: acadProfile?.state,
+      zipCode: acadProfile?.zipCode,
+      phone: acadProfile?.phone || user.phone,
+      whatsapp: acadProfile?.whatsapp || user.phone,
+      instagram: acadProfile?.instagram,
+      website: acadProfile?.website,
+      openingHours: acadProfile?.openingHours,
+      facilities: acadProfile?.facilities || [],
+      modalities: isAcademia ? acadProfile?.modalities || [] : user.personalProfile?.modalities || [],
+      galleryUrls: acadProfile?.galleryUrls || [],
+      dayPassPrice: acadProfile?.dayPassPrice ? Number(acadProfile.dayPassPrice) : undefined,
       averageRating: user.averageRating || 5.0,
       totalReviews: user.totalReviews || 0,
-      professionTitle: user.personalProfile?.professionTitle || (user.role === 'PERSONAL' ? 'Personal Trainer' : undefined),
+      professionTitle: isAcademia ? 'Academia' : user.personalProfile?.professionTitle || (user.role === 'PERSONAL' ? 'Personal Trainer' : undefined),
       cref: user.personalProfile?.cref,
-      bio: user.personalProfile?.bio || user.bio || '',
-      modalities: user.personalProfile?.modalities || [],
+      bio: isAcademia ? acadProfile?.bio || user.bio || '' : user.personalProfile?.bio || user.bio || '',
       baseHourlyPrice: user.personalProfile?.baseHourlyPrice,
-      qualityScore: user.personalProfile?.qualityScore ?? 5.0,
-      responseRate: user.personalProfile?.responseRate ?? 100,
+      qualityScore: isAcademia ? acadProfile?.qualityScore ?? 5.0 : user.personalProfile?.qualityScore ?? 5.0,
+      responseRate: isAcademia ? acadProfile?.responseRate ?? 100 : user.personalProfile?.responseRate ?? 100,
       createdAt: user.createdAt,
     };
   }

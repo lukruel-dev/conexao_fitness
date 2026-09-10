@@ -187,6 +187,23 @@ const ServicoDetalhe = () => {
                   {service.description && (
                     <p className="mt-4 text-foreground/90 leading-relaxed text-sm md:text-base">{service.description}</p>
                   )}
+
+                  {service.providerType === "ACADEMIA" && (
+                    <div className="mt-5 pt-4 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 bg-primary/5 p-3.5 rounded-xl border border-primary/20">
+                      <div>
+                        <p className="text-xs font-bold text-foreground">Conheça a estrutura completa desta academia</p>
+                        <p className="text-[11px] text-muted-foreground">Veja fotos da estrutura, comodidades e todos os planos de matrícula.</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl text-xs font-bold border-primary/40 text-primary hover:bg-primary/10"
+                        onClick={() => navigate(`/perfil/${service.providerId}`)}
+                      >
+                        Ver Perfil da Academia
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
 

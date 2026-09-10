@@ -350,7 +350,7 @@ const Buscar = () => {
               {services.map((s) => (
                 <Link
                   key={s.id}
-                  to={`/servico/${s.id}`}
+                  to={s.providerType === "ACADEMIA" ? `/perfil/${s.providerId}` : `/servico/${s.id}`}
                   className={`relative block bg-card rounded-2xl p-5 transition-all ${
                     s.isPremium
                       ? "border-2 border-yellow-400 shadow-[0_0_0_4px_rgba(250,204,21,0.12)] hover:shadow-[0_0_0_6px_rgba(250,204,21,0.18)]"
@@ -387,7 +387,7 @@ const Buscar = () => {
                             }`}
                           >
                             {s.providerType === "ACADEMIA"
-                              ? "Academia"
+                              ? "Academia Parceira"
                               : s.professionTitle || "Profissional"}
                           </span>
                           <span className="text-xs text-muted-foreground">{s.modality}</span>
@@ -433,7 +433,9 @@ const Buscar = () => {
                           {s.type === "PLANO_MENSAL" ? "por mês" : s.type === "DAY_PASS" ? "day pass" : "por sessão"}
                         </div>
                       </div>
-                      <Button variant="hero" size="sm">Ver horários</Button>
+                      <Button variant="hero" size="sm">
+                        {s.providerType === "ACADEMIA" ? "Conhecer Academia & Planos" : "Ver horários"}
+                      </Button>
                     </div>
                   </div>
                 </Link>

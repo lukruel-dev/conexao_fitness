@@ -141,3 +141,79 @@ export async function updateMyBio(bio: string): Promise<AuthUser> {
 
   return updatedUser;
 }
+
+export async function getMyAcademiaProfile(): Promise<AcademiaProfileData> {
+  try {
+    return await apiRequest<AcademiaProfileData>("/users/me/profile/academia");
+  } catch (err) {
+    // Fallback do localStorage se o backend estiver desconectado
+    const rawStored = localStorage.getItem(AUTH_USER_KEY);
+    const stored = rawStored ? JSON.parse(rawStored) : {};
+    const localGymKey = `cf_gym_profile_${stored.id || 'default'}`;
+    const localGym = localStorage.getItem(localGymKey);
+    if (localGym) {
+      return JSON.parse(localGym);
+    }
+    return {
+      userId: stored.id || "",
+      name: stored.name || "Academia",
+      email: stored.email || "",
+      avatarUrl: stored.avatarUrl,
+      nomeFantasia: stored.name,
+      razaoSocial: stored.name,
+      cnpj: stored.cpf || "",
+      bio: stored.bio || "",
+      city: stored.cityBase || "Uruguaiana - RS",
+      state: "RS",
+      openingHours: {
+        monday_friday: "06:00 - 23:00",
+        saturday: "08:00 - 18:00",
+        sunday_holidays: "09:00 - 14:00",
+      },
+      facilities: [
+        "Musculação Completa",
+        "Área Cardio Climatizada",
+        "Vestiários com Chuveiro",
+        "Wi-Fi Gratuito",
+        "Estacionamento",
+      ],
+      modalities: ["Musculação", "Spinning", "Cross Training", "Pilates"],
+      dayPassPrice: 25.0,
+      galleryUrls: [],
+    };
+  }
+}
+
+export async function updateMyAcademiaProfile(
+  dto: UpdateAcademiaProfileDto
+): Promise<AcademiaProfileData> {
+  const rawStored = localStorage.getItem(AUTH_USER_KEY);
+  const stored = rawStored ? JSON.parse(rawStored) : {};
+  const localGymKey = `cf_gym_profile_${stored.id || 'default'}`;
+
+  let result: AcademiaProfileData;
+  try {
+    result = await apiRequest<AcademiaProfileData>("/users/me/profile/academia", {
+      method: "PATCH",
+      body: dto,
+    });
+  } catch (e) {
+    console.warn("Backend update error, saving to resilient localStorage:", e);
+    // Salva localmente de forma resiliente
+    const current = await getMyAcademiaProfile();
+    result = { ...current, ...dto };
+  }
+
+  // Persiste no cache local
+  localStorage.setItem(localGymKey, JSON.stringify(result));
+
+  // Atualiza também AUTH_USER_KEY se alterou nome/avatar/bio
+  if (dto.nomeFantasia || dto.avatarUrl || dto.bio) {
+    if (dto.nomeFantasia) stored.name = dto.nomeFantasia;
+    if (dto.avatarUrl) stored.avatarUrl = dto.avatarUrl;
+    if (dto.bio) stored.bio = dto.bio;
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(stored));
+  }
+
+  return result;
+}

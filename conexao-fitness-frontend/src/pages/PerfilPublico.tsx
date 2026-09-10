@@ -15,6 +15,7 @@ import { resolveMediaUrl } from "@/lib/mediaUrl";
 import { formatBRL } from "@/lib/format";
 import type { PublicUserProfile } from "@/types/api";
 import type { Post } from "@/types/community";
+import { AcademiaProfileView } from "@/components/AcademiaProfileView";
 import {
   ShieldCheck,
   Star,
@@ -39,6 +40,7 @@ import {
   Repeat,
   QrCode,
   Check,
+  Activity,
 } from "lucide-react";
 import {
   Dialog,
@@ -228,11 +230,54 @@ const PerfilPublico: React.FC = () => {
     );
   }
 
+  if (profile.role === "ACADEMIA") {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-20 md:pt-24 pb-16">
+          <div className="container mx-auto px-4 max-w-5xl space-y-6">
+            {/* BOTÃO VOLTAR */}
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => navigate(-1)}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" /> Voltar
+              </button>
+
+              {isOwnProfile && (
+                <Button size="sm" variant="hero" className="h-8 text-xs gap-1.5 font-bold rounded-xl" asChild>
+                  <Link to="/gestao-academia">
+                    <Activity className="w-3.5 h-3.5" /> Painel de Gestão da Academia
+                  </Link>
+                </Button>
+              )}
+            </div>
+
+            <AcademiaProfileView
+              profile={profile}
+              gymPlans={gymPlans}
+              loadingPlans={loadingPlans}
+              posts={posts}
+              postsLoading={postsLoading}
+              isFollowing={isFollowing}
+              followersCount={followersCount}
+              followLoading={followLoading}
+              onToggleFollow={handleToggleFollow}
+              onShare={handleShareProfile}
+              onPostDeleted={handlePostDeleted}
+              isOwnProfile={isOwnProfile}
+            />
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   const roleBadgeLabel =
     profile.role === "PERSONAL"
       ? profile.professionTitle || "Profissional da Saúde & Fitness"
-      : profile.role === "ACADEMIA"
-      ? "Academia Parceira"
       : "Aluno & Atleta";
 
   // Extrair fotos de todos os posts para a Grade estilo Instagram

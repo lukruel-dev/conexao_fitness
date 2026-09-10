@@ -135,16 +135,31 @@ export interface AuthUser {
 export interface PublicUserProfile {
   id: string;
   name: string;
+  nomeFantasia?: string | null;
+  razaoSocial?: string | null;
+  cnpj?: string | null;
   avatarUrl?: string | null;
+  coverUrl?: string | null;
   role: UserRole;
   status?: UserStatus;
   cityBase?: string;
+  address?: string | null;
+  state?: string | null;
+  zipCode?: string | null;
+  phone?: string | null;
+  whatsapp?: string | null;
+  instagram?: string | null;
+  website?: string | null;
+  openingHours?: Record<string, string> | null;
+  facilities?: string[];
+  modalities?: string[];
+  galleryUrls?: string[];
+  dayPassPrice?: number | null;
   averageRating?: number;
   totalReviews?: number;
   professionTitle?: string | null;
   cref?: string | null;
   bio?: string | null;
-  modalities?: string[];
   baseHourlyPrice?: string | null;
   qualityScore?: number;
   responseRate?: number;
@@ -152,6 +167,53 @@ export interface PublicUserProfile {
   followingCount?: number;
   postsCount?: number;
   createdAt?: string;
+}
+
+export interface AcademiaProfileData {
+  userId: string;
+  name: string;
+  email: string;
+  avatarUrl?: string | null;
+  coverUrl?: string | null;
+  razaoSocial?: string | null;
+  nomeFantasia?: string | null;
+  cnpj?: string | null;
+  bio?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zipCode?: string | null;
+  phone?: string | null;
+  whatsapp?: string | null;
+  instagram?: string | null;
+  website?: string | null;
+  openingHours?: Record<string, string> | null;
+  facilities?: string[];
+  modalities?: string[];
+  galleryUrls?: string[];
+  dayPassPrice?: number | null;
+}
+
+export interface UpdateAcademiaProfileDto {
+  nomeFantasia?: string;
+  razaoSocial?: string;
+  cnpj?: string;
+  bio?: string;
+  coverUrl?: string;
+  avatarUrl?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  phone?: string;
+  whatsapp?: string;
+  instagram?: string;
+  website?: string;
+  openingHours?: Record<string, string>;
+  facilities?: string[];
+  modalities?: string[];
+  galleryUrls?: string[];
+  dayPassPrice?: number;
 }
 
 export interface LoginDto {

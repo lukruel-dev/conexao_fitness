@@ -46,6 +46,18 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('me/profile/academia')
+  getMyAcademiaProfile(@CurrentUser() user: any) {
+    return this.usersService.getAcademiaProfile(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/profile/academia')
+  updateMyAcademiaProfile(@CurrentUser() user: any, @Body() dto: any) {
+    return this.usersService.updateAcademiaProfile(user.id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Patch('me/avatar')
   async updateAvatar(
     @CurrentUser() user: any,
