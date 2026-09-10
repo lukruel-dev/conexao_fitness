@@ -34,6 +34,8 @@ import QuemSomos from "./pages/QuemSomos";
 import Planos from "./pages/Planos";
 import BottomNav from "@/components/BottomNav";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import { PWAInstallBanner } from "@/components/PWAInstallBanner";
+import { OnboardingTourModal } from "@/components/OnboardingTourModal";
 
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
@@ -93,6 +95,8 @@ const App = () => (
             </Routes>
             <BottomNav />
             <FloatingWhatsApp />
+            <PWAInstallBanner />
+            <OnboardingTourModal />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
@@ -101,3 +105,4 @@ const App = () => (
 );
 
 export default App;
+

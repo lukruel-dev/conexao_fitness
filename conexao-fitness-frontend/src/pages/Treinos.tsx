@@ -184,8 +184,38 @@ const Treinos: React.FC = () => {
                   routines.map((routine) => (
                     <div
                       key={routine.id}
-                      className="p-5 rounded-2xl border border-border bg-card/70 hover:border-primary/40 transition-all shadow-card space-y-4 group"
+                      className={`p-5 rounded-3xl border transition-all shadow-card space-y-4 group ${
+                        routine.isPrescribedByPersonal
+                          ? "border-primary/50 bg-gradient-to-br from-card via-card to-primary/5 shadow-glow"
+                          : "border-border bg-card/70 hover:border-primary/40"
+                      }`}
                     >
+                      {/* Banner de Prescrição do Personal Trainer */}
+                      {routine.isPrescribedByPersonal && (
+                        <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-primary/10 border border-primary/20">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full overflow-hidden border border-primary/30 shrink-0">
+                              <img
+                                src={routine.creatorAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300"}
+                                alt={routine.creatorName || "Personal"}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase font-bold tracking-wider text-primary">
+                                Prescrito pelo seu Personal
+                              </p>
+                              <p className="text-xs font-bold text-foreground">
+                                {routine.creatorName || "Personal Trainer Oficial"}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-extrabold bg-emerald-500/15 text-emerald-500 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                            ✓ Ficha Oficial
+                          </span>
+                        </div>
+                      )}
+
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
@@ -201,6 +231,12 @@ const Treinos: React.FC = () => {
                           {routine.description && (
                             <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                               {routine.description}
+                            </p>
+                          )}
+                          {routine.coachNotes && (
+                            <p className="text-[11px] text-primary/90 mt-1 italic flex items-center gap-1">
+                              <Sparkles className="w-3 h-3 text-primary shrink-0" />
+                              Orientação do Personal: {routine.coachNotes}
                             </p>
                           )}
                         </div>

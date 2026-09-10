@@ -39,6 +39,7 @@ import {
   Activity,
   Edit3,
 } from 'lucide-react';
+import ChatModal from '@/components/ChatModal';
 import {
   Dialog,
   DialogContent,
@@ -78,6 +79,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
 
   const [activeTab, setActiveTab] = useState<'plans' | 'methodology' | 'sessions' | 'gallery' | 'posts' | 'reviews'>('plans');
   const [selectedPlanForContact, setSelectedPlanForContact] = useState<Service | null>(null);
+  const [isDirectChatOpen, setIsDirectChatOpen] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   // Carregar planos e serviços do profissional
@@ -340,6 +342,15 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
                     </a>
                   </Button>
                 )}
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsDirectChatOpen(true)}
+                  className="h-10 px-4 rounded-xl font-bold border-primary/40 text-primary hover:bg-primary/10 gap-1.5"
+                >
+                  <MessageCircle className="w-4 h-4" /> Chat no App
+                </Button>
 
                 <Button
                   variant="hero"
@@ -928,6 +939,16 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* MODAL DE CHAT DIRETO NO APP COM O PROFISSIONAL */}
+      <ChatModal
+        open={isDirectChatOpen}
+        onOpenChange={setIsDirectChatOpen}
+        bookingId={`dm-${profile.id}`}
+        recipientName={profile.name}
+        recipientAvatar={profile.avatarUrl || undefined}
+        title={`Conversa com ${profile.name}`}
+      />
     </div>
   );
 };

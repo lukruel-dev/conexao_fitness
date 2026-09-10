@@ -10,8 +10,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Dumbbell, GripVertical, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Dumbbell, GripVertical, Sparkles, ShieldCheck, User } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { sounds } from '@/lib/soundEffects';
 import type { WorkoutRoutine, WorkoutExercise } from '@/types/workouts';
 import { createRoutine, updateRoutine } from '@/services/workouts';
 
@@ -52,9 +54,13 @@ export const WorkoutBuilderModal: React.FC<WorkoutBuilderModalProps> = ({
   studentId,
   onSaved,
 }) => {
+  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dayOfWeek, setDayOfWeek] = useState('');
+  const [coachNotes, setCoachNotes] = useState('');
+  const [isPrescribedForStudent, setIsPrescribedForStudent] = useState(user?.role === 'PERSONAL');
+  const [targetStudentName, setTargetStudentName] = useState('');
   const [exercises, setExercises] = useState<WorkoutExercise[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -63,11 +69,15 @@ export const WorkoutBuilderModal: React.FC<WorkoutBuilderModalProps> = ({
       setTitle(editingRoutine.title || '');
       setDescription(editingRoutine.description || '');
       setDayOfWeek(editingRoutine.dayOfWeek || '');
+      setCoachNotes(editingRoutine.coachNotes || '');
+      setIsPrescribedForStudent(Boolean(editingRoutine.isPrescribedByPersonal));
       setExercises(editingRoutine.exercises || []);
     } else {
       setTitle('Treino A - Peito & Tríceps');
       setDescription('Foco em força e hipertrofia.');
       setDayOfWeek('Segunda-feira');
+      setCoachNotes('Aquecer 5 min na esteira. Manter execução controlada na fase excêntrica.');
+      setIsPrescribedForStudent(user?.role === 'PERSONAL');
       setExercises([
         {
           order: 1,
@@ -98,7 +108,7 @@ export const WorkoutBuilderModal: React.FC<WorkoutBuilderModalProps> = ({
         },
       ]);
     }
-  }, [editingRoutine, open]);
+  }, [editingRoutine, open, user?.role]);
 
   const handleAddExercise = (suggestion?: { name: string; muscleGroup: string }) => {
     const newEx: WorkoutExercise = {
@@ -137,23 +147,37 @@ export const WorkoutBuilderModal: React.FC<WorkoutBuilderModalProps> = ({
 
     try {
       setLoading(true);
+      const isPersonal = user?.role === 'PERSONAL';
+
       if (editingRoutine) {
         await updateRoutine(editingRoutine.id, {
           title,
           description,
           dayOfWeek,
+          coachNotes,
           exercises,
         });
+        sounds.playWorkoutComplete();
         toast.success('Ficha de treino atualizada com sucesso!');
       } else {
         await createRoutine({
           studentId,
+          creatorName: isPersonal ? user?.name : undefined,
+          creatorRole: isPersonal ? 'PERSONAL' : undefined,
+          creatorAvatar: isPersonal ? user?.avatarUrl || undefined : undefined,
+          isPrescribedByPersonal: isPersonal || isPrescribedForStudent,
+          coachNotes,
           title,
-          description,
+          description: isPersonal && targetStudentName ? `Prescrito para ${targetStudentName}. ${description}` : description,
           dayOfWeek,
           exercises,
         });
-        toast.success('Nova ficha de treino criada com sucesso!');
+        sounds.playWorkoutComplete();
+        toast.success(
+          isPersonal
+            ? 'Ficha de treino prescrita com sucesso!'
+            : 'Nova ficha de treino criada com sucesso!'
+        );
       }
       onSaved?.();
       onOpenChange(false);
@@ -203,6 +227,37 @@ export const WorkoutBuilderModal: React.FC<WorkoutBuilderModalProps> = ({
             </div>
           </div>
 
+          {/* Prescrição para Aluno (Personal Trainer) */}
+          {user?.role === 'PERSONAL' && (
+            <div className="p-3.5 rounded-2xl bg-primary/10 border border-primary/20 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-primary">
+                <ShieldCheck className="w-4 h-4" /> Prescrição Profissional de Treino Finex
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-[11px] font-semibold text-foreground">Aluno / Destinatário</Label>
+                  <Input
+                    placeholder="Nome do Aluno (ex: Gabriel Santana)"
+                    value={targetStudentName}
+                    onChange={(e) => setTargetStudentName(e.target.value)}
+                    className="h-9 text-xs rounded-xl"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-[11px] font-semibold text-foreground">Orientações do Personal</Label>
+                  <Input
+                    placeholder="Ex: Aquecimento, cadência 3x1 e hidratação"
+                    value={coachNotes}
+                    onChange={(e) => setCoachNotes(e.target.value)}
+                    className="h-9 text-xs rounded-xl"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <Label htmlFor="routine-desc">Observações / Foco do Treino</Label>
             <Input
@@ -210,7 +265,7 @@ export const WorkoutBuilderModal: React.FC<WorkoutBuilderModalProps> = ({
               placeholder="Ex: Descanso de 60s entre séries, focar na fase excêntrica."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="h-11"
+              className="h-11 rounded-xl"
             />
           </div>
 

@@ -17,6 +17,11 @@ export interface WorkoutRoutine {
   id: string;
   studentId: string;
   creatorId?: string;
+  creatorName?: string;
+  creatorRole?: string;
+  creatorAvatar?: string;
+  isPrescribedByPersonal?: boolean;
+  coachNotes?: string;
   title: string;
   description?: string;
   dayOfWeek?: string;
