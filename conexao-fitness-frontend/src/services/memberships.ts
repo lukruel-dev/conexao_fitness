@@ -407,6 +407,8 @@ export async function chargeGymDayPass(dto: ChargeDayPassDto): Promise<ChargeDay
   }
 }
 
+export const chargeDayPassFromWallet = chargeGymDayPass;
+
 export async function getMyGymDayPassPrice(): Promise<{ dayPassPrice: number }> {
   try {
     return await apiRequest<{ dayPassPrice: number }>('/memberships/daypass-price/my');

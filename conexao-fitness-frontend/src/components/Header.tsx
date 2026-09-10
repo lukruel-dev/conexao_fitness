@@ -151,6 +151,18 @@ const Header = () => {
                 )}
                 {isAuthenticated && (
                   <Link
+                    to="/treinos"
+                    className={`transition-colors font-medium text-sm ${
+                      location.pathname === "/treinos"
+                        ? "text-primary font-bold"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Treinos
+                  </Link>
+                )}
+                {isAuthenticated && (
+                  <Link
                     to="/meus-agendamentos"
                     className={`transition-colors font-medium text-sm ${
                       location.pathname === "/meus-agendamentos"
@@ -321,6 +333,15 @@ const Header = () => {
                       className="text-primary font-bold hover:text-primary/80 transition-colors py-2 text-sm"
                     >
                       Minhas Matrículas & Passes QR
+                    </Link>
+                  )}
+                  {isAuthenticated && (
+                    <Link
+                      to="/treinos"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm font-medium"
+                    >
+                      🏋️ Meus Treinos
                     </Link>
                   )}
                   {isAuthenticated && (

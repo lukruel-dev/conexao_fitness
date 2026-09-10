@@ -51,8 +51,53 @@ import { MembershipPlan } from './modules/memberships/entities/membership-plan.e
 import { GymEnrollment } from './modules/memberships/entities/gym-enrollment.entity';
 import { GymAccessLog } from './modules/memberships/entities/gym-access-log.entity';
 import { MembershipsModule } from './modules/memberships/memberships.module';
+import { UserGamification } from './modules/gamification/entities/user-gamification.entity';
+import { Badge } from './modules/gamification/entities/badge.entity';
+import { UserBadge } from './modules/gamification/entities/user-badge.entity';
+import { PointTransaction } from './modules/gamification/entities/point-transaction.entity';
+import { GamificationModule } from './modules/gamification/gamification.module';
+import { WorkoutRoutine } from './modules/workouts/entities/workout-routine.entity';
+import { WorkoutExercise } from './modules/workouts/entities/workout-exercise.entity';
+import { WorkoutSessionLog } from './modules/workouts/entities/workout-session-log.entity';
+import { WorkoutsModule } from './modules/workouts/workouts.module';
 
 const isDev = process.env.NODE_ENV !== 'production';
+
+const appEntities = [
+  User,
+  AlunoProfile,
+  PersonalProfile,
+  AcademiaProfile,
+  AcademiaUnit,
+  Service,
+  ScheduleSlot,
+  Booking,
+  Subscription,
+  Review,
+  Message,
+  Notification,
+  ProviderAvailability,
+  ServiceCatalog,
+  WalletAccount,
+  PaymentIntent,
+  WalletTransaction,
+  WalletWithdrawal,
+  Profession,
+  Post,
+  PostLike,
+  PostComment,
+  UserFollow,
+  MembershipPlan,
+  GymEnrollment,
+  GymAccessLog,
+  UserGamification,
+  Badge,
+  UserBadge,
+  PointTransaction,
+  WorkoutRoutine,
+  WorkoutExercise,
+  WorkoutSessionLog,
+];
 
 @Module({
   imports: [
@@ -67,34 +112,7 @@ const isDev = process.env.NODE_ENV !== 'production';
             type: 'postgres',
             url: process.env.DATABASE_URL,
             ssl: { rejectUnauthorized: false },
-            entities: [
-              User,
-              AlunoProfile,
-              PersonalProfile,
-              AcademiaProfile,
-              AcademiaUnit,
-              Service,
-              ScheduleSlot,
-              Booking,
-              Subscription,
-              Review,
-              Message,
-              Notification,
-              ProviderAvailability,
-              ServiceCatalog,
-              WalletAccount,
-              PaymentIntent,
-              WalletTransaction,
-              WalletWithdrawal,
-              Profession,
-              Post,
-              PostLike,
-              PostComment,
-              UserFollow,
-              MembershipPlan,
-              GymEnrollment,
-              GymAccessLog,
-            ],
+            entities: appEntities,
             synchronize: true,
             logging: ['error'],
           }
@@ -105,34 +123,7 @@ const isDev = process.env.NODE_ENV !== 'production';
             username: process.env.DB_USER ?? 'postgres',
             password: process.env.DB_PASS,
             database: process.env.DB_NAME ?? 'conexao_fitness',
-            entities: [
-              User,
-              AlunoProfile,
-              PersonalProfile,
-              AcademiaProfile,
-              AcademiaUnit,
-              Service,
-              ScheduleSlot,
-              Booking,
-              Subscription,
-              Review,
-              Message,
-              Notification,
-              ProviderAvailability,
-              ServiceCatalog,
-              WalletAccount,
-              PaymentIntent,
-              WalletTransaction,
-              WalletWithdrawal,
-              Profession,
-              Post,
-              PostLike,
-              PostComment,
-              UserFollow,
-              MembershipPlan,
-              GymEnrollment,
-              GymAccessLog,
-            ],
+            entities: appEntities,
             synchronize: isDev,
             migrationsRun: !isDev,
             migrations: [BookingsCancelledAtAndIndexes1713380000000],
@@ -156,6 +147,8 @@ const isDev = process.env.NODE_ENV !== 'production';
     ProfessionsModule,
     PostsModule,
     MembershipsModule,
+    GamificationModule,
+    WorkoutsModule,
   ],
 })
 export class AppModule {}

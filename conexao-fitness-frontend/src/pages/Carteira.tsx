@@ -29,6 +29,8 @@ import { CheckoutModal } from "@/components/CheckoutModal";
 import { FinexDayPassQrModal } from "@/components/FinexDayPassQrModal";
 import { AcademiaWalletView } from "@/components/AcademiaWalletView";
 import { ProfessionalWalletView } from "@/components/ProfessionalWalletView";
+import { FinexPointsCard } from "@/components/gamification/FinexPointsCard";
+import { fetchGamificationSummary } from "@/services/gamification";
 
 export default function Carteira() {
   const { user, isAuthenticated } = useAuth();
@@ -50,6 +52,12 @@ export default function Carteira() {
     queryKey: ["wallet-statement"],
     queryFn: getWalletStatement,
     enabled: !!user && user.role === "STUDENT",
+  });
+
+  const { data: gamificationData, refetch: refetchGamification } = useQuery({
+    queryKey: ["gamification-summary", user?.id],
+    queryFn: fetchGamificationSummary,
+    enabled: !!user,
   });
 
   useEffect(() => {
@@ -254,6 +262,17 @@ export default function Carteira() {
               </Button>
             </form>
           </div>
+        </div>
+
+        {/* Finex Points & Cashback */}
+        <div className="mb-10">
+          <FinexPointsCard
+            pointsBalance={gamificationData?.gamification?.pointsBalance || 0}
+            onRefresh={() => {
+              refetchGamification();
+              qc.invalidateQueries({ queryKey: ["wallet-balance"] });
+            }}
+          />
         </div>
 
         {/* Extrato do Aluno */}

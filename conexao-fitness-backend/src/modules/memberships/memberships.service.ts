@@ -1174,4 +1174,97 @@ export class MembershipsService {
       },
     };
   }
+
+  // =========================================================================
+  // 8. ESTATÍSTICAS DE LOTAÇÃO & HORÁRIOS DE PICO (ANALYTICS)
+  // =========================================================================
+
+  async getGymCrowdStats(academiaId: string) {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const recentLogs = await this.accessLogRepo.find({
+      where: {
+        academiaId,
+        status: AccessStatus.PERMITTED,
+        accessedAt: MoreThanOrEqual(thirtyDaysAgo),
+      },
+      order: { accessedAt: 'ASC' },
+    });
+
+    // Mapeia acessos por hora do dia (06h às 22h)
+    const hoursMap: Record<number, number> = {};
+    for (let h = 6; h <= 22; h++) hoursMap[h] = 0;
+
+    const seventyFiveMinutesAgo = new Date(Date.now() - 75 * 60 * 1000);
+    let activeNowCount = 0;
+
+    for (const log of recentLogs) {
+      const logDate = new Date(log.accessedAt);
+      const hour = logDate.getHours();
+      if (hoursMap[hour] !== undefined) {
+        hoursMap[hour] += 1;
+      }
+      if (logDate >= seventyFiveMinutesAgo) {
+        activeNowCount += 1;
+      }
+    }
+
+    // Normaliza para uma escala de 0 a 100% de intensidade por hora
+    const maxHourCount = Math.max(1, ...Object.values(hoursMap));
+    const peakHours = Object.keys(hoursMap).map((h) => {
+      const hourNum = Number(h);
+      const count = hoursMap[hourNum];
+      const intensityPercent = Math.min(100, Math.round((count / maxHourCount) * 100));
+      const formattedHour = `${hourNum.toString().padStart(2, '0')}:00`;
+      
+      let label = 'Tranquilo';
+      if (intensityPercent >= 75) label = 'Horário de Pico';
+      else if (intensityPercent >= 45) label = 'Movimentado';
+      else if (intensityPercent >= 20) label = 'Moderado';
+
+      return {
+        hour: formattedHour,
+        hourNumber: hourNum,
+        accessCount: count,
+        intensityPercent: intensityPercent === 0 ? 15 : intensityPercent, // Base mínima para estética
+        label,
+      };
+    });
+
+    // Calcula a lotação atual estimada
+    // Base de capacidade padrão da academia: 40 acessos simultâneos
+    const estimatedCapacity = 40;
+    const currentOccupancyPercent = Math.min(100, Math.max(10, Math.round((activeNowCount / estimatedCapacity) * 100)));
+
+    let currentLevel: 'BAIXA' | 'MODERADA' | 'ALTA' = 'BAIXA';
+    let currentLevelLabel = 'Pouco movimentado';
+    let currentLevelColor = 'emerald';
+
+    if (currentOccupancyPercent >= 70) {
+      currentLevel = 'ALTA';
+      currentLevelLabel = 'Horário de Pico (Muito Cheio)';
+      currentLevelColor = 'rose';
+    } else if (currentOccupancyPercent >= 40) {
+      currentLevel = 'MODERADA';
+      currentLevelLabel = 'Movimento Normal';
+      currentLevelColor = 'amber';
+    }
+
+    // Horários mais recomendados (com menor fluxo)
+    const bestHours = peakHours
+      .filter((p) => p.hourNumber >= 6 && p.hourNumber <= 21)
+      .sort((a, b) => a.accessCount - b.accessCount)
+      .slice(0, 3)
+      .map((p) => p.hour);
+
+    return {
+      currentLevel,
+      currentLevelLabel,
+      currentLevelColor,
+      currentOccupancyPercent,
+      activeNowCount,
+      peakHours,
+      bestHours,
+      totalAccessesLastMonth: recentLogs.length,
+    };
+  }
 }

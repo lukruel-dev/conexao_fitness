@@ -242,4 +242,20 @@ export class MembershipsController {
   ) {
     return this.membershipsService.getStudentPass(user.id, enrollmentId);
   }
+
+  @ApiOperation({ summary: 'Estatísticas de Lotação e Horários de Pico da Academia (Público)' })
+  @Get('gym/:academiaId/crowd-stats')
+  async getGymCrowdStats(
+    @Param('academiaId', ParseUUIDPipe) academiaId: string,
+  ) {
+    return this.membershipsService.getGymCrowdStats(academiaId);
+  }
+
+  @ApiOperation({ summary: 'Estatísticas de Lotação da própria academia logada' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('crowd-stats/my')
+  async getMyCrowdStats(@CurrentUser() user: any) {
+    return this.membershipsService.getGymCrowdStats(user.id);
+  }
 }

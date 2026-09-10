@@ -857,7 +857,16 @@ export default function GestaoAcademia() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Button
+              variant="outline"
+              asChild
+              className="gap-2 rounded-xl shadow-sm border-purple-500/30 text-purple-400 hover:bg-purple-500/15"
+            >
+              <Link to="/totem-catraca">
+                <QrCode className="w-4 h-4 text-purple-400" /> Modo Totem (Tela Cheia)
+              </Link>
+            </Button>
             <Button
               variant="outline"
               onClick={() => setActiveTab('turnstile')}
@@ -877,6 +886,7 @@ export default function GestaoAcademia() {
                   amountPaid: Number(plansData?.[0]?.price || 99.9),
                   durationDays: plansData?.[0]?.durationDays || 30,
                   notes: '',
+                  notifyStudent: true,
                 });
                 setManualEnrollmentOpen(true);
               }}

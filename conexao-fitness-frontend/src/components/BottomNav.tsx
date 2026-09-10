@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, User, ArrowLeft, ShieldCheck } from "lucide-react";
+import { Home, Search, User, ArrowLeft, ShieldCheck, Dumbbell } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const BottomNav = () => {
@@ -7,8 +7,8 @@ const BottomNav = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Hide BottomNav on some screens if necessary (e.g. login/cadastro itself)
-  const hideOnPaths = ["/login", "/cadastro"];
+  // Hide BottomNav on fullscreen / auth screens
+  const hideOnPaths = ["/login", "/cadastro", "/totem-catraca"];
   if (hideOnPaths.includes(location.pathname)) return null;
 
   const isHome = location.pathname === "/";
@@ -37,28 +37,33 @@ const BottomNav = () => {
           isHome ? "opacity-30 cursor-not-allowed text-muted-foreground" : "text-muted-foreground hover:text-foreground active:scale-95"
         }`}
       >
-        <ArrowLeft className="w-6 h-6" />
+        <ArrowLeft className="w-5 h-5" />
         <span className="text-[10px] font-medium">Voltar</span>
       </button>
 
       <Link to="/" className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${location.pathname === "/" ? "text-primary" : "text-muted-foreground"}`}>
-        <Home className="w-6 h-6" />
+        <Home className="w-5 h-5" />
         <span className="text-[10px] font-medium">Início</span>
       </Link>
       
+      <Link to="/treinos" className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${location.pathname === "/treinos" ? "text-primary" : "text-muted-foreground"}`}>
+        <Dumbbell className="w-5 h-5" />
+        <span className="text-[10px] font-medium">Treinos</span>
+      </Link>
+
       <Link to="/buscar" className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${location.pathname === "/buscar" ? "text-primary" : "text-muted-foreground"}`}>
-        <Search className="w-6 h-6" />
+        <Search className="w-5 h-5" />
         <span className="text-[10px] font-medium">Buscar</span>
       </Link>
       
       {user?.role === "ADMIN" ? (
         <Link to="/admin" className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${location.pathname.startsWith("/admin") ? "text-secondary font-semibold" : "text-muted-foreground"}`}>
-          <ShieldCheck className="w-6 h-6 text-secondary" />
+          <ShieldCheck className="w-5 h-5 text-secondary" />
           <span className="text-[10px] font-medium">Admin</span>
         </Link>
       ) : (
         <Link to="/perfil" className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${location.pathname === "/perfil" ? "text-primary" : "text-muted-foreground"}`}>
-          <User className="w-6 h-6" />
+          <User className="w-5 h-5" />
           <span className="text-[10px] font-medium">Perfil</span>
         </Link>
       )}

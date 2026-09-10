@@ -28,6 +28,8 @@ import Carteira from "./pages/Carteira";
 import AgendaProfissional from "./pages/AgendaProfissional";
 import GestaoAcademia from "./pages/GestaoAcademia";
 import MinhasMatriculas from "./pages/MinhasMatriculas";
+import Treinos from "./pages/Treinos";
+import TotemCatraca from "./pages/TotemCatraca";
 import QuemSomos from "./pages/QuemSomos";
 import Planos from "./pages/Planos";
 import BottomNav from "@/components/BottomNav";
@@ -67,6 +69,8 @@ const App = () => (
               <Route path="/meus-agendamentos" element={<MeusAgendamentos />} />
               <Route path="/minhas-matriculas" element={<MinhasMatriculas />} />
               <Route path="/meus-servicos" element={<MeusServicos />} />
+              <Route path="/treinos" element={<Treinos />} />
+              <Route path="/totem-catraca" element={<TotemCatraca />} />
               <Route path="/login" element={<Login />} />
               <Route path="/recuperar-senha" element={<RecuperarSenha />} />
               <Route path="/cadastro" element={<Cadastro />} />

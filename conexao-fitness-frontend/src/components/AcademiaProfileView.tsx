@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -8,6 +9,9 @@ import { MembershipPlan } from '@/services/memberships';
 import { EnrollmentModal } from '@/components/EnrollmentModal';
 import { StudentAccessPassModal } from '@/components/StudentAccessPassModal';
 import { PostCard } from '@/components/feed/PostCard';
+import { CrowdLevelBadge } from '@/components/analytics/CrowdLevelBadge';
+import { PeakHoursChart } from '@/components/analytics/PeakHoursChart';
+import { fetchGymCrowdStats } from '@/services/gymAnalytics';
 import type { PublicUserProfile } from '@/types/api';
 import type { Post } from '@/types/community';
 import {
@@ -38,6 +42,7 @@ import {
   ChevronRight,
   ImageIcon,
   X,
+  Users,
 } from 'lucide-react';
 
 interface AcademiaProfileViewProps {
@@ -76,6 +81,12 @@ export const AcademiaProfileView: React.FC<AcademiaProfileViewProps> = ({
   const [selectedPlanForEnrollment, setSelectedPlanForEnrollment] = useState<MembershipPlan | null>(null);
   const [createdEnrollmentForPass, setCreatedEnrollmentForPass] = useState<any | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
+  const { data: crowdStats } = useQuery({
+    queryKey: ['gym-crowd-stats', profile.id],
+    queryFn: () => fetchGymCrowdStats(profile.id),
+    enabled: !!profile.id,
+  });
 
   // Valores padrão ou customizados da academia
   const coverImage =
@@ -323,16 +334,25 @@ export const AcademiaProfileView: React.FC<AcademiaProfileViewProps> = ({
             </div>
           )}
 
-          {/* Pílula Rápida de Horários */}
-          <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-muted/40 p-3 rounded-2xl border border-border/50">
-            <span className="flex items-center gap-1.5 font-bold text-foreground">
-              <Clock className="w-4 h-4 text-primary" /> Horários:
-            </span>
-            <span><strong>Seg-Sex:</strong> {hours.monday_friday || '06h às 23h'}</span>
-            <span>•</span>
-            <span><strong>Sáb:</strong> {hours.saturday || '08h às 18h'}</span>
-            <span>•</span>
-            <span><strong>Dom/Feriados:</strong> {hours.sunday_holidays || '09h às 14h'}</span>
+          {/* Lotação em Tempo Real & Horários */}
+          <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              {crowdStats && <CrowdLevelBadge stats={crowdStats} />}
+
+              {/* Pílula Rápida de Horários */}
+              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground bg-muted/40 p-3.5 rounded-2xl border border-border/50">
+                <span className="flex items-center gap-1.5 font-bold text-foreground">
+                  <Clock className="w-4 h-4 text-primary" /> Horários:
+                </span>
+                <span><strong>Seg-Sex:</strong> {hours.monday_friday || '06h às 23h'}</span>
+                <span>•</span>
+                <span><strong>Sáb:</strong> {hours.saturday || '08h às 18h'}</span>
+                <span>•</span>
+                <span><strong>Dom/Feriados:</strong> {hours.sunday_holidays || '09h às 14h'}</span>
+              </div>
+            </div>
+
+            {crowdStats && <PeakHoursChart peakHours={crowdStats.peakHours} />}
           </div>
         </div>
       </div>

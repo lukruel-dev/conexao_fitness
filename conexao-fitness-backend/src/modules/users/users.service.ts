@@ -306,7 +306,7 @@ export class UsersService implements OnApplicationBootstrap {
       });
       profile = await this.academiaProfileRepo.save(newProfile);
     }
-    const safeProfile = profile;
+    const safeProfile = profile!;
 
     return {
       userId: user.id,

@@ -1,6 +1,13 @@
 import React from "react";
+import { useLocation } from "react-router-dom";
 
 export const FloatingWhatsApp: React.FC = () => {
+  const location = useLocation();
+
+  if (location.pathname === "/totem-catraca") {
+    return null;
+  }
+
   const phoneNumber = "5551991562823";
   const message = encodeURIComponent(
     "Olá! Vim pelo app Conexão Fitness e gostaria de tirar dúvidas."

@@ -113,6 +113,39 @@ export class WalletService {
     };
   }
 
+  async creditDeposit(userId: string, amount: number, description: string) {
+    let wallet = await this.walletRepo.findOne({
+      where: { ownerId: userId, ownerType: 'USER' },
+    });
+    if (!wallet) {
+      wallet = this.walletRepo.create({
+        ownerId: userId,
+        ownerType: 'USER',
+        currency: 'BRL',
+        currentBalance: '0.00',
+        pendingBalance: '0.00',
+        status: 'ACTIVE',
+      });
+    }
+    const current = Number(wallet.currentBalance || 0);
+    const updated = current + amount;
+    wallet.currentBalance = updated.toFixed(2);
+    await this.walletRepo.save(wallet);
+
+    const tx = this.transactionRepo.create({
+      userId,
+      type: 'TOPUP',
+      amount: amount.toFixed(2),
+      fee: '0.00',
+      netAmount: amount.toFixed(2),
+      status: 'COMPLETED',
+      description,
+      paymentMethod: 'FINEX_POINTS',
+    });
+    await this.transactionRepo.save(tx);
+    return wallet;
+  }
+
   async requestWithdrawal(userId: string, dto: RequestWithdrawalDto) {
     const amount = Number(dto.amount);
     if (isNaN(amount) || amount < 5) {
