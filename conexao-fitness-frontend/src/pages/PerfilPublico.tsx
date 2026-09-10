@@ -276,7 +276,26 @@ const PerfilPublico: React.FC = () => {
     );
   }
 
-  if (profile.role === "PERSONAL") {
+  const isPersonalProfile =
+    profile.role === "PERSONAL" ||
+    profile.role === "PROFISSIONAL" ||
+    profile.role === "INSTRUTOR" ||
+    !!profile.professionTitle ||
+    !!profile.cref ||
+    !!(profile.specialties && profile.specialties.length > 0) ||
+    !!profile.methodology ||
+    (!!profile.name && (
+      profile.name.toLowerCase().includes("dr.") ||
+      profile.name.toLowerCase().includes("dra.") ||
+      profile.name.toLowerCase().includes("prof.") ||
+      profile.name.toLowerCase().includes("nutri") ||
+      profile.name.toLowerCase().includes("fisio") ||
+      profile.name.toLowerCase().includes("personal") ||
+      profile.name.toLowerCase().includes("fisioterapeuta") ||
+      profile.name.toLowerCase().includes("nutricionista")
+    ));
+
+  if (isPersonalProfile) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -301,7 +320,10 @@ const PerfilPublico: React.FC = () => {
             </div>
 
             <PersonalProfileView
-              profile={profile}
+              profile={{
+                ...profile,
+                role: "PERSONAL",
+              }}
               posts={posts}
               postsLoading={postsLoading}
               isFollowing={isFollowing}
@@ -485,19 +507,6 @@ const PerfilPublico: React.FC = () => {
                           </>
                         )}
                       </Button>
-
-                      {profile.role === "PERSONAL" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-9 px-4 text-xs font-bold gap-1.5 rounded-xl border-primary/40 text-primary hover:bg-primary hover:text-white"
-                          asChild
-                        >
-                          <Link to="/buscar?providerType=PERSONAL">
-                            <Calendar className="h-3.5 w-3.5" /> Agendar
-                          </Link>
-                        </Button>
-                      )}
 
                       <Button
                         size="sm"
