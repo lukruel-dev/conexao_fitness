@@ -18,6 +18,7 @@ import {
 import { AccessStatus, GymAccessLog } from './entities/gym-access-log.entity';
 import { User } from '../users/entities/user.entity';
 import { Subscription, SubscriptionStatus } from '../payments/entities/subscription.entity';
+import { Service, ServiceType } from '../services/entities/service.entity';
 import { CreateMembershipPlanDto } from './dto/create-membership-plan.dto';
 import { UpdateMembershipPlanDto } from './dto/update-membership-plan.dto';
 import { EnrollOnlineDto } from './dto/enroll-online.dto';
@@ -25,6 +26,7 @@ import { ManualEnrollmentDto } from './dto/manual-enrollment.dto';
 import { ValidateAccessDto } from './dto/validate-access.dto';
 import { RenewEnrollmentDto } from './dto/renew-enrollment.dto';
 import { FilterEnrollmentsDto } from './dto/filter-enrollments.dto';
+import { ChargeDayPassDto } from './dto/charge-daypass.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { WalletService } from '../wallet/wallet.service';
 
@@ -43,6 +45,8 @@ export class MembershipsService {
     private readonly userRepo: Repository<User>,
     @InjectRepository(Subscription)
     private readonly subscriptionRepo: Repository<Subscription>,
+    @InjectRepository(Service)
+    private readonly serviceRepo: Repository<Service>,
     private readonly notificationsService: NotificationsService,
     private readonly walletService: WalletService,
   ) {}
@@ -453,15 +457,42 @@ export class MembershipsService {
   }
 
   // =========================================================================
-  // 5. CATRACA DIGITAL & VALIDAÇÃO DE ACESSO POR QR CODE
+  // 5. CATRACA DIGITAL, VALIDAÇÃO DE ACESSO & DAY PASS INSTANTÂNEO NA CARTEIRA
   // =========================================================================
 
-  async validateAccess(
+  /**
+   * Obtém o valor configurado do Day Pass da academia
+   */
+  async getDayPassPrice(academiaId: string): Promise<number> {
+    const dayPassService = await this.serviceRepo.findOne({
+      where: [
+        { providerId: academiaId, type: ServiceType.DAY_PASS, isActive: true },
+        { providerId: academiaId, type: ServiceType.DIARIA, isActive: true },
+      ],
+      order: { price: 'ASC' },
+    });
+
+    if (dayPassService && Number(dayPassService.price) > 0) {
+      return Number(dayPassService.price);
+    }
+
+    return 25.0; // Valor padrão de Day Pass caso a academia não tenha cadastrado serviço
+  }
+
+  /**
+   * Cobrança de Day Pass Avulso debitada instantaneamente da carteira do aluno
+   */
+  async chargeDayPass(
     academiaId: string,
-    dto: ValidateAccessDto,
+    dto: ChargeDayPassDto,
   ): Promise<{
     granted: boolean;
+    isDayPass: boolean;
     reason?: string;
+    amountDebited?: number;
+    requiredAmount?: number;
+    currentBalance?: number;
+    newBalance?: number;
     student?: {
       id: string;
       name: string;
@@ -482,10 +513,196 @@ export class MembershipsService {
   }> {
     await this.assertGymPlanAccess(academiaId);
 
+    // 1. Identificar o aluno pelo QR Code universal, ID, CPF ou e-mail
+    let cleanId = dto.studentIdentifier.trim();
+    if (cleanId.startsWith('CONEXAO_FITNESS_USER:') || cleanId.startsWith('CONEXAO_FITNESS_STUDENT:') || cleanId.startsWith('CONEXAO_FITNESS_ACCESS:')) {
+      const parts = cleanId.split(':');
+      cleanId = parts[1] || cleanId;
+    }
+
+    const student = await this.userRepo
+      .createQueryBuilder('user')
+      .where('user.id = :id OR user.cpf = :id OR LOWER(user.email) = :email', {
+        id: cleanId,
+        email: cleanId.toLowerCase(),
+      })
+      .getOne();
+
+    if (!student) {
+      const log = this.accessLogRepo.create({
+        academiaId,
+        status: AccessStatus.DENIED,
+        denialReason: 'Usuário Finex não encontrado para cobrança de Day Pass.',
+        deviceInfo: dto.deviceInfo || 'Recepção Day Pass Finex',
+      });
+      const savedLog = await this.accessLogRepo.save(log);
+
+      return {
+        granted: false,
+        isDayPass: true,
+        reason: 'Usuário Finex não encontrado.',
+        accessLogId: savedLog.id,
+        message: 'Acesso Negado: Usuário Finex não localizado no sistema.',
+      };
+    }
+
+    // 2. Determinar o valor do Day Pass da academia
+    let amount = dto.customAmount;
+    if (!amount || amount <= 0) {
+      amount = await this.getDayPassPrice(academiaId);
+    }
+
+    // 3. Verificar saldo na carteira do aluno
+    const balanceInfo = await this.walletService.getMyBalance(student.id);
+    if (balanceInfo.current_balance < amount) {
+      const log = this.accessLogRepo.create({
+        academiaId,
+        studentId: student.id,
+        status: AccessStatus.DENIED,
+        denialReason: `Saldo insuficiente na carteira Finex (Necessário: R$ ${amount.toFixed(2)} / Disponível: R$ ${balanceInfo.current_balance.toFixed(2)})`,
+        deviceInfo: dto.deviceInfo || 'Recepção Day Pass Finex',
+      });
+      const savedLog = await this.accessLogRepo.save(log);
+
+      return {
+        granted: false,
+        isDayPass: true,
+        reason: `Saldo insuficiente na carteira Finex (Disponível: R$ ${balanceInfo.current_balance.toFixed(2)})`,
+        requiredAmount: amount,
+        currentBalance: balanceInfo.current_balance,
+        student: {
+          id: student.id,
+          name: student.name,
+          email: student.email,
+          avatarUrl: student.avatarUrl,
+          cpf: student.cpf,
+        },
+        accessLogId: savedLog.id,
+        message: `Acesso Recusado: Aluno possui apenas R$ ${balanceInfo.current_balance.toFixed(2)} na carteira Finex. Valor do Day Pass: R$ ${amount.toFixed(2)}.`,
+      };
+    }
+
+    // 4. Debitar da carteira do aluno
+    const newStudentBalance = await this.walletService.deductBalance(student.id, amount);
+
+    // 5. Creditar na carteira da academia (split com taxa de plataforma de 10%)
+    const platformFee = Number((amount * 0.1).toFixed(2));
+    const academiaAmount = Number((amount - platformFee).toFixed(2));
+    await this.walletService.addBalance(academiaId, academiaAmount);
+
+    // 6. Criar registro de Matrícula Day Pass (1 dia)
+    const now = new Date();
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const qrAccessCode = this.generateQrAccessCode();
+    const enrollment = this.enrollmentRepo.create({
+      studentId: student.id,
+      academiaId,
+      planName: 'Day Pass Avulso Finex',
+      amountPaid: amount.toFixed(2),
+      paymentMethod: EnrollmentPaymentMethod.WALLET,
+      paymentStatus: EnrollmentPaymentStatus.PAID,
+      status: EnrollmentStatus.ACTIVE,
+      startDate: now,
+      endDate: endOfDay,
+      qrAccessCode,
+      notes: 'Debitado instantaneamente via QR Code da carteira Finex na recepção.',
+    });
+    const savedEnrollment = await this.enrollmentRepo.save(enrollment);
+
+    // 7. Registrar log de acesso liberado
+    const log = this.accessLogRepo.create({
+      academiaId,
+      enrollmentId: savedEnrollment.id,
+      studentId: student.id,
+      status: AccessStatus.GRANTED,
+      deviceInfo: dto.deviceInfo || 'Recepção Day Pass Finex',
+    });
+    const savedLog = await this.accessLogRepo.save(log);
+
+    // 8. Notificar aluno e academia
+    const academiaUser = await this.userRepo.findOneBy({ id: academiaId });
+    const academiaName = academiaUser?.name || 'Academia Parceira';
+
+    await this.notificationsService.createNotification({
+      userId: student.id,
+      type: 'BOOKING_CONFIRMED',
+      title: 'Day Pass Finex Liberado!',
+      content: `Seu Day Pass na academia ${academiaName} foi liberado! R$ ${amount.toFixed(2)} foi debitado do saldo da sua carteira Finex. Bom treino!`,
+      referenceId: savedEnrollment.id,
+    });
+
+    const firstName = student.name ? student.name.split(' ')[0] : 'Aluno';
+
+    this.logger.log(
+      `Day Pass Finex debitado: Aluno ${student.name} (R$ ${amount.toFixed(2)}) -> Academia ${academiaName}`,
+    );
+
+    return {
+      granted: true,
+      isDayPass: true,
+      amountDebited: amount,
+      newBalance: newStudentBalance,
+      student: {
+        id: student.id,
+        name: student.name,
+        email: student.email,
+        avatarUrl: student.avatarUrl,
+        cpf: student.cpf,
+      },
+      enrollment: {
+        id: savedEnrollment.id,
+        planName: 'Day Pass Avulso Finex',
+        startDate: savedEnrollment.startDate,
+        endDate: savedEnrollment.endDate,
+        daysRemaining: 1,
+        status: EnrollmentStatus.ACTIVE,
+      },
+      accessLogId: savedLog.id,
+      message: `Day Pass Liberado! R$ ${amount.toFixed(2)} debitado da carteira de ${firstName}.`,
+    };
+  }
+
+  async validateAccess(
+    academiaId: string,
+    dto: ValidateAccessDto,
+  ): Promise<{
+    granted: boolean;
+    isDayPass?: boolean;
+    canChargeDayPass?: boolean;
+    dayPassPrice?: number;
+    studentBalance?: number;
+    hasEnoughBalance?: boolean;
+    reason?: string;
+    student?: {
+      id: string;
+      name: string;
+      email: string;
+      avatarUrl?: string;
+      cpf?: string;
+    };
+    enrollment?: {
+      id: string;
+      planName: string;
+      startDate: Date;
+      endDate: Date;
+      daysRemaining: number;
+      status: EnrollmentStatus;
+    };
+    accessLogId?: string;
+    message: string;
+  }> {
+    await this.assertGymPlanAccess(academiaId);
+
     let cleanCode = dto.qrCode.trim();
 
     // Remove prefixos de URL se o payload vier formatado
-    if (cleanCode.startsWith('CONEXAO_FITNESS_ACCESS:')) {
+    if (
+      cleanCode.startsWith('CONEXAO_FITNESS_ACCESS:') ||
+      cleanCode.startsWith('CONEXAO_FITNESS_USER:') ||
+      cleanCode.startsWith('CONEXAO_FITNESS_STUDENT:')
+    ) {
       const parts = cleanCode.split(':');
       cleanCode = parts[1] || cleanCode;
     }
@@ -496,8 +713,8 @@ export class MembershipsService {
       .leftJoinAndSelect('enrollment.student', 'student')
       .where('enrollment.academiaId = :academiaId', { academiaId })
       .andWhere(
-        '(enrollment.qrAccessCode = :code OR student.cpf = :code OR student.email = :code)',
-        { code: cleanCode },
+        '(enrollment.qrAccessCode = :code OR student.id = :code OR student.cpf = :code OR LOWER(student.email) = :codeEmail)',
+        { code: cleanCode, codeEmail: cleanCode.toLowerCase() },
       )
       .orderBy('enrollment.endDate', 'DESC');
 
@@ -505,8 +722,41 @@ export class MembershipsService {
 
     const now = new Date();
 
-    // 1. Caso a matrícula não exista para esta academia
+    // 1. Caso a matrícula NÃO exista para esta academia, verificar se é um usuário Finex para Day Pass
     if (!enrollment) {
+      // Buscar se existe um aluno cadastrado no Finex com esse identificador
+      const studentUser = await this.userRepo
+        .createQueryBuilder('user')
+        .where('user.id = :id OR user.cpf = :id OR LOWER(user.email) = :email', {
+          id: cleanCode,
+          email: cleanCode.toLowerCase(),
+        })
+        .getOne();
+
+      if (studentUser) {
+        const dayPassPrice = await this.getDayPassPrice(academiaId);
+        const balance = await this.walletService.getMyBalance(studentUser.id);
+        const hasEnough = balance.current_balance >= dayPassPrice;
+
+        return {
+          granted: false,
+          isDayPass: true,
+          canChargeDayPass: true,
+          dayPassPrice,
+          studentBalance: balance.current_balance,
+          hasEnoughBalance: hasEnough,
+          student: {
+            id: studentUser.id,
+            name: studentUser.name,
+            email: studentUser.email,
+            avatarUrl: studentUser.avatarUrl,
+            cpf: studentUser.cpf,
+          },
+          reason: 'Aluno sem matrícula mensal ativa nesta academia.',
+          message: `Aluno ${studentUser.name} sem matrícula ativa. Day Pass disponível por R$ ${dayPassPrice.toFixed(2)} (Saldo na carteira: R$ ${balance.current_balance.toFixed(2)}).`,
+        };
+      }
+
       const log = this.accessLogRepo.create({
         academiaId,
         status: AccessStatus.DENIED,
@@ -579,6 +829,10 @@ export class MembershipsService {
       enrollment.status = EnrollmentStatus.EXPIRED;
       await this.enrollmentRepo.save(enrollment);
 
+      const dayPassPrice = await this.getDayPassPrice(academiaId);
+      const balance = student ? await this.walletService.getMyBalance(student.id) : { current_balance: 0 };
+      const hasEnough = balance.current_balance >= dayPassPrice;
+
       const log = this.accessLogRepo.create({
         academiaId,
         enrollmentId: enrollment.id,
@@ -591,6 +845,10 @@ export class MembershipsService {
 
       return {
         granted: false,
+        canChargeDayPass: true,
+        dayPassPrice,
+        studentBalance: balance.current_balance,
+        hasEnoughBalance: hasEnough,
         reason: `Matrícula Vencida em ${endDate.toLocaleDateString('pt-BR')}.`,
         student: student
           ? { id: student.id, name: student.name, email: student.email, avatarUrl: student.avatarUrl, cpf: student.cpf }
@@ -604,7 +862,7 @@ export class MembershipsService {
           status: EnrollmentStatus.EXPIRED,
         },
         accessLogId: savedLog.id,
-        message: `Acesso Negado: Matrícula venceu em ${endDate.toLocaleDateString('pt-BR')}.`,
+        message: `Acesso Negado: Matrícula venceu em ${endDate.toLocaleDateString('pt-BR')}. Deseja cobrar Day Pass na carteira Finex?`,
       };
     }
 

@@ -21,6 +21,7 @@ import { ManualEnrollmentDto } from './dto/manual-enrollment.dto';
 import { ValidateAccessDto } from './dto/validate-access.dto';
 import { RenewEnrollmentDto } from './dto/renew-enrollment.dto';
 import { FilterEnrollmentsDto } from './dto/filter-enrollments.dto';
+import { ChargeDayPassDto } from './dto/charge-daypass.dto';
 import { EnrollmentStatus } from './entities/gym-enrollment.entity';
 
 @ApiTags('Gestão de Academias & Matrículas')
@@ -160,6 +161,26 @@ export class MembershipsController {
   // =========================================================================
   // CATRACA DIGITAL & LEITURA DE QR CODE
   // =========================================================================
+
+  @ApiOperation({ summary: 'Cobrança de Day Pass debitado diretamente da carteira Finex do aluno' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('charge-daypass')
+  async chargeDayPass(
+    @CurrentUser() user: any,
+    @Body() dto: ChargeDayPassDto,
+  ) {
+    return this.membershipsService.chargeDayPass(user.id, dto);
+  }
+
+  @ApiOperation({ summary: 'Obter preço configurado de Day Pass da academia' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('daypass-price/my')
+  async getMyDayPassPrice(@CurrentUser() user: any) {
+    const price = await this.membershipsService.getDayPassPrice(user.id);
+    return { dayPassPrice: price };
+  }
 
   @ApiOperation({ summary: 'Validação de QR Code de entrada na catraca/recepção da academia' })
   @ApiBearerAuth()

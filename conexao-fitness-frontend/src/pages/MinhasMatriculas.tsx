@@ -6,7 +6,9 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { getStudentEnrollments, GymEnrollment } from '@/services/memberships';
+import { getMyBalance } from '@/services/wallet';
 import { StudentAccessPassModal } from '@/components/StudentAccessPassModal';
+import { FinexDayPassQrModal } from '@/components/FinexDayPassQrModal';
 import {
   Dumbbell,
   QrCode,
@@ -18,16 +20,25 @@ import {
   Sparkles,
   ChevronRight,
   ExternalLink,
+  Zap,
+  Wallet,
 } from 'lucide-react';
 import { formatBRL } from '@/lib/format';
 
 export default function MinhasMatriculas() {
   const { user, isAuthenticated } = useAuth();
   const [selectedEnrollment, setSelectedEnrollment] = useState<GymEnrollment | null>(null);
+  const [dayPassModalOpen, setDayPassModalOpen] = useState(false);
 
   const { data: enrollments, isLoading } = useQuery({
     queryKey: ['student-enrollments', user?.id],
     queryFn: getStudentEnrollments,
+    enabled: !!user,
+  });
+
+  const { data: walletBalance } = useQuery({
+    queryKey: ['wallet-balance', user?.id],
+    queryFn: getMyBalance,
     enabled: !!user,
   });
 
@@ -49,6 +60,40 @@ export default function MinhasMatriculas() {
           <p className="text-muted-foreground text-sm mt-1">
             Apresente sua carteirinha digital com QR Code na portaria da sua academia para liberar seu treino.
           </p>
+        </div>
+
+        {/* BANNER / CTA DE TREINO AVULSO / DAY PASS FINEX */}
+        <div className="mb-8 p-6 rounded-3xl bg-gradient-to-r from-emerald-500/15 via-primary/10 to-emerald-500/5 border-2 border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-lg">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/25 mt-0.5">
+              <Zap className="w-6 h-6 fill-current" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-500 bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                  Day Pass Finex
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  Saldo: <strong className="text-emerald-500">{formatBRL(walletBalance?.current_balance ?? 0)}</strong>
+                </span>
+              </div>
+              <h3 className="font-display font-bold text-lg text-foreground">
+                Quer fazer um Treino Avulso sem burocracia?
+              </h3>
+              <p className="text-xs text-muted-foreground max-w-xl leading-relaxed">
+                Apresente seu QR Code na recepção de qualquer academia parceira e o valor do <strong>Day Pass é descontado diretamente da sua carteira</strong>, sem precisar preencher cadastros!
+              </p>
+            </div>
+          </div>
+
+          <Button
+            size="lg"
+            variant="hero"
+            onClick={() => setDayPassModalOpen(true)}
+            className="shrink-0 rounded-2xl shadow-glow-blue bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-bold px-6"
+          >
+            <QrCode className="w-4 h-4" /> QR Day Pass
+          </Button>
         </div>
 
         {isLoading ? (
@@ -190,6 +235,13 @@ export default function MinhasMatriculas() {
         open={!!selectedEnrollment}
         onOpenChange={(open) => !open && setSelectedEnrollment(null)}
         enrollment={selectedEnrollment}
+      />
+
+      {/* MODAL DE TREINO AVULSO / DAY PASS FINEX */}
+      <FinexDayPassQrModal
+        open={dayPassModalOpen}
+        onOpenChange={setDayPassModalOpen}
+        walletBalance={walletBalance?.current_balance ?? 0}
       />
 
       <Footer />

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Navigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Wallet, Plus, CreditCard, ArrowRight } from "lucide-react";
+import { Wallet, Plus, CreditCard, ArrowRight, QrCode, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getMyBalance, createTopup, simulateTopupSuccess } from "@/services/wallet";
 import { CheckoutModal } from "@/components/CheckoutModal";
+import { FinexDayPassQrModal } from "@/components/FinexDayPassQrModal";
 
 export default function Carteira() {
   const { user, isAuthenticated } = useAuth();
@@ -18,6 +19,7 @@ export default function Carteira() {
   const [amount, setAmount] = useState("");
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [currentPaymentIntentId, setCurrentPaymentIntentId] = useState<string | null>(null);
+  const [dayPassModalOpen, setDayPassModalOpen] = useState(false);
 
   const { data: balance, isLoading } = useQuery({
     queryKey: ["wallet-balance"],
@@ -123,9 +125,20 @@ export default function Carteira() {
             )}
 
             {user?.role === "STUDENT" && (
-              <p className="text-xs text-muted-foreground mt-4">
-                Use este saldo para pagar suas aulas instantaneamente.
-              </p>
+              <div className="mt-4 pt-4 border-t border-border/50 w-full flex flex-col items-center gap-2.5">
+                <p className="text-xs text-muted-foreground">
+                  Use seu saldo para pagar treinos avulsos (Day Pass) instantâneos em academias parceiras.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDayPassModalOpen(true)}
+                  className="rounded-xl text-xs gap-1.5 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 font-bold px-4"
+                >
+                  <QrCode className="w-3.5 h-3.5" /> Abrir QR Day Pass Finex
+                </Button>
+              </div>
             )}
           </div>
 
@@ -213,6 +226,12 @@ export default function Carteira() {
             );
           }
         }}
+      />
+
+      <FinexDayPassQrModal
+        open={dayPassModalOpen}
+        onOpenChange={setDayPassModalOpen}
+        walletBalance={balance?.current_balance ?? 0}
       />
     </div>
   );

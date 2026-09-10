@@ -39,6 +39,8 @@ import {
   renewGymEnrollment,
   updateGymEnrollmentStatus,
   validateGymAccess,
+  chargeGymDayPass,
+  getMyGymDayPassPrice,
   getGymAccessLogs,
   EnrollmentStatus,
   GymEnrollment,
@@ -74,6 +76,9 @@ import {
   Play,
   Pause,
   ArrowUpRight,
+  Wallet,
+  Zap,
+  Coins,
 } from 'lucide-react';
 
 export default function GestaoAcademia() {
@@ -156,6 +161,14 @@ export default function GestaoAcademia() {
     enabled: !!user && isGym,
   });
 
+  const { data: dayPassPriceData } = useQuery({
+    queryKey: ['gym-daypass-price', user?.id],
+    queryFn: getMyGymDayPassPrice,
+    enabled: !!user && isGym,
+  });
+
+  const [dayPassCustomAmount, setDayPassCustomAmount] = useState<number | ''>('');
+
   const hasEssencialAccess = statsData?.tier?.hasAccess ?? true;
 
   // Efeito sonoro sintetizado no navegador para feedback de catraca
@@ -200,6 +213,10 @@ export default function GestaoAcademia() {
         toast.success(res.message, {
           description: `Aluno: ${res.student?.name} • Plano: ${res.enrollment?.planName}`,
         });
+      } else if (res.canChargeDayPass) {
+        toast.info('Aluno Finex identificado!', {
+          description: `Saldo disponível: ${formatBRL(res.studentBalance ?? 0)}. Você pode debitar o Day Pass diretamente da carteira dele.`,
+        });
       } else {
         toast.error(res.message, {
           description: res.reason,
@@ -209,6 +226,52 @@ export default function GestaoAcademia() {
     onError: (err: Error) => {
       playBeep(false);
       toast.error('Erro na validação de acesso', { description: err.message });
+    },
+  });
+
+  // Mutação para Cobrança de Day Pass instantâneo na Carteira
+  const chargeDayPassMutation = useMutation({
+    mutationFn: ({
+      studentIdentifier,
+      customAmount,
+    }: {
+      studentIdentifier: string;
+      customAmount?: number;
+    }) =>
+      chargeGymDayPass({
+        studentIdentifier,
+        customAmount,
+        deviceInfo: 'Catraca Recepção Day Pass',
+      }),
+    onSuccess: (res) => {
+      setLastScanResult({
+        granted: res.granted,
+        isDayPass: true,
+        canChargeDayPass: false,
+        message: res.message,
+        reason: res.reason,
+        student: res.student,
+        enrollment: res.enrollment,
+        accessLogId: res.accessLogId,
+      });
+      playBeep(res.granted);
+      qc.invalidateQueries({ queryKey: ['gym-access-logs'] });
+      qc.invalidateQueries({ queryKey: ['gym-dashboard-stats'] });
+      qc.invalidateQueries({ queryKey: ['gym-enrollments'] });
+
+      if (res.granted) {
+        toast.success(res.message, {
+          description: `R$ ${res.amountDebited?.toFixed(2)} debitado da carteira Finex de ${res.student?.name}`,
+        });
+      } else {
+        toast.error(res.message, {
+          description: res.reason,
+        });
+      }
+    },
+    onError: (err: Error) => {
+      playBeep(false);
+      toast.error('Erro na cobrança do Day Pass', { description: err.message });
     },
   });
 
@@ -843,6 +906,8 @@ export default function GestaoAcademia() {
                     className={`p-6 rounded-3xl border-2 transition-all shadow-md animate-in fade-in zoom-in-95 ${
                       lastScanResult.granted
                         ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-500'
+                        : lastScanResult.canChargeDayPass
+                        ? 'bg-amber-500/10 border-amber-500/40 text-amber-500'
                         : 'bg-destructive/10 border-destructive/40 text-destructive'
                     }`}
                   >
@@ -850,21 +915,39 @@ export default function GestaoAcademia() {
                       <div className="flex items-center gap-4">
                         <div
                           className={`w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-2xl text-white shadow-lg shrink-0 ${
-                            lastScanResult.granted ? 'bg-emerald-500' : 'bg-destructive'
+                            lastScanResult.granted
+                              ? 'bg-emerald-500'
+                              : lastScanResult.canChargeDayPass
+                              ? 'bg-gradient-to-br from-emerald-500 to-amber-500'
+                              : 'bg-destructive'
                           }`}
                         >
-                          {lastScanResult.granted ? <CheckCircle2 className="w-8 h-8" /> : <XCircle className="w-8 h-8" />}
+                          {lastScanResult.granted ? (
+                            <CheckCircle2 className="w-8 h-8" />
+                          ) : lastScanResult.canChargeDayPass ? (
+                            <Zap className="w-8 h-8 fill-current" />
+                          ) : (
+                            <XCircle className="w-8 h-8" />
+                          )}
                         </div>
                         <div>
-                          <span className="text-xs font-bold uppercase tracking-wider block">
-                            {lastScanResult.granted ? 'ACESSO LIBERADO' : 'ACESSO RECUSADO'}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold uppercase tracking-wider block">
+                              {lastScanResult.granted
+                                ? lastScanResult.isDayPass
+                                  ? 'DAY PASS FINEX LIBERADO'
+                                  : 'ACESSO LIBERADO'
+                                : lastScanResult.canChargeDayPass
+                                ? 'ALUNO FINEX • TREINO AVULSO'
+                                : 'ACESSO RECUSADO'}
+                            </span>
+                          </div>
                           <h4 className="font-display font-bold text-xl text-foreground">
                             {lastScanResult.student?.name || 'Aluno Não Reconhecido'}
                           </h4>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             {lastScanResult.granted
-                              ? `Plano: ${lastScanResult.enrollment?.planName} • ${lastScanResult.enrollment?.daysRemaining} dias restantes`
+                              ? `Plano: ${lastScanResult.enrollment?.planName} • ${lastScanResult.enrollment?.daysRemaining} dia(s) de acesso`
                               : lastScanResult.reason}
                           </p>
                         </div>
@@ -874,6 +957,67 @@ export default function GestaoAcademia() {
                         {new Date().toLocaleTimeString('pt-BR')}
                       </span>
                     </div>
+
+                    {/* OFERECER COBRANÇA INSTANTÂNEA DE DAY PASS SE O ALUNO FOR FINEX E NÃO TIVER MATRÍCULA ATIVA */}
+                    {lastScanResult.canChargeDayPass && lastScanResult.student && (
+                      <div className="mt-5 pt-4 border-t border-amber-500/30 space-y-4">
+                        <div className="p-4 rounded-2xl bg-card border border-border/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold text-muted-foreground">
+                                Saldo na Carteira do Aluno:
+                              </span>
+                              <span className="text-sm font-bold text-emerald-500 flex items-center gap-1">
+                                <Wallet className="w-3.5 h-3.5" />
+                                {formatBRL(lastScanResult.studentBalance ?? 0)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold text-muted-foreground">
+                                Valor do Day Pass:
+                              </span>
+                              <span className="text-base font-bold text-foreground">
+                                {formatBRL(
+                                  dayPassCustomAmount ||
+                                    lastScanResult.dayPassPrice ||
+                                    dayPassPriceData?.dayPassPrice ||
+                                    25.0,
+                                )}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {lastScanResult.hasEnoughBalance !== false ? (
+                              <Button
+                                variant="hero"
+                                size="lg"
+                                onClick={() =>
+                                  chargeDayPassMutation.mutate({
+                                    studentIdentifier: lastScanResult.student!.id,
+                                    customAmount: dayPassCustomAmount ? Number(dayPassCustomAmount) : undefined,
+                                  })
+                                }
+                                disabled={chargeDayPassMutation.isPending}
+                                className="rounded-2xl gap-2 font-bold px-6 shadow-glow-blue bg-emerald-600 hover:bg-emerald-700 text-white"
+                              >
+                                {chargeDayPassMutation.isPending ? (
+                                  <RefreshCw className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Zap className="w-4 h-4 fill-current" />
+                                )}
+                                Debitar da Carteira & Liberar Entrada
+                              </Button>
+                            ) : (
+                              <div className="p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs">
+                                <strong>Saldo insuficiente na carteira:</strong> Aluno possui{' '}
+                                {formatBRL(lastScanResult.studentBalance ?? 0)}. Peça para ele adicionar saldo no app.
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -78,7 +78,45 @@ export interface GymAccessLog {
 
 export interface ValidateAccessResponse {
   granted: boolean;
+  isDayPass?: boolean;
+  canChargeDayPass?: boolean;
+  dayPassPrice?: number;
+  studentBalance?: number;
+  hasEnoughBalance?: boolean;
   reason?: string;
+  student?: {
+    id: string;
+    name: string;
+    email: string;
+    avatarUrl?: string;
+    cpf?: string;
+  };
+  enrollment?: {
+    id: string;
+    planName: string;
+    startDate: string;
+    endDate: string;
+    daysRemaining: number;
+    status: EnrollmentStatus;
+  };
+  accessLogId?: string;
+  message: string;
+}
+
+export interface ChargeDayPassDto {
+  studentIdentifier: string;
+  customAmount?: number;
+  deviceInfo?: string;
+}
+
+export interface ChargeDayPassResponse {
+  granted: boolean;
+  isDayPass: boolean;
+  reason?: string;
+  amountDebited?: number;
+  requiredAmount?: number;
+  currentBalance?: number;
+  newBalance?: number;
   student?: {
     id: string;
     name: string;
@@ -239,6 +277,17 @@ export async function validateGymAccess(dto: ValidateAccessDto): Promise<Validat
     method: 'POST',
     body: dto,
   });
+}
+
+export async function chargeGymDayPass(dto: ChargeDayPassDto): Promise<ChargeDayPassResponse> {
+  return apiRequest<ChargeDayPassResponse>('/memberships/charge-daypass', {
+    method: 'POST',
+    body: dto,
+  });
+}
+
+export async function getMyGymDayPassPrice(): Promise<{ dayPassPrice: number }> {
+  return apiRequest<{ dayPassPrice: number }>('/memberships/daypass-price/my');
 }
 
 export async function getGymAccessLogs(limit = 40): Promise<GymAccessLog[]> {
