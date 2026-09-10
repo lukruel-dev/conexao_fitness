@@ -188,3 +188,29 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--primary) / 0.8);
 }
+
+/* Html5Qrcode Reader Custom Styles */
+#cf-html5-qr-reader {
+  border: none !important;
+  background: transparent !important;
+  width: 100% !important;
+}
+
+#cf-html5-qr-reader img {
+  display: none !important;
+}
+
+#cf-html5-qr-reader video {
+  border-radius: 1.5rem !important;
+  object-fit: cover !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#cf-html5-qr-reader__scan_region {
+  background: transparent !important;
+}
+
+#cf-html5-qr-reader__dashboard {
+  display: none !important;
+}
