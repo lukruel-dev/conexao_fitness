@@ -30,6 +30,11 @@ export class ManualEnrollmentDto {
   @IsOptional()
   studentCpf?: string;
 
+  @ApiPropertyOptional({ description: 'Foto do aluno capturada na câmera ou enviada por arquivo' })
+  @IsString()
+  @IsOptional()
+  studentPhotoUrl?: string;
+
   @ApiPropertyOptional({ description: 'ID do plano da academia (se houver)' })
   @IsString()
   @IsOptional()
@@ -63,4 +68,8 @@ export class ManualEnrollmentDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @ApiPropertyOptional({ description: 'Enviar notificação de confirmação para o app do aluno' })
+  @IsOptional()
+  notifyStudent?: boolean;
 }

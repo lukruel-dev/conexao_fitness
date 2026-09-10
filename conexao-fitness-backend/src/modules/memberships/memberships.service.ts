@@ -290,16 +290,76 @@ export class MembershipsService {
     return saved;
   }
 
+  async lookupStudent(query: string): Promise<{
+    found: boolean;
+    student?: {
+      id: string;
+      name: string;
+      email: string;
+      cpf?: string;
+      avatarUrl?: string;
+    };
+  }> {
+    if (!query || !query.trim()) {
+      return { found: false };
+    }
+
+    const clean = query.trim();
+    const cleanNumbers = clean.replace(/\D/g, '');
+
+    const qb = this.userRepo.createQueryBuilder('u');
+
+    if (cleanNumbers.length >= 6) {
+      qb.where('REPLACE(REPLACE(REPLACE(u.cpf, \'.\', \'\'), \'-\', \'\'), \'/\', \'\') LIKE :cpfNum', {
+        cpfNum: `%${cleanNumbers}%`,
+      });
+    } else {
+      qb.where('LOWER(u.email) = :query OR LOWER(u.name) LIKE :likeQuery', {
+        query: clean.toLowerCase(),
+        likeQuery: `%${clean.toLowerCase()}%`,
+      });
+    }
+
+    const student = await qb.getOne();
+
+    if (!student) {
+      return { found: false };
+    }
+
+    return {
+      found: true,
+      student: {
+        id: student.id,
+        name: student.name,
+        email: student.email,
+        cpf: student.cpf,
+        avatarUrl: student.avatarUrl,
+      },
+    };
+  }
+
   async createManualEnrollment(
     academiaId: string,
     dto: ManualEnrollmentDto,
   ): Promise<GymEnrollment> {
     await this.assertGymPlanAccess(academiaId);
 
+    const academia = await this.userRepo.findOneBy({ id: academiaId });
+
     let student: User | null = null;
     if (dto.studentId) {
       student = await this.userRepo.findOneBy({ id: dto.studentId });
-    } else if (dto.studentEmail) {
+    } else if (dto.studentCpf) {
+      const cleanCpf = dto.studentCpf.replace(/\D/g, '');
+      student = await this.userRepo
+        .createQueryBuilder('u')
+        .where('REPLACE(REPLACE(REPLACE(u.cpf, \'.\', \'\'), \'-\', \'\'), \'/\', \'\') = :cpf', {
+          cpf: cleanCpf,
+        })
+        .getOne();
+    }
+    
+    if (!student && dto.studentEmail) {
       student = await this.userRepo.findOneBy({ email: dto.studentEmail.toLowerCase().trim() });
     }
 
@@ -313,11 +373,15 @@ export class MembershipsService {
         name: dto.studentName,
         email: tempEmail,
         cpf: dto.studentCpf,
+        avatarUrl: dto.studentPhotoUrl || undefined,
         role: 'STUDENT',
         status: 'ATIVO',
         passwordHash: '$2a$10$TempPasswordHashConexaoFitnessPass1234567890123456789012',
       });
       student = await this.userRepo.save(student);
+    } else if (dto.studentPhotoUrl && (!student.avatarUrl || dto.studentPhotoUrl.startsWith('data:') || dto.studentPhotoUrl.startsWith('http'))) {
+      student.avatarUrl = dto.studentPhotoUrl;
+      await this.userRepo.save(student);
     }
 
     const now = new Date();
@@ -341,6 +405,21 @@ export class MembershipsService {
     });
 
     const saved = await this.enrollmentRepo.save(enrollment);
+
+    // Enviar notificação para o aluno no aplicativo Finex para confirmar / visualizar a matrícula
+    if (student.id && academia) {
+      try {
+        await this.notificationsService.createNotification({
+          userId: student.id,
+          type: 'BOOKING_CONFIRMED',
+          title: 'Matrícula Realizada na Academia!',
+          content: `A academia ${academia.name} realizou sua matrícula no plano "${dto.planName}". Seu QR Code de acesso já está disponível no seu app Finex!`,
+          referenceId: saved.id,
+        });
+      } catch (err: any) {
+        this.logger.warn(`Erro ao enviar notificação de matrícula manual: ${err.message}`);
+      }
+    }
 
     this.logger.log(
       `Matrícula manual no balcão: Aluno ${student.name} -> Academia ${academiaId} (${dto.planName})`,

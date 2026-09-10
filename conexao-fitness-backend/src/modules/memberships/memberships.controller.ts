@@ -111,6 +111,14 @@ export class MembershipsController {
     return this.membershipsService.enrollOnline(user.id, academiaId, dto);
   }
 
+  @ApiOperation({ summary: 'Buscar aluno cadastrado no Finex por CPF ou e-mail' })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('lookup-student')
+  async lookupStudent(@Query('query') query: string) {
+    return this.membershipsService.lookupStudent(query);
+  }
+
   @ApiOperation({ summary: 'Academia cadastra matrícula manual no balcão' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)

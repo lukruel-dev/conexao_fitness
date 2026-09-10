@@ -171,12 +171,14 @@ export interface ManualEnrollmentDto {
   studentName: string;
   studentEmail: string;
   studentCpf?: string;
+  studentPhotoUrl?: string;
   planId?: string;
   planName: string;
   amountPaid: number;
   durationDays: number;
   paymentMethod?: EnrollmentPaymentMethod;
   notes?: string;
+  notifyStudent?: boolean;
 }
 
 export interface ValidateAccessDto {
@@ -193,6 +195,17 @@ export interface RenewEnrollmentDto {
 export interface FilterEnrollmentsDto {
   status?: EnrollmentStatus;
   search?: string;
+}
+
+export interface LookupStudentResponse {
+  found: boolean;
+  student?: {
+    id: string;
+    name: string;
+    email: string;
+    cpf?: string;
+    avatarUrl?: string;
+  };
 }
 
 // =========================================================================
@@ -228,6 +241,16 @@ export async function enrollOnline(academiaId: string, dto: EnrollOnlineDto): Pr
     method: 'POST',
     body: dto,
   });
+}
+
+export async function lookupFinexStudent(query: string): Promise<LookupStudentResponse> {
+  try {
+    return await apiRequest<LookupStudentResponse>('/memberships/lookup-student', {
+      query: { query },
+    });
+  } catch (e) {
+    return { found: false };
+  }
 }
 
 export async function createManualEnrollment(dto: ManualEnrollmentDto): Promise<GymEnrollment> {

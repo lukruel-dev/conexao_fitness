@@ -43,6 +43,7 @@ import {
   chargeGymDayPass,
   getMyGymDayPassPrice,
   getGymAccessLogs,
+  lookupFinexStudent,
   EnrollmentStatus,
   GymEnrollment,
   MembershipPlan,
@@ -91,6 +92,11 @@ import {
   Save,
   Eye,
   Trash2,
+  Upload,
+  UserPlus,
+  BellRing,
+  X,
+  Check,
 } from 'lucide-react';
 
 export default function GestaoAcademia() {
@@ -117,17 +123,35 @@ export default function GestaoAcademia() {
     benefits: 'Acesso Livre, Vestiários, Avaliação Física',
   });
 
-  // Estados de Matrícula Manual
+  // Estados de Matrícula Manual, Busca por CPF Finex e Foto
   const [manualForm, setManualForm] = useState({
+    studentId: '',
     studentName: '',
     studentEmail: '',
     studentCpf: '',
+    studentPhotoUrl: '',
     planId: '',
     planName: 'Plano Mensal Balcão',
     amountPaid: 99.9,
     durationDays: 30,
     notes: '',
+    notifyStudent: true,
   });
+
+  const [foundStudent, setFoundStudent] = useState<{
+    id: string;
+    name: string;
+    email: string;
+    cpf?: string;
+    avatarUrl?: string;
+  } | null>(null);
+  const [isSearchingCpf, setIsSearchingCpf] = useState(false);
+
+  // Câmera para captura de foto presencial do aluno
+  const [isPhotoCameraOpen, setIsPhotoCameraOpen] = useState(false);
+  const photoVideoRef = useRef<HTMLVideoElement | null>(null);
+  const photoCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const photoStreamRef = useRef<MediaStream | null>(null);
 
   // Estados de Renovação
   const [renewForm, setRenewForm] = useState({
@@ -452,33 +476,134 @@ export default function GestaoAcademia() {
     onError: (err: Error) => toast.error('Erro ao desativar plano', { description: err.message }),
   });
 
+  // Funções para Captura de Foto do Aluno Presencial
+  const startPhotoCamera = async () => {
+    try {
+      setIsPhotoCameraOpen(true);
+      await new Promise((r) => setTimeout(r, 150));
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+      });
+      photoStreamRef.current = stream;
+      if (photoVideoRef.current) {
+        photoVideoRef.current.srcObject = stream;
+      }
+    } catch (e: any) {
+      toast.error('Não foi possível acessar a câmera para foto.', { description: e.message });
+      setIsPhotoCameraOpen(false);
+    }
+  };
+
+  const stopPhotoCamera = () => {
+    if (photoStreamRef.current) {
+      photoStreamRef.current.getTracks().forEach((track) => track.stop());
+      photoStreamRef.current = null;
+    }
+    setIsPhotoCameraOpen(false);
+  };
+
+  const capturePhoto = () => {
+    if (photoVideoRef.current && photoCanvasRef.current) {
+      const video = photoVideoRef.current;
+      const canvas = photoCanvasRef.current;
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setManualForm((prev) => ({ ...prev, studentPhotoUrl: dataUrl }));
+        toast.success('Foto do aluno capturada com sucesso!');
+      }
+    }
+    stopPhotoCamera();
+  };
+
+  const handlePhotoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('A foto deve ter no máximo 5MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setManualForm((prev) => ({ ...prev, studentPhotoUrl: event.target?.result as string }));
+        toast.success('Foto carregada com sucesso!');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCpfLookup = async (cpfVal: string) => {
+    const cleanNumbers = cpfVal.replace(/\D/g, '');
+    if (cleanNumbers.length < 6) return;
+
+    setIsSearchingCpf(true);
+    try {
+      const res = await lookupFinexStudent(cpfVal);
+      if (res.found && res.student) {
+        setFoundStudent(res.student);
+        setManualForm((prev) => ({
+          ...prev,
+          studentCpf: cpfVal,
+          studentName: res.student!.name,
+          studentEmail: res.student!.email,
+          studentId: res.student!.id,
+          studentPhotoUrl: res.student!.avatarUrl || prev.studentPhotoUrl,
+        }));
+        toast.success(`Aluno Finex localizado: ${res.student.name}`, {
+          description: 'Dados preenchidos automaticamente. Notificação será enviada ao aluno.',
+        });
+      } else {
+        setFoundStudent(null);
+      }
+    } catch (e) {
+      setFoundStudent(null);
+    } finally {
+      setIsSearchingCpf(false);
+    }
+  };
+
   // Mutação para Matrícula Manual
   const manualEnrollMutation = useMutation({
     mutationFn: () =>
       createManualEnrollment({
+        studentId: manualForm.studentId || undefined,
         studentName: manualForm.studentName,
         studentEmail: manualForm.studentEmail,
         studentCpf: manualForm.studentCpf || undefined,
+        studentPhotoUrl: manualForm.studentPhotoUrl || undefined,
         planId: manualForm.planId || undefined,
         planName: manualForm.planName,
         amountPaid: Number(manualForm.amountPaid),
         durationDays: Number(manualForm.durationDays),
         notes: manualForm.notes || undefined,
+        notifyStudent: manualForm.notifyStudent,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['gym-enrollments'] });
       qc.invalidateQueries({ queryKey: ['gym-dashboard-stats'] });
-      toast.success('Matrícula cadastrada com sucesso!');
+      qc.invalidateQueries({ queryKey: ['wallet-statement'] });
+      toast.success('Matrícula cadastrada com sucesso!', {
+        description: `QR Code gerado e notificação enviada para ${manualForm.studentName}.`,
+      });
+      stopPhotoCamera();
       setManualEnrollmentOpen(false);
+      setFoundStudent(null);
       setManualForm({
+        studentId: '',
         studentName: '',
         studentEmail: '',
         studentCpf: '',
+        studentPhotoUrl: '',
         planId: '',
         planName: 'Plano Mensal Balcão',
         amountPaid: 99.9,
         durationDays: 30,
         notes: '',
+        notifyStudent: true,
       });
     },
     onError: (err: Error) => toast.error('Erro ao cadastrar matrícula', { description: err.message }),
@@ -2188,94 +2313,370 @@ export default function GestaoAcademia() {
         </DialogContent>
       </Dialog>
 
-      {/* MODAL: NOVA MATRÍCULA NO BALCÃO */}
-      <Dialog open={manualEnrollmentOpen} onOpenChange={setManualEnrollmentOpen}>
-        <DialogContent className="max-w-md bg-card rounded-3xl border-border p-6 shadow-2xl">
+      {/* MODAL: NOVA MATRÍCULA NO BALCÃO COM FOTO PRESENCIAL E BUSCA POR CPF FINEX */}
+      <Dialog
+        open={manualEnrollmentOpen}
+        onOpenChange={(o) => {
+          if (!o) stopPhotoCamera();
+          setManualEnrollmentOpen(o);
+        }}
+      >
+        <DialogContent className="max-w-lg bg-card rounded-3xl border-border p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-display text-xl font-bold">
-              Nova Matrícula no Balcão
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-primary/10 text-primary border border-primary/20 flex items-center gap-1">
+                <UserPlus className="w-3 h-3" /> Balcão & Recepção
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/30">
+                Acesso Catraca
+              </span>
+            </div>
+            <DialogTitle className="font-display text-xl font-bold text-foreground">
+              Nova Matrícula Presencial
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Cadastre o aluno e gere o QR Code de acesso instantaneamente.
+              Identifique o aluno pelo CPF Finex ou cadastre os dados, capture a foto presencial e ative o acesso.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 pt-2">
-            <div>
-              <Label className="text-xs font-semibold">Nome Completo do Aluno *</Label>
-              <Input
-                placeholder="Ex: Lucas Ferreira"
-                value={manualForm.studentName}
-                onChange={(e) => setManualForm({ ...manualForm, studentName: e.target.value })}
-                className="rounded-xl mt-1 text-xs"
-              />
+            {/* SEÇÃO 1: FOTO DO ALUNO (PRESENCIAL / WEBCAM OU UPLOAD) */}
+            <div className="bg-muted/40 border border-border/70 p-4 rounded-2xl space-y-3">
+              <Label className="text-xs font-bold text-foreground flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Camera className="w-3.5 h-3.5 text-primary" /> Foto do Aluno (Reconhecimento / Catraca)
+                </span>
+                {manualForm.studentPhotoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setManualForm((prev) => ({ ...prev, studentPhotoUrl: '' }))}
+                    className="text-[11px] text-red-500 hover:underline flex items-center gap-0.5"
+                  >
+                    <X className="w-3 h-3" /> Remover foto
+                  </button>
+                )}
+              </Label>
+
+              {/* Pré-visualização da Câmera ao Vivo */}
+              {isPhotoCameraOpen ? (
+                <div className="space-y-2.5">
+                  <div className="relative w-full aspect-video sm:aspect-[4/3] bg-black rounded-xl overflow-hidden border-2 border-primary shadow-inner flex items-center justify-center">
+                    <video
+                      ref={photoVideoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover scale-x-[-1]"
+                    />
+                    {/* Guia de enquadramento facial */}
+                    <div className="absolute inset-0 border-2 border-white/30 rounded-full w-36 h-48 m-auto pointer-events-none border-dashed" />
+                  </div>
+                  <canvas ref={photoCanvasRef} className="hidden" />
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="hero"
+                      size="sm"
+                      onClick={capturePhoto}
+                      className="flex-1 rounded-xl text-xs font-bold gap-1.5 py-2.5 shadow-md shadow-primary/20"
+                    >
+                      <Camera className="w-4 h-4" /> Capturar Foto Agora
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={stopPhotoCamera}
+                      className="rounded-xl text-xs"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4">
+                  {/* Avatar / Foto capturada */}
+                  {manualForm.studentPhotoUrl ? (
+                    <div className="relative w-16 h-16 rounded-2xl overflow-hidden border-2 border-primary shrink-0 shadow-md">
+                      <img
+                        src={manualForm.studentPhotoUrl}
+                        alt="Foto do Aluno"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute bottom-0 inset-x-0 bg-black/60 text-[9px] text-center text-white py-0.5 font-bold">
+                        OK
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-2xl bg-muted border border-dashed border-border/80 flex flex-col items-center justify-center text-muted-foreground shrink-0">
+                      <Camera className="w-6 h-6 mb-0.5 opacity-40" />
+                      <span className="text-[9px] font-medium">Sem foto</span>
+                    </div>
+                  )}
+
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={startPhotoCamera}
+                        className="rounded-xl text-xs gap-1.5 font-semibold border-primary/30 text-primary hover:bg-primary/10"
+                      >
+                        <Camera className="w-3.5 h-3.5" /> Tirar Foto na Webcam
+                      </Button>
+
+                      <label className="cursor-pointer">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          asChild
+                          className="rounded-xl text-xs gap-1.5 font-semibold text-muted-foreground hover:text-foreground"
+                        >
+                          <span>
+                            <Upload className="w-3.5 h-3.5" /> Enviar Arquivo
+                          </span>
+                        </Button>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoFileUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      A foto facilitará o reconhecimento na catraca e portaria da academia.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div>
-              <Label className="text-xs font-semibold">E-mail do Aluno *</Label>
-              <Input
-                placeholder="Ex: aluno@email.com"
-                value={manualForm.studentEmail}
-                onChange={(e) => setManualForm({ ...manualForm, studentEmail: e.target.value })}
-                className="rounded-xl mt-1 text-xs"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
+            {/* SEÇÃO 2: IDENTIFICAÇÃO DO ALUNO / BUSCA POR CPF FINEX */}
+            <div className="space-y-3">
               <div>
-                <Label className="text-xs font-semibold">CPF (Opcional)</Label>
+                <Label className="text-xs font-semibold flex items-center justify-between">
+                  <span>CPF do Aluno (Busca Automática de Conta Finex)</span>
+                  {isSearchingCpf && (
+                    <span className="text-[10px] text-primary animate-pulse flex items-center gap-1">
+                      <RefreshCw className="w-2.5 h-2.5 animate-spin" /> Buscando conta...
+                    </span>
+                  )}
+                </Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    placeholder="000.000.000-00"
+                    value={manualForm.studentCpf}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setManualForm({ ...manualForm, studentCpf: val });
+                      if (val.replace(/\D/g, '').length >= 11) {
+                        handleCpfLookup(val);
+                      }
+                    }}
+                    onBlur={() => {
+                      if (manualForm.studentCpf) {
+                        handleCpfLookup(manualForm.studentCpf);
+                      }
+                    }}
+                    className="rounded-xl text-xs font-mono"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCpfLookup(manualForm.studentCpf)}
+                    disabled={isSearchingCpf || !manualForm.studentCpf}
+                    className="rounded-xl text-xs shrink-0 font-semibold"
+                  >
+                    Buscar CPF
+                  </Button>
+                </div>
+              </div>
+
+              {/* Card de Aluno Finex Encontrado */}
+              {foundStudent && (
+                <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3 animate-in fade-in duration-300">
+                  <div className="flex items-center gap-2.5 overflow-hidden">
+                    {foundStudent.avatarUrl ? (
+                      <img
+                        src={foundStudent.avatarUrl}
+                        alt={foundStudent.name}
+                        className="w-10 h-10 rounded-xl object-cover border border-emerald-500/40 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-500 font-bold flex items-center justify-center shrink-0 text-xs">
+                        {foundStudent.name.slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="truncate">
+                      <p className="font-bold text-xs text-foreground flex items-center gap-1 truncate">
+                        <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> {foundStudent.name}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate">{foundStudent.email}</p>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white shrink-0">
+                    Conta Finex
+                  </span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs font-semibold">Nome Completo do Aluno *</Label>
+                  <Input
+                    placeholder="Ex: Lucas Ferreira"
+                    value={manualForm.studentName}
+                    onChange={(e) => setManualForm({ ...manualForm, studentName: e.target.value })}
+                    className="rounded-xl mt-1 text-xs"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold">E-mail do Aluno *</Label>
+                  <Input
+                    type="email"
+                    placeholder="Ex: aluno@email.com"
+                    value={manualForm.studentEmail}
+                    onChange={(e) => setManualForm({ ...manualForm, studentEmail: e.target.value })}
+                    className="rounded-xl mt-1 text-xs"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* SEÇÃO 3: PLANO E VALORES */}
+            <div className="space-y-3 pt-2 border-t border-border/50">
+              {/* Seleção rápida de planos existentes da academia */}
+              {plansData && plansData.length > 0 && (
+                <div>
+                  <Label className="text-xs font-semibold">Selecione o Plano da Academia</Label>
+                  <select
+                    value={manualForm.planId}
+                    onChange={(e) => {
+                      const selPlan = plansData.find((p) => p.id === e.target.value);
+                      if (selPlan) {
+                        setManualForm({
+                          ...manualForm,
+                          planId: selPlan.id,
+                          planName: selPlan.name,
+                          amountPaid: Number(selPlan.price),
+                          durationDays: selPlan.durationDays,
+                        });
+                      } else {
+                        setManualForm({ ...manualForm, planId: '' });
+                      }
+                    }}
+                    className="w-full h-9 px-3 rounded-xl bg-background border border-input text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring mt-1"
+                  >
+                    <option value="">Personalizado / Outro plano</option>
+                    {plansData.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} — R$ {Number(p.price).toFixed(2)} ({p.durationDays} dias)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <Label className="text-xs font-semibold">Nome do Plano *</Label>
+                  <Input
+                    value={manualForm.planName}
+                    onChange={(e) => setManualForm({ ...manualForm, planName: e.target.value })}
+                    className="rounded-xl mt-1 text-xs"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold">Valor Cobrado (R$) *</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={manualForm.amountPaid}
+                    onChange={(e) => setManualForm({ ...manualForm, amountPaid: Number(e.target.value) })}
+                    className="rounded-xl mt-1 text-xs font-bold"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold">Duração (Dias) *</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={manualForm.durationDays}
+                    onChange={(e) => setManualForm({ ...manualForm, durationDays: Number(e.target.value) })}
+                    className="rounded-xl mt-1 text-xs"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-xs font-semibold">Observações Internas (Opcional)</Label>
                 <Input
-                  placeholder="000.000.000-00"
-                  value={manualForm.studentCpf}
-                  onChange={(e) => setManualForm({ ...manualForm, studentCpf: e.target.value })}
+                  placeholder="Ex: Pagamento no balcão em dinheiro / PIX presencial"
+                  value={manualForm.notes}
+                  onChange={(e) => setManualForm({ ...manualForm, notes: e.target.value })}
                   className="rounded-xl mt-1 text-xs"
                 />
               </div>
 
-              <div>
-                <Label className="text-xs font-semibold">Duração (Dias) *</Label>
-                <Input
-                  type="number"
-                  value={manualForm.durationDays}
-                  onChange={(e) => setManualForm({ ...manualForm, durationDays: Number(e.target.value) })}
-                  className="rounded-xl mt-1 text-xs"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs font-semibold">Nome do Plano *</Label>
-                <Input
-                  value={manualForm.planName}
-                  onChange={(e) => setManualForm({ ...manualForm, planName: e.target.value })}
-                  className="rounded-xl mt-1 text-xs"
-                />
-              </div>
-
-              <div>
-                <Label className="text-xs font-semibold">Valor Cobrado (R$) *</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={manualForm.amountPaid}
-                  onChange={(e) => setManualForm({ ...manualForm, amountPaid: Number(e.target.value) })}
-                  className="rounded-xl mt-1 text-xs"
-                />
+              {/* ALERTA DE NOTIFICAÇÃO AO ALUNO */}
+              <div className="p-3 rounded-2xl bg-primary/5 border border-primary/20 flex items-start gap-2.5 text-xs text-muted-foreground">
+                <BellRing className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-foreground">Confirmação Instantânea no App Finex</p>
+                  <p className="text-[11px] mt-0.5">
+                    O aluno receberá uma notificação em sua conta Finex com o comprovante e seu QR Code de acesso à catraca já liberado.
+                  </p>
+                </div>
               </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-4 border-t border-border/40">
-              <Button variant="ghost" onClick={() => setManualEnrollmentOpen(false)} className="rounded-xl text-xs">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  stopPhotoCamera();
+                  setManualEnrollmentOpen(false);
+                }}
+                className="rounded-xl text-xs"
+              >
                 Cancelar
               </Button>
               <Button
+                type="button"
                 variant="hero"
                 onClick={() => manualEnrollMutation.mutate()}
-                disabled={manualEnrollMutation.isPending || !manualForm.studentName.trim() || !manualForm.studentEmail.trim()}
-                className="rounded-xl text-xs"
+                disabled={
+                  manualEnrollMutation.isPending ||
+                  !manualForm.studentName.trim() ||
+                  !manualForm.studentEmail.trim() ||
+                  !manualForm.planName.trim()
+                }
+                className="rounded-xl text-xs font-bold gap-2 shadow-lg shadow-primary/20 px-5"
               >
-                {manualEnrollMutation.isPending ? 'Cadastrando...' : 'Cadastrar e Liberar Acesso'}
+                {manualEnrollMutation.isPending ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Cadastrando...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4" /> Cadastrar & Notificar Aluno
+                  </>
+                )}
               </Button>
             </div>
           </div>
