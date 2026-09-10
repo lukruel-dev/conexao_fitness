@@ -81,7 +81,7 @@ export default function MinhasMatriculas() {
                 Quer fazer um Treino Avulso sem burocracia?
               </h3>
               <p className="text-xs text-muted-foreground max-w-xl leading-relaxed">
-                Apresente seu QR Code na recepção de qualquer academia parceira e o valor do <strong>Day Pass é descontado diretamente da sua carteira</strong>, sem precisar preencher cadastros!
+                Apresente seu QR Code na recepção de qualquer academia parceira cadastrada na plataforma e o valor do <strong>Day Pass é descontado diretamente da sua carteira</strong>, sem precisar preencher cadastros!
               </p>
             </div>
           </div>

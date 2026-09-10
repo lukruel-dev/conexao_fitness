@@ -184,7 +184,7 @@ export default function Carteira() {
 
             <div className="mt-5 pt-5 border-t border-border/60 w-full flex flex-col items-center gap-2.5">
               <p className="text-xs text-muted-foreground text-center">
-                Apresente seu QR Code na catraca de qualquer academia para debitar seu Day Pass instantaneamente.
+                Apresente seu QR Code na catraca de qualquer academia cadastrada na plataforma para debitar seu Day Pass instantaneamente.
               </p>
               <Button
                 type="button"

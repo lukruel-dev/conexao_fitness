@@ -176,8 +176,8 @@ export const FinexDayPassQrModal: React.FC<FinexDayPassQrModalProps> = ({
               Como funciona o Treino Avulso?
             </div>
             <ol className="list-decimal list-inside space-y-1 text-muted-foreground text-[11.5px] leading-relaxed">
-              <li>Informe na recepção da academia que deseja pagar o <strong>Day Pass com o Finex</strong>.</li>
-              <li>Apresente este QR Code para o balconista ler com a câmera.</li>
+              <li>Informe na recepção da academia parceira cadastrada que deseja pagar o <strong>Day Pass com o Finex</strong>.</li>
+              <li>Apresente este QR Code para o balconista ler com a câmera do app ou totem.</li>
               <li>O valor do Day Pass é <strong>descontado na hora do seu saldo</strong> e seu acesso é liberado sem burocracia ou cadastro prévio na academia!</li>
             </ol>
           </div>

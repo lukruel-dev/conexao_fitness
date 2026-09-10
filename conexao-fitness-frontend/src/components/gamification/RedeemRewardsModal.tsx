@@ -253,7 +253,7 @@ export const RedeemRewardsModal: React.FC<RedeemRewardsModalProps> = ({
                           <h4 className="font-bold text-sm text-foreground">1 Day Pass Cortesia para Amigo</h4>
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          Traga um amigo ou parceiro de treino para treinar com você de graça em qualquer academia conveniada!
+                          Traga um amigo ou parceiro de treino para treinar com você de graça em qualquer academia cadastrada na plataforma!
                         </p>
                       </div>
                     </div>
