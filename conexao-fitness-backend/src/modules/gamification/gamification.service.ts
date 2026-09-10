@@ -86,6 +86,7 @@ export class GamificationService implements OnApplicationBootstrap {
         title: 'Primeiro Passo',
         description: 'Concluiu seu primeiro treino ou check-in no Finex!',
         icon: 'Dumbbell',
+        pinEmoji: '🏋️',
         category: 'MILESTONE' as const,
         pointsReward: 50,
       },
@@ -94,14 +95,16 @@ export class GamificationService implements OnApplicationBootstrap {
         title: 'Pegando o Ritmo',
         description: 'Manteve uma sequência de 3 dias seguidos de treino.',
         icon: 'Flame',
+        pinEmoji: '🔥',
         category: 'STREAK' as const,
         pointsReward: 100,
       },
       {
         code: 'streak_7',
-        title: 'Imparável',
+        title: 'Guerreiro da Semana',
         description: 'Completou 7 dias seguidos de treino e foco!',
         icon: 'Zap',
+        pinEmoji: '⚡',
         category: 'STREAK' as const,
         pointsReward: 200,
       },
@@ -110,14 +113,16 @@ export class GamificationService implements OnApplicationBootstrap {
         title: 'Lenda do Fitness',
         description: 'Alcançou 30 dias consecutivos de disciplina de ferro!',
         icon: 'Trophy',
+        pinEmoji: '👑',
         category: 'STREAK' as const,
         pointsReward: 500,
       },
       {
         code: 'workouts_10',
-        title: 'Foco Total (10 Treinos)',
+        title: 'Foco de Ferro (10 Treinos)',
         description: 'Completou 10 treinos no ecossistema Finex.',
         icon: 'Award',
+        pinEmoji: '🛡️',
         category: 'MILESTONE' as const,
         pointsReward: 150,
       },
@@ -126,23 +131,58 @@ export class GamificationService implements OnApplicationBootstrap {
         title: 'Veterano dos Treinos (50 Treinos)',
         description: 'Completou 50 treinos registrados no Finex!',
         icon: 'Crown',
+        pinEmoji: '🏆',
         category: 'MILESTONE' as const,
         pointsReward: 400,
       },
       {
+        code: 'workouts_100',
+        title: 'Centurião Finex (100 Treinos)',
+        description: 'Completou 100 treinos! Atleta de elite.',
+        icon: 'Sparkles',
+        pinEmoji: '💎',
+        category: 'MILESTONE' as const,
+        pointsReward: 1000,
+      },
+      {
         code: 'points_collector',
-        title: 'Colecionador de Finex Points',
+        title: 'Colecionador de Pontos',
         description: 'Acumulou mais de 500 pontos no clube de recompensas.',
         icon: 'Sparkles',
+        pinEmoji: '⭐',
+        category: 'COMMUNITY' as const,
+        pointsReward: 100,
+      },
+      {
+        code: 'mystery_box_opened',
+        title: 'Caçador de Brindes',
+        description: 'Abriu sua primeira Caixa Misteriosa Finex!',
+        icon: 'Package',
+        pinEmoji: '🎁',
+        category: 'COMMUNITY' as const,
+        pointsReward: 100,
+      },
+      {
+        code: 'friend_invited',
+        title: 'Parceria de Treino',
+        description: 'Presenteou um amigo com um Day Pass Cortesia!',
+        icon: 'Users',
+        pinEmoji: '🤝',
         category: 'COMMUNITY' as const,
         pointsReward: 100,
       },
     ];
 
     for (const b of defaultBadges) {
-      const exists = await this.badgeRepo.findOne({ where: { code: b.code } });
-      if (!exists) {
-        await this.badgeRepo.save(this.badgeRepo.create(b));
+      let badge = await this.badgeRepo.findOne({ where: { code: b.code } });
+      if (!badge) {
+        badge = this.badgeRepo.create(b);
+        await this.badgeRepo.save(badge);
+      } else if (!badge.pinEmoji || badge.pinEmoji !== b.pinEmoji) {
+        badge.pinEmoji = b.pinEmoji;
+        badge.title = b.title;
+        badge.description = b.description;
+        await this.badgeRepo.save(badge);
       }
     }
   }
@@ -158,6 +198,8 @@ export class GamificationService implements OnApplicationBootstrap {
         pointsBalance: 100, // Bônus de boas-vindas
         lifetimePoints: 100,
         weeklyGoal: 4,
+        equippedBadgeCode: 'first_workout',
+        equippedPinEmoji: '🏋️',
       });
       record = await this.gamificationRepo.save(record);
 
@@ -174,7 +216,12 @@ export class GamificationService implements OnApplicationBootstrap {
   }
 
   async getGamificationSummary(userId: string) {
+    await this.seedDefaultBadges();
     const gamification = await this.getOrCreateGamification(userId);
+
+    // Avaliar e desbloquear conquistas pendentes
+    await this.checkAndAwardBadges(userId, gamification);
+
     const userBadges = await this.userBadgeRepo.find({
       where: { userId },
       relations: ['badge'],
@@ -203,11 +250,16 @@ export class GamificationService implements OnApplicationBootstrap {
       ...badge,
       isUnlocked: unlockedBadgeIds.has(badge.id),
       unlockedAt: userBadges.find((ub) => ub.badgeId === badge.id)?.unlockedAt || null,
+      isEquipped: gamification.equippedBadgeCode === badge.code,
     }));
 
     return {
       gamification,
       badges: badgesWithStatus,
+      equippedBadge: {
+        code: gamification.equippedBadgeCode,
+        pinEmoji: gamification.equippedPinEmoji || '🏅',
+      },
       recentTransactions,
       monthlyFriendPass: {
         canRedeem: !usedFriendPassThisMonth,
@@ -220,6 +272,52 @@ export class GamificationService implements OnApplicationBootstrap {
         availablePrizes: MYSTERY_BOX_PRIZES,
         canOpen: gamification.pointsBalance >= 1000,
       },
+    };
+  }
+
+  async equipBadge(userId: string, badgeCode: string | null) {
+    const gamification = await this.getOrCreateGamification(userId);
+
+    if (!badgeCode) {
+      gamification.equippedBadgeCode = null;
+      gamification.equippedPinEmoji = null;
+      await this.gamificationRepo.save(gamification);
+      return {
+        success: true,
+        message: 'Pin removido do perfil.',
+        equippedBadgeCode: null,
+        equippedPinEmoji: null,
+      };
+    }
+
+    const badge = await this.badgeRepo.findOne({ where: { code: badgeCode } });
+    if (!badge) {
+      throw new BadRequestException('Conquista não encontrada.');
+    }
+
+    const userBadge = await this.userBadgeRepo.findOne({
+      where: { userId, badgeId: badge.id },
+    });
+
+    // Se o usuário ainda não tiver o registro mas cumprir o critério, avalia
+    if (!userBadge && gamification.totalWorkouts === 0 && badgeCode === 'first_workout') {
+      // libera o primeiro badge como incentivo
+      const ub = this.userBadgeRepo.create({ userId, badgeId: badge.id });
+      await this.userBadgeRepo.save(ub);
+    } else if (!userBadge) {
+      throw new BadRequestException('Você precisa desbloquear esta conquista antes de equipar o pin.');
+    }
+
+    gamification.equippedBadgeCode = badge.code;
+    gamification.equippedPinEmoji = badge.pinEmoji || '🏅';
+    await this.gamificationRepo.save(gamification);
+
+    return {
+      success: true,
+      message: `Pin "${badge.title}" ${badge.pinEmoji} equipado no seu perfil!`,
+      equippedBadgeCode: badge.code,
+      equippedPinEmoji: badge.pinEmoji,
+      badgeTitle: badge.title,
     };
   }
 

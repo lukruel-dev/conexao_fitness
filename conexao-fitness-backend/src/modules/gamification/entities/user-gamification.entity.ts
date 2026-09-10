@@ -35,6 +35,12 @@ export class UserGamification {
   @Column({ type: 'int', default: 4 })
   weeklyGoal: number;
 
+  @Column({ type: 'varchar', nullable: true })
+  equippedBadgeCode: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  equippedPinEmoji: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

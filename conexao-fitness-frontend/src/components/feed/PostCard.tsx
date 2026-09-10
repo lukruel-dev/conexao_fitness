@@ -40,6 +40,7 @@ import {
 import { SharePostModal } from "./SharePostModal";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
 import type { Post, PostComment } from "@/types/community";
+import UserPinBadge from "@/components/UserPinBadge";
 
 interface PostCardProps {
   post: Post;
@@ -249,8 +250,9 @@ export const PostCard: React.FC<PostCardProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-sm text-foreground group-hover/author:text-primary group-hover/author:underline transition-colors">
-                {post.author?.name || "Usuário Conexão"}
+              <span className="font-bold text-sm text-foreground group-hover/author:text-primary group-hover/author:underline transition-colors flex items-center gap-1">
+                <span>{post.author?.name || "Usuário Conexão"}</span>
+                <UserPinBadge userId={post.author?.id} size="xs" />
               </span>
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                 {authorRoleLabel(post.author)}

@@ -45,4 +45,14 @@ export class GamificationController {
   ) {
     return this.gamificationService.redeemPoints(user.id, body);
   }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('equip-pin')
+  async equipPin(
+    @CurrentUser() user: any,
+    @Body() body: { badgeCode: string | null },
+  ) {
+    return this.gamificationService.equipBadge(user.id, body.badgeCode);
+  }
 }

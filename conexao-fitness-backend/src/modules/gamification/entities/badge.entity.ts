@@ -30,6 +30,9 @@ export class Badge {
   @Column({ type: 'int', default: 50 })
   pointsReward: number;
 
+  @Column({ type: 'varchar', default: '🏅' })
+  pinEmoji: string;
+
   @CreateDateColumn()
   createdAt: Date;
 }

@@ -8,6 +8,8 @@ export interface UserGamification {
   pointsBalance: number;
   lifetimePoints: number;
   weeklyGoal: number;
+  equippedBadgeCode?: string | null;
+  equippedPinEmoji?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -18,10 +20,12 @@ export interface Badge {
   title: string;
   description: string;
   icon: string;
+  pinEmoji: string;
   category: 'STREAK' | 'MILESTONE' | 'COMMUNITY' | 'EXPLORER';
   pointsReward: number;
   isUnlocked?: boolean;
   unlockedAt?: string | null;
+  isEquipped?: boolean;
 }
 
 export interface PointTransaction {
@@ -57,6 +61,10 @@ export interface MysteryBoxInfo {
 export interface GamificationSummary {
   gamification: UserGamification;
   badges: Badge[];
+  equippedBadge?: {
+    code: string | null;
+    pinEmoji: string;
+  };
   recentTransactions: PointTransaction[];
   monthlyFriendPass?: MonthlyFriendPassInfo;
   mysteryBox?: MysteryBoxInfo;

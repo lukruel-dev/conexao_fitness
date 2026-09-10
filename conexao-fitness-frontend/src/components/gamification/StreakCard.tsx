@@ -10,13 +10,14 @@ interface StreakCardProps {
   onRefresh?: () => void;
 }
 
-export const StreakCard: React.FC<StreakCardProps> = ({ gamification, badges = [] }) => {
+export const StreakCard: React.FC<StreakCardProps> = ({ gamification, badges = [], onRefresh }) => {
   const [isBadgesOpen, setIsBadgesOpen] = useState(false);
 
   const streak = gamification?.currentStreak || 0;
   const totalWorkouts = gamification?.totalWorkouts || 0;
   const points = gamification?.pointsBalance || 0;
   const unlockedBadgesCount = badges.filter((b) => b.isUnlocked).length;
+  const equippedPin = gamification?.equippedPinEmoji || localStorage.getItem('cf_equipped_pin') || '🏋️';
 
   return (
     <>
@@ -36,8 +37,9 @@ export const StreakCard: React.FC<StreakCardProps> = ({ gamification, badges = [
 
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-display font-bold text-lg text-foreground tracking-tight">
-                  {streak > 0 ? `${streak} Dias Seguidos!` : 'Comece seu Streak Hoje!'}
+                <h3 className="font-display font-bold text-lg text-foreground tracking-tight flex items-center gap-1.5">
+                  <span>{streak > 0 ? `${streak} Dias Seguidos!` : 'Comece seu Streak Hoje!'}</span>
+                  <span className="text-base" title="Seu Pin de Conquista">{equippedPin}</span>
                 </h3>
                 {streak >= 3 && (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 uppercase tracking-wider flex items-center gap-1">
@@ -78,7 +80,7 @@ export const StreakCard: React.FC<StreakCardProps> = ({ gamification, badges = [
               className="gap-1.5 h-9 text-xs border-primary/40 hover:bg-primary/10 font-semibold shadow-sm ml-2"
             >
               <Trophy className="w-3.5 h-3.5 text-primary" />
-              <span>Conquistas ({unlockedBadgesCount}/{badges.length || 7})</span>
+              <span>Pins & Conquistas ({unlockedBadgesCount}/{badges.length || 10})</span>
               <ChevronRight className="w-3 h-3 text-muted-foreground" />
             </Button>
           </div>
@@ -90,6 +92,8 @@ export const StreakCard: React.FC<StreakCardProps> = ({ gamification, badges = [
         onOpenChange={setIsBadgesOpen}
         badges={badges}
         streak={streak}
+        equippedBadgeCode={gamification?.equippedBadgeCode}
+        onBadgeEquipped={onRefresh}
       />
     </>
   );

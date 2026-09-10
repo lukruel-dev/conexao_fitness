@@ -44,6 +44,8 @@ import { CameraCaptureModal } from "@/components/CameraCaptureModal";
 import { isNativePlatform, captureNativePhoto } from "@/utils/nativeCamera";
 import { validateBioContent } from "@/lib/bioValidator";
 import { updateMyBio } from "@/services/users";
+import UserPinBadge from "@/components/UserPinBadge";
+import { BadgesModal } from "@/components/gamification/BadgesModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,6 +67,7 @@ const Perfil = () => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [isBadgesOpen, setIsBadgesOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"feed" | "settings">("feed");
 
   // Estado das postagens do perfil do usuário
@@ -346,7 +349,18 @@ const Perfil = () => {
 
               <div className="min-w-0 flex-1 space-y-2">
                 <div>
-                  <h1 className="font-display font-bold text-xl sm:text-2xl text-foreground truncate">{user.name}</h1>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h1 className="font-display font-bold text-xl sm:text-2xl text-foreground truncate">{user.name}</h1>
+                    <UserPinBadge showTitle size="sm" />
+                    <button
+                      type="button"
+                      onClick={() => setIsBadgesOpen(true)}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 border border-amber-500/30 text-[11px] font-bold transition-all"
+                    >
+                      <Trophy className="w-3 h-3" />
+                      <span>Trocar Pin</span>
+                    </button>
+                  </div>
                   <p className="text-xs sm:text-sm text-muted-foreground truncate">{user.email}</p>
                 </div>
 
@@ -763,6 +777,7 @@ const Perfil = () => {
           )}
         </div>
       </main>
+      <BadgesModal open={isBadgesOpen} onOpenChange={setIsBadgesOpen} />
       <Footer />
     </div>
   );

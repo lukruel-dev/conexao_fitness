@@ -6,6 +6,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import NotificationsBell from "@/components/NotificationsBell";
 import ThemeToggle from "@/components/ThemeToggle";
+import UserPinBadge from "@/components/UserPinBadge";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -206,7 +207,10 @@ const Header = () => {
             {isAuthenticated ? (
               <>
                 <NotificationsBell />
-                <span className="text-sm text-muted-foreground">Olá, {user?.name?.split(" ")[0] ?? ""}</span>
+                <span className="text-sm text-muted-foreground flex items-center gap-1">
+                  <span>Olá, {user?.name?.split(" ")[0] ?? ""}</span>
+                  <UserPinBadge />
+                </span>
                 <Button variant="ghost" size="sm" onClick={handleLogout}>
                   <LogOut className="w-4 h-4" />
                   Sair
@@ -226,8 +230,9 @@ const Header = () => {
 
           <div className="md:hidden flex items-center gap-1">
             {isAuthenticated && (
-              <span className="text-sm text-muted-foreground mr-1 font-medium truncate max-w-[80px]">
-                Olá, {user?.name?.split(" ")[0] ?? ""}
+              <span className="text-sm text-muted-foreground mr-1 font-medium flex items-center gap-1 max-w-[120px] truncate">
+                <span className="truncate">{user?.name?.split(" ")[0] ?? ""}</span>
+                <UserPinBadge size="xs" />
               </span>
             )}
             <ThemeToggle />
