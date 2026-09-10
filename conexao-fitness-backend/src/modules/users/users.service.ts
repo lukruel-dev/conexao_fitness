@@ -209,10 +209,7 @@ export class UsersService implements OnApplicationBootstrap {
       throw new Error('Usuário não é um PERSONAL');
     }
     
-    let profile = user.personalProfile;
-    if (!profile) {
-      profile = this.personalProfileRepo.create({ userId: user.id });
-    }
+    const profile = user.personalProfile ?? this.personalProfileRepo.create({ userId: user.id });
     
     profile.publicName = dto.publicName;
     profile.cref = dto.cref;
@@ -232,10 +229,7 @@ export class UsersService implements OnApplicationBootstrap {
       throw new Error('Usuário não é uma ACADEMIA');
     }
     
-    let profile = user.academiaProfile;
-    if (!profile) {
-      profile = this.academiaProfileRepo.create({ userId: user.id });
-    }
+    const profile = user.academiaProfile ?? this.academiaProfileRepo.create({ userId: user.id });
     
     profile.razaoSocial = dto.razaoSocial;
     profile.nomeFantasia = dto.nomeFantasia;
@@ -250,17 +244,11 @@ export class UsersService implements OnApplicationBootstrap {
     const user = await this.findOneOrFail(userId);
 
     if (user.role === 'PERSONAL') {
-      let profile = user.personalProfile;
-      if (!profile) {
-        profile = this.personalProfileRepo.create({ userId: user.id, publicName: user.name });
-      }
+      const profile = user.personalProfile ?? this.personalProfileRepo.create({ userId: user.id, publicName: user.name });
       profile.documentUrl = documentUrl;
       await this.personalProfileRepo.save(profile);
     } else if (user.role === 'ACADEMIA') {
-      let profile = user.academiaProfile;
-      if (!profile) {
-        profile = this.academiaProfileRepo.create({ userId: user.id, razaoSocial: user.name, nomeFantasia: user.name, cnpj: user.cpf || '' });
-      }
+      const profile = user.academiaProfile ?? this.academiaProfileRepo.create({ userId: user.id, razaoSocial: user.name, nomeFantasia: user.name, cnpj: user.cpf || '' });
       profile.documentUrl = documentUrl;
       await this.academiaProfileRepo.save(profile);
     }
@@ -286,14 +274,11 @@ export class UsersService implements OnApplicationBootstrap {
     await this.usersRepo.save(user);
 
     if (user.role === 'PERSONAL') {
-      let profile = user.personalProfile;
-      if (!profile) {
-        profile = this.personalProfileRepo.create({
-          userId: user.id,
-          publicName: user.name,
-          professionTitle: 'Personal Trainer',
-        });
-      }
+      const profile = user.personalProfile ?? this.personalProfileRepo.create({
+        userId: user.id,
+        publicName: user.name,
+        professionTitle: 'Personal Trainer',
+      });
       profile.bio = trimmedBio;
       await this.personalProfileRepo.save(profile);
     }
@@ -346,15 +331,12 @@ export class UsersService implements OnApplicationBootstrap {
       throw new BadRequestException('Apenas contas de Academia podem atualizar este perfil.');
     }
 
-    let profile = user.academiaProfile;
-    if (!profile) {
-      profile = this.academiaProfileRepo.create({
-        userId: user.id,
-        razaoSocial: dto.razaoSocial || user.name,
-        nomeFantasia: dto.nomeFantasia || user.name,
-        cnpj: dto.cnpj || user.cpf || '',
-      });
-    }
+    const profile = user.academiaProfile ?? this.academiaProfileRepo.create({
+      userId: user.id,
+      razaoSocial: dto.razaoSocial || user.name,
+      nomeFantasia: dto.nomeFantasia || user.name,
+      cnpj: dto.cnpj || user.cpf || '',
+    });
 
     if (dto.nomeFantasia !== undefined) profile.nomeFantasia = dto.nomeFantasia;
     if (dto.razaoSocial !== undefined) profile.razaoSocial = dto.razaoSocial;
