@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Navigate, Link } from 'react-router-dom';
+import jsQR from 'jsqr';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -79,6 +80,8 @@ import {
   Wallet,
   Zap,
   Coins,
+  SwitchCamera,
+  ScanLine,
 } from 'lucide-react';
 
 export default function GestaoAcademia() {
@@ -126,9 +129,15 @@ export default function GestaoAcademia() {
   // Estados da Catraca / Scanner
   const [manualCodeInput, setManualCodeInput] = useState('');
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
+  const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [scanSuccessPulse, setScanSuccessPulse] = useState(false);
   const [lastScanResult, setLastScanResult] = useState<ValidateAccessResponse | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const lastScannedRef = useRef<{ code: string; timestamp: number }>({ code: '', timestamp: 0 });
 
   const isGym = user?.role === 'ACADEMIA' || user?.role === 'ADMIN';
 
@@ -378,39 +387,157 @@ export default function GestaoAcademia() {
     onError: (err: Error) => toast.error('Erro ao alterar status', { description: err.message }),
   });
 
-  // Controle de Câmera para Scanner
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-      });
-      mediaStreamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
-      setIsCameraActive(true);
-      toast.info('Câmera ativada para leitura de QR Code');
-    } catch (err: any) {
-      toast.error('Não foi possível acessar a câmera', {
-        description: 'Verifique as permissões do navegador ou digite o código/CPF manualmente.',
-      });
+  // Controle de Câmera e Scanner QR
+  const stopCamera = useCallback(() => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
-  };
-
-  const stopCamera = () => {
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach((track) => track.stop());
       mediaStreamRef.current = null;
     }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
     setIsCameraActive(false);
+  }, []);
+
+  const startCamera = async (selectedFacingMode: 'environment' | 'user' = facingMode) => {
+    try {
+      setCameraError(null);
+
+      // Limpar stream anterior
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+        mediaStreamRef.current = null;
+      }
+
+      let stream: MediaStream | null = null;
+
+      // 1. Tentar com câmera traseira/ambiente
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: selectedFacingMode },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+          audio: false,
+        });
+      } catch (err1) {
+        // 2. Fallback para câmera genérica (ex: webcam de notebook/desktop)
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          });
+        } catch (err2: any) {
+          throw err2;
+        }
+      }
+
+      if (!stream) {
+        throw new Error('Não foi possível obter o fluxo de vídeo da câmera.');
+      }
+
+      mediaStreamRef.current = stream;
+      setIsCameraActive(true);
+
+      // Detectar se há múltiplas câmeras disponíveis
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoInputs = devices.filter((d) => d.kind === 'videoinput');
+        setHasMultipleCameras(videoInputs.length > 1);
+      } catch (e) {
+        // ignore
+      }
+
+      toast.info('Câmera ativada!', { description: 'Aponte para o QR Code do aluno.' });
+    } catch (err: any) {
+      console.error('Erro ao acessar a câmera:', err);
+      setCameraError(err.message || 'Permissão negada ou dispositivo de câmera não encontrado.');
+      setIsCameraActive(false);
+      toast.error('Não foi possível acessar a câmera', {
+        description: 'Permita o acesso à câmera no navegador ou use a digitação rápida abaixo.',
+      });
+    }
   };
+
+  const toggleCameraFacingMode = () => {
+    const next = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(next);
+    startCamera(next);
+  };
+
+  // Efeito para vincular a Stream ao elemento <video> e iniciar a leitura do jsQR
+  useEffect(() => {
+    if (!isCameraActive || !mediaStreamRef.current) return;
+
+    let isMounted = true;
+    const video = videoRef.current;
+    if (video) {
+      video.srcObject = mediaStreamRef.current;
+      video.setAttribute('playsinline', 'true');
+      video.play().catch((err) => console.warn('Erro ao reproduzir stream:', err));
+    }
+
+    const offscreenCanvas = document.createElement('canvas');
+    const ctx = offscreenCanvas.getContext('2d', { willReadFrequently: true });
+
+    const scanFrame = () => {
+      if (!isMounted) return;
+
+      const currentVideo = videoRef.current;
+      if (currentVideo && currentVideo.readyState === currentVideo.HAVE_ENOUGH_DATA && ctx) {
+        offscreenCanvas.width = currentVideo.videoWidth;
+        offscreenCanvas.height = currentVideo.videoHeight;
+        ctx.drawImage(currentVideo, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
+
+        const imageData = ctx.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+        const qr = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'dontInvert',
+        });
+
+        if (qr && qr.data && qr.data.trim()) {
+          const codeText = qr.data.trim();
+          const now = Date.now();
+          const last = lastScannedRef.current;
+
+          // Evitar leituras duplicadas no mesmo código por 3 segundos
+          if (codeText !== last.code || now - last.timestamp > 3000) {
+            lastScannedRef.current = { code: codeText, timestamp: now };
+            setScanSuccessPulse(true);
+            setTimeout(() => setScanSuccessPulse(false), 1000);
+
+            if (navigator.vibrate) {
+              navigator.vibrate(120);
+            }
+
+            validateAccessMutation.mutate(codeText);
+          }
+        }
+      }
+
+      animationFrameRef.current = requestAnimationFrame(scanFrame);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(scanFrame);
+
+    return () => {
+      isMounted = false;
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+  }, [isCameraActive, validateAccessMutation]);
 
   useEffect(() => {
     return () => {
       stopCamera();
     };
-  }, []);
+  }, [stopCamera]);
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user && !isGym) return <Navigate to="/" replace />;
@@ -845,29 +972,86 @@ export default function GestaoAcademia() {
                     </div>
                   </div>
 
-                  <Button
-                    variant={isCameraActive ? 'destructive' : 'outline'}
-                    size="sm"
-                    onClick={isCameraActive ? stopCamera : startCamera}
-                    className="gap-1.5 rounded-xl text-xs"
-                  >
-                    {isCameraActive ? <CameraOff className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
-                    {isCameraActive ? 'Desativar Câmera' : 'Ativar Câmera'}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {isCameraActive && hasMultipleCameras && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={toggleCameraFacingMode}
+                        className="gap-1.5 rounded-xl text-xs"
+                        title="Alternar Câmera"
+                      >
+                        <SwitchCamera className="w-4 h-4" />
+                        <span className="hidden sm:inline">Trocar Câmera</span>
+                      </Button>
+                    )}
+
+                    <Button
+                      variant={isCameraActive ? 'destructive' : 'outline'}
+                      size="sm"
+                      onClick={isCameraActive ? stopCamera : () => startCamera()}
+                      className="gap-1.5 rounded-xl text-xs font-semibold"
+                    >
+                      {isCameraActive ? <CameraOff className="w-4 h-4" /> : <Camera className="w-4 h-4" />}
+                      {isCameraActive ? 'Desativar Câmera' : 'Ativar Câmera'}
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Área de Visualização da Câmera */}
-                {isCameraActive && (
-                  <div className="relative rounded-3xl overflow-hidden bg-black aspect-video flex items-center justify-center border-2 border-primary/50 shadow-inner">
-                    <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline muted />
-                    <div className="absolute inset-0 border-2 border-dashed border-primary/70 pointer-events-none m-12 rounded-3xl flex items-center justify-center">
-                      <div className="w-full h-0.5 bg-primary/90 animate-pulse" />
+                {isCameraActive ? (
+                  <div
+                    className={`relative rounded-3xl overflow-hidden bg-black aspect-video max-h-[380px] w-full flex items-center justify-center border-2 transition-all shadow-inner ${
+                      scanSuccessPulse
+                        ? 'border-emerald-500 ring-4 ring-emerald-500/30'
+                        : 'border-primary/50'
+                    }`}
+                  >
+                    <video
+                      ref={videoRef}
+                      className="w-full h-full object-cover"
+                      playsInline
+                      autoPlay
+                      muted
+                    />
+
+                    {/* Overlay de Guia de Leitura */}
+                    <div className="absolute inset-0 m-6 sm:m-10 border-2 border-dashed border-primary/70 rounded-3xl pointer-events-none flex flex-col items-center justify-between p-4 bg-primary/5">
+                      <div className="flex items-center justify-between w-full">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-black/60 text-emerald-400 backdrop-blur-md">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                          Leitor Óptico Ativo
+                        </span>
+                        <span className="text-[10px] text-white/80 bg-black/50 px-2 py-0.5 rounded-md backdrop-blur-sm">
+                          {facingMode === 'environment' ? 'Traseira' : 'Frontal'}
+                        </span>
+                      </div>
+
+                      {/* Linha laser de escaneamento em movimento contínuo */}
+                      <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent shadow-lg shadow-primary/80 animate-pulse" />
+
+                      <span className="px-3 py-1 rounded-full bg-black/75 text-white text-xs font-medium backdrop-blur-md">
+                        {scanSuccessPulse ? '✅ QR Code Reconhecido!' : 'Posicione o QR Code no centro'}
+                      </span>
                     </div>
-                    <span className="absolute bottom-3 px-3 py-1 rounded-full bg-black/70 text-white text-xs backdrop-blur-sm">
-                      Posicione o QR Code do aluno no centro
-                    </span>
                   </div>
-                )}
+                ) : cameraError ? (
+                  <div className="p-6 rounded-3xl bg-destructive/10 border border-destructive/30 text-center space-y-3">
+                    <AlertCircle className="w-8 h-8 text-destructive mx-auto" />
+                    <div>
+                      <h4 className="font-bold text-foreground text-sm">Não foi possível iniciar a câmera</h4>
+                      <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">{cameraError}</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => startCamera()}
+                      className="rounded-xl text-xs gap-1.5"
+                    >
+                      <Camera className="w-3.5 h-3.5" /> Tentar Novamente
+                    </Button>
+                  </div>
+                ) : null}
 
                 {/* Entrada Manual de Código / CPF */}
                 <form onSubmit={handleManualScanSubmit} className="space-y-3">
