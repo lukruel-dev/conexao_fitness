@@ -26,21 +26,21 @@ export const FinexPointsCard: React.FC<FinexPointsCardProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h4 className="font-display font-bold text-base text-foreground">
-                  Finex Points
+                  Finex Points & Recompensas
                 </h4>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 uppercase tracking-wider">
-                  Clube de Recompensas
+                  Clube de Vantagens
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Acumule pontos em cada treino e troque por saldo ou cortesias.
+                Treine, acumule pontos e desbloqueie <strong>1 Day Pass/mês para amigo</strong> e a <strong>Caixa Misteriosa com brindes oficiais</strong>!
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-border/60">
             <div className="text-left sm:text-right">
-              <div className="text-[10px] text-muted-foreground uppercase font-semibold">Seu Saldo</div>
+              <div className="text-[10px] text-muted-foreground uppercase font-semibold">Seus Pontos</div>
               <div className="text-xl font-bold font-display text-amber-400">
                 {pointsBalance} <span className="text-xs font-normal text-muted-foreground">pts</span>
               </div>
@@ -53,24 +53,24 @@ export const FinexPointsCard: React.FC<FinexPointsCardProps> = ({
               className="gap-1.5 h-9 text-xs font-semibold shadow-md shadow-primary/20"
             >
               <Gift className="w-3.5 h-3.5" />
-              <span>Resgatar</span>
+              <span>Ver Recompensas</span>
             </Button>
           </div>
         </div>
 
-        {/* Como Ganhar */}
+        {/* Badges de Recompensas */}
         <div className="mt-4 pt-3 border-t border-border/50 grid grid-cols-3 gap-2 text-center text-[11px]">
-          <div className="p-2 rounded-lg bg-muted/30">
-            <div className="font-bold text-foreground">+50 pts</div>
-            <div className="text-muted-foreground text-[10px]">Por Check-in</div>
+          <div className="p-2 rounded-xl bg-muted/40 border border-border/50">
+            <div className="font-bold text-foreground">🎟️ Day Pass Amigo</div>
+            <div className="text-muted-foreground text-[10px]">1x por mês (300 pts)</div>
           </div>
-          <div className="p-2 rounded-lg bg-muted/30">
-            <div className="font-bold text-foreground">+50 pts</div>
-            <div className="text-muted-foreground text-[10px]">Por Treino Feito</div>
+          <div className="p-2 rounded-xl bg-muted/40 border border-border/50">
+            <div className="font-bold text-foreground">🎁 Caixa Misteriosa</div>
+            <div className="text-muted-foreground text-[10px]">Brindes do Mês (1.000 pts)</div>
           </div>
-          <div className="p-2 rounded-lg bg-muted/30">
-            <div className="font-bold text-foreground">+250 pts</div>
-            <div className="text-muted-foreground text-[10px]">Por Matrícula</div>
+          <div className="p-2 rounded-xl bg-muted/40 border border-border/50">
+            <div className="font-bold text-foreground">🔥 Ganhe Pontos</div>
+            <div className="text-muted-foreground text-[10px]">+50 pts por treino</div>
           </div>
         </div>
       </div>

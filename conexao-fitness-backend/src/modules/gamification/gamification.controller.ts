@@ -41,7 +41,7 @@ export class GamificationController {
   @Post('redeem')
   async redeemPoints(
     @CurrentUser() user: any,
-    @Body() body: { type: 'WALLET_CASH' | 'DAY_PASS'; pointsAmount: number },
+    @Body() body: { type: 'FRIEND_DAY_PASS' | 'MYSTERY_BOX' | 'WALLET_CASH' | 'DAY_PASS'; pointsAmount?: number },
   ) {
     return this.gamificationService.redeemPoints(user.id, body);
   }

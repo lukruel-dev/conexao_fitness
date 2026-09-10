@@ -5,12 +5,56 @@ import {
   OnApplicationBootstrap,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, MoreThanOrEqual } from 'typeorm';
 import { UserGamification } from './entities/user-gamification.entity';
 import { Badge } from './entities/badge.entity';
 import { UserBadge } from './entities/user-badge.entity';
 import { PointTransaction } from './entities/point-transaction.entity';
-import { WalletService } from '../wallet/wallet.service';
+
+export const MYSTERY_BOX_PRIZES = [
+  {
+    id: 'tshirt',
+    name: 'Camiseta Dry-Fit Finex Pro (Edição Exclusiva)',
+    icon: 'Shirt',
+    description: 'Tecido tecnológico respirável anti-suor com estampa oficial Finex.',
+    category: 'Vestuário',
+  },
+  {
+    id: 'mug',
+    name: 'Caneca Térmica Inox Finex 500ml',
+    icon: 'Coffee',
+    description: 'Parede dupla com isolamento a vácuo, mantém sua bebida gelada por até 12 horas.',
+    category: 'Acessórios',
+  },
+  {
+    id: 'shaker',
+    name: 'Coqueteleira Finex Black Edition',
+    icon: 'CupSoda',
+    description: 'Design premium preto fosco com misturador espiral e compartimento para Whey & Creatina.',
+    category: 'Suplementação',
+  },
+  {
+    id: 'squeeze',
+    name: 'Squeeze Pro Finex 1 Litro',
+    icon: 'GlassWater',
+    description: 'Garrafa esportiva ergonômica livre de BPA com trava anti-vazamento.',
+    category: 'Hidratação',
+  },
+  {
+    id: 'towel',
+    name: 'Toalha de Alta Absorção Finex',
+    icon: 'Sparkles',
+    description: 'Microfibra de secagem ultra-rápida, macia e compacta para treinos intensos.',
+    category: 'Academia',
+  },
+  {
+    id: 'cap',
+    name: 'Boné Finex Performance Aba Curva',
+    icon: 'Flame',
+    description: 'Boné exclusivo com tecido respirável e bordado frontal em alto relevo.',
+    category: 'Vestuário',
+  },
+];
 
 @Injectable()
 export class GamificationService implements OnApplicationBootstrap {
@@ -25,7 +69,6 @@ export class GamificationService implements OnApplicationBootstrap {
     private readonly userBadgeRepo: Repository<UserBadge>,
     @InjectRepository(PointTransaction)
     private readonly pointTxRepo: Repository<PointTransaction>,
-    private readonly walletService: WalletService,
   ) {}
 
   async onApplicationBootstrap() {
@@ -141,7 +184,18 @@ export class GamificationService implements OnApplicationBootstrap {
     const recentTransactions = await this.pointTxRepo.find({
       where: { userId },
       order: { createdAt: 'DESC' },
-      take: 10,
+      take: 15,
+    });
+
+    // Verificar se já resgatou o Day Pass para amigo no mês atual
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const usedFriendPassThisMonth = await this.pointTxRepo.findOne({
+      where: {
+        userId,
+        type: 'REDEEMED_FRIEND_DAYPASS',
+        createdAt: MoreThanOrEqual(startOfMonth),
+      },
     });
 
     const unlockedBadgeIds = new Set(userBadges.map((ub) => ub.badgeId));
@@ -155,6 +209,17 @@ export class GamificationService implements OnApplicationBootstrap {
       gamification,
       badges: badgesWithStatus,
       recentTransactions,
+      monthlyFriendPass: {
+        canRedeem: !usedFriendPassThisMonth,
+        usedAt: usedFriendPassThisMonth?.createdAt || null,
+        cost: 300,
+        limitPerMonth: 1,
+      },
+      mysteryBox: {
+        cost: 1000,
+        availablePrizes: MYSTERY_BOX_PRIZES,
+        canOpen: gamification.pointsBalance >= 1000,
+      },
     };
   }
 
@@ -271,71 +336,99 @@ export class GamificationService implements OnApplicationBootstrap {
 
   async redeemPoints(
     userId: string,
-    dto: { type: 'WALLET_CASH' | 'DAY_PASS'; pointsAmount: number },
+    dto: { type: 'FRIEND_DAY_PASS' | 'MYSTERY_BOX' | 'WALLET_CASH' | 'DAY_PASS'; pointsAmount?: number },
   ) {
     const gamification = await this.getOrCreateGamification(userId);
-    const amount = Number(dto.pointsAmount);
 
-    if (isNaN(amount) || amount <= 0) {
-      throw new BadRequestException('Quantidade de pontos inválida.');
-    }
-
-    if (gamification.pointsBalance < amount) {
-      throw new BadRequestException(
-        `Saldo insuficiente de pontos. Você possui ${gamification.pointsBalance} Finex Points.`,
-      );
-    }
-
+    // Bloqueia resgate de dinheiro / cashback
     if (dto.type === 'WALLET_CASH') {
-      // 100 pontos = R$ 1,00
-      if (amount < 100) {
-        throw new BadRequestException('O resgate mínimo para saldo na carteira é de 100 pontos (R$ 1,00).');
+      throw new BadRequestException(
+        'O Finex Points não possui resgate em dinheiro. Utilize seus pontos para o Day Pass de Amigo (1x/mês) ou para abrir a Caixa Misteriosa Finex (1.000 pts)!',
+      );
+    }
+
+    if (dto.type === 'FRIEND_DAY_PASS' || dto.type === 'DAY_PASS') {
+      const FRIEND_PASS_COST = 300;
+
+      // Validação de 1x por mês
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const usedThisMonth = await this.pointTxRepo.findOne({
+        where: {
+          userId,
+          type: 'REDEEMED_FRIEND_DAYPASS',
+          createdAt: MoreThanOrEqual(startOfMonth),
+        },
+      });
+
+      if (usedThisMonth) {
+        throw new BadRequestException(
+          'Você já utilizou o seu Day Pass para amigo este mês. O benefício é renovado no primeiro dia de cada mês!',
+        );
       }
 
-      const cashValue = Number((amount / 100).toFixed(2));
-      gamification.pointsBalance -= amount;
+      if (gamification.pointsBalance < FRIEND_PASS_COST) {
+        throw new BadRequestException(
+          `Saldo insuficiente. O Day Pass para amigo custa ${FRIEND_PASS_COST} pontos (você tem ${gamification.pointsBalance} pts).`,
+        );
+      }
+
+      gamification.pointsBalance -= FRIEND_PASS_COST;
       await this.gamificationRepo.save(gamification);
+
+      const voucherCode = `AMIGO-FINEX-${Math.floor(100000 + Math.random() * 900000)}`;
 
       await this.pointTxRepo.save(
         this.pointTxRepo.create({
           userId,
-          amount: -amount,
-          type: 'REDEEMED_WALLET',
-          description: `Conversão de ${amount} Finex Points em R$ ${cashValue.toFixed(2)} de saldo`,
+          amount: -FRIEND_PASS_COST,
+          type: 'REDEEMED_FRIEND_DAYPASS',
+          description: `Resgate de Day Pass para Amigo (${voucherCode})`,
         }),
       );
 
-      // Credita na carteira Finex
-      await this.walletService.creditDeposit(userId, cashValue, `Resgate de ${amount} Finex Points`);
-
       return {
         success: true,
-        message: `Parabéns! R$ ${cashValue.toFixed(2)} foram adicionados à sua carteira Finex.`,
+        rewardType: 'FRIEND_DAY_PASS',
+        voucherCode,
+        message: 'Day Pass para amigo resgatado com sucesso! Compartilhe o código com seu amigo.',
+        shareText: `E aí! Ganhei um Day Pass cortesia no Conexão Fitness para você treinar comigo. Apresente este código na recepção: ${voucherCode}`,
         newPointsBalance: gamification.pointsBalance,
-        cashValue,
       };
-    } else if (dto.type === 'DAY_PASS') {
-      // 300 pontos = 1 Day Pass cortesia
-      const DAYPASS_COST = 300;
-      if (amount < DAYPASS_COST) {
-        throw new BadRequestException(`Um Day Pass cortesia requer ${DAYPASS_COST} pontos.`);
+    } else if (dto.type === 'MYSTERY_BOX') {
+      const MYSTERY_BOX_COST = 1000;
+
+      if (gamification.pointsBalance < MYSTERY_BOX_COST) {
+        throw new BadRequestException(
+          `A Caixa Misteriosa Finex requer 1.000 pontos. Você possui ${gamification.pointsBalance} pontos acumulados.`,
+        );
       }
 
-      gamification.pointsBalance -= DAYPASS_COST;
+      gamification.pointsBalance -= MYSTERY_BOX_COST;
       await this.gamificationRepo.save(gamification);
+
+      // Sorteio de brinde oficial do mês
+      const randomIndex = Math.floor(Math.random() * MYSTERY_BOX_PRIZES.length);
+      const prize = MYSTERY_BOX_PRIZES[randomIndex];
+      const voucherCode = `MBOX-FINEX-${Math.floor(100000 + Math.random() * 900000)}`;
 
       await this.pointTxRepo.save(
         this.pointTxRepo.create({
           userId,
-          amount: -DAYPASS_COST,
-          type: 'REDEEMED_DAYPASS',
-          description: 'Resgate de Day Pass Cortesia Finex',
+          amount: -MYSTERY_BOX_COST,
+          type: 'REDEEMED_MYSTERY_BOX',
+          description: `Caixa Misteriosa Finex: ${prize.name} (${voucherCode})`,
         }),
       );
 
       return {
         success: true,
-        message: 'Day Pass Cortesia resgatado com sucesso! Utilize na catraca de qualquer parceiro.',
+        rewardType: 'MYSTERY_BOX',
+        prize,
+        voucherCode,
+        message: `Parabéns! Você abriu a Caixa Misteriosa e ganhou: ${prize.name}!`,
+        instructions:
+          'Apresente o voucher gerado na recepção da sua academia credenciada ou envie para o suporte Finex para combinar a entrega do seu brinde.',
         newPointsBalance: gamification.pointsBalance,
       };
     }

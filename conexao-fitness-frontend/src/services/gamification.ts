@@ -1,5 +1,9 @@
 import { apiRequest } from '@/lib/apiClient';
-import type { GamificationSummary } from '@/types/gamification';
+import type {
+  GamificationSummary,
+  RedeemRewardDto,
+  RedeemRewardResponse,
+} from '@/types/gamification';
 
 export async function fetchGamificationSummary(): Promise<GamificationSummary> {
   return apiRequest<GamificationSummary>('/gamification/summary');
@@ -20,16 +24,10 @@ export async function recordGamificationActivity(
 }
 
 export async function redeemFinexPoints(
-  type: 'WALLET_CASH' | 'DAY_PASS',
-  pointsAmount: number,
-) {
-  return apiRequest<{
-    success: boolean;
-    message: string;
-    newPointsBalance: number;
-    cashValue?: number;
-  }>('/gamification/redeem', {
+  dto: RedeemRewardDto,
+): Promise<RedeemRewardResponse> {
+  return apiRequest<RedeemRewardResponse>('/gamification/redeem', {
     method: 'POST',
-    body: { type, pointsAmount },
+    body: dto,
   });
 }
