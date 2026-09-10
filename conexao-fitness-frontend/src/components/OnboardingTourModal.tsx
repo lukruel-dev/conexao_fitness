@@ -101,7 +101,7 @@ export const OnboardingTourModal: React.FC<OnboardingTourModalProps> = ({
     {
       badge: 'Personais & Fichas no App',
       title: 'Consultorias Mensais com Ficha Personalizada',
-      description: 'Tenha acompanhamento próximo de personais trainers e nutricionistas com fichas de treino periodizadas, controle de cargas e suporte contínuo no WhatsApp.',
+      description: 'Tenha acompanhamento próximo de personais trainers e nutricionistas com fichas de treino periodizadas, controle de cargas e suporte contínuo no Chat do App Finex.',
       icon: <Zap className="w-10 h-10 text-secondary" />,
       color: 'from-secondary/20 via-secondary/5 to-transparent',
       borderColor: 'border-secondary/40',

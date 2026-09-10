@@ -80,6 +80,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
   const [activeTab, setActiveTab] = useState<'plans' | 'methodology' | 'sessions' | 'gallery' | 'posts' | 'reviews'>('plans');
   const [selectedPlanForContact, setSelectedPlanForContact] = useState<Service | null>(null);
   const [isDirectChatOpen, setIsDirectChatOpen] = useState(false);
+  const [chatInitialMessage, setChatInitialMessage] = useState<string>('');
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   // Carregar planos e serviços do profissional
@@ -137,7 +138,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
         ? 'Protocolo de Reabilitação & Liberação Mensal'
         : 'Consultoria Online Premium',
       description: isNutri
-        ? 'Acompanhamento nutricional contínuo com cardápios dinâmicos, suporte pelo WhatsApp e reavaliações periódicas.'
+        ? 'Acompanhamento nutricional contínuo com cardápios dinâmicos, suporte pelo chat do app e reavaliações periódicas.'
         : isFisio
         ? 'Programa contínuo de manutenção articular, prevenção de lesões e liberação miofascial semanal.'
         : 'Acompanhamento completo à distância com planilha de treino periódica no app Finex e suporte contínuo.',
@@ -156,7 +157,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
             'Plano Alimentar 100% Individualizado',
             'Avaliação de Bioimpedância Mensal',
             'Ajustes Semanais de Cardápio e Suplementação',
-            'Suporte e Dúvidas via WhatsApp 24/7',
+            'Suporte e Dúvidas pelo Chat do App Finex',
             'Guia de Substituições e Receitas Fitness',
           ]
         : isFisio
@@ -164,13 +165,13 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
             'Avaliação Biomecânica Postural Completa',
             'Protocolo de Exercícios Corretivos no App Finex',
             'Sessões Quinzenais de Liberação Miofascial',
-            'Suporte Direto para Prevenção de Dores',
+            'Suporte Direto no Chat para Prevenção de Dores',
             'Ajustes de Mobilidade e Estabilidade',
           ]
         : [
             'Ficha de Treino Personalizada no App Finex',
             'Ajustes Semanais de Volume e Carga',
-            'Suporte e Dúvidas via WhatsApp 24/7',
+            'Suporte e Dúvidas pelo Chat do App Finex',
             'Vídeos demonstrativos de execução dos exercícios',
             'Avaliação física e análise postural por fotos/vídeos',
           ],
@@ -203,7 +204,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
       benefits: [
         'Acompanhamento Intensivo de 12 Semanas',
         'Avaliações Físicas e Relatórios Comparativos',
-        'Atendimento em Consultório e Suporte Online',
+        'Atendimento em Consultório e Suporte no App',
         'Descontos Especiais em Produtos e Suplementos Parceiros',
         'Foco em Resultados Mensuráveis e Duradouros',
       ],
@@ -232,7 +233,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
     ? [
         'Plano Alimentar Individualizado no App Finex',
         'Avaliação de Bioimpedância com Gráficos de Evolução',
-        'Suporte e Dúvidas via WhatsApp 24/7',
+        'Suporte e Dúvidas pelo Chat do App Finex',
         'Orientação de Suplementação Estratégica',
       ]
     : isFisio
@@ -245,7 +246,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
     : [
         'Ficha de Treino Personalizada no App Finex',
         'Ajustes Semanais de Carga e Volume',
-        'Suporte e Dúvidas via WhatsApp 24/7',
+        'Suporte e Dúvidas pelo Chat do App Finex',
         'Vídeos demonstrativos de execução dos exercícios',
         'Avaliação Física por Bioimpedância e Dobras',
       ];
@@ -270,17 +271,15 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
     setSelectedPlanForContact(plan);
   };
 
-  const handleSendWhatsAppHiring = () => {
+  const handleStartInAppChatHiring = () => {
     if (!selectedPlanForContact) return;
-    const phone = (profile.whatsapp || profile.phone || '5555999999999').replace(/\D/g, '');
-    const text = encodeURIComponent(
-      `Olá, ${profile.name}! Gostaria de contratar o plano "${selectedPlanForContact.name}" (${formatBRL(selectedPlanForContact.price)}) pelo aplicativo Conexão Fitness. Podemos alinhar os detalhes do meu atendimento?`
-    );
-    window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+    const initialText = `Olá, ${profile.name}! Gostaria de contratar o plano "${selectedPlanForContact.name}" (${formatBRL(selectedPlanForContact.price)}) pelo app Finex. Como iniciamos meu acompanhamento?`;
+    setChatInitialMessage(initialText);
     setSelectedPlanForContact(null);
+    setIsDirectChatOpen(true);
     toast({
-      title: 'Conversa iniciada!',
-      description: 'Você foi redirecionado para o WhatsApp do profissional para iniciar seu acompanhamento.',
+      title: 'Chat Seguro Iniciado!',
+      description: 'Converse com o profissional e alinhe os detalhes do seu treino diretamente no app.',
     });
   };
 
@@ -400,39 +399,25 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
                   )}
                 </Button>
 
-                {profile.whatsapp && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-10 px-4 rounded-xl font-bold border-emerald-500/40 text-emerald-500 hover:bg-emerald-500/10"
-                    asChild
-                  >
-                    <a
-                      href={`https://wa.me/${profile.whatsapp.replace(/\D/g, '')}?text=Ol%C3%A1!%20Vi%20seu%20perfil%20no%20Conex%C3%A3o%20Fitness%20e%20gostaria%20de%20saber%20mais%20sobre%20seus%20planos%20de%20treino.`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <MessageCircle className="w-4 h-4 mr-1.5" /> WhatsApp
-                    </a>
-                  </Button>
-                )}
-
                 <Button
-                  variant="outline"
+                  variant="hero"
                   size="sm"
-                  onClick={() => setIsDirectChatOpen(true)}
-                  className="h-10 px-4 rounded-xl font-bold border-primary/40 text-primary hover:bg-primary/10 gap-1.5"
+                  onClick={() => {
+                    setChatInitialMessage(`Olá, ${profile.name}! Gostaria de tirar dúvidas sobre seus atendimentos e consultorias.`);
+                    setIsDirectChatOpen(true);
+                  }}
+                  className="h-10 px-4 rounded-xl font-bold gap-1.5 shadow-md bg-gradient-to-r from-primary to-secondary text-black"
                 >
                   <MessageCircle className="w-4 h-4" /> Chat no App
                 </Button>
 
                 <Button
-                  variant="hero"
+                  variant="outline"
                   size="sm"
                   onClick={() => setActiveTab('plans')}
-                  className="h-10 px-5 rounded-xl font-extrabold shadow-glow bg-gradient-to-r from-secondary to-primary text-black"
+                  className="h-10 px-5 rounded-xl font-bold border-primary/40 text-primary hover:bg-primary/10"
                 >
-                  <CreditCard className="w-4 h-4 mr-1.5 fill-black" /> Ver Planos de Treino
+                  <CreditCard className="w-4 h-4 mr-1.5" /> Ver Planos
                 </Button>
 
                 <Button
@@ -960,10 +945,10 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
 
               <div className="p-3.5 rounded-2xl bg-primary/10 border border-primary/20 space-y-1 text-xs text-foreground">
                 <p className="font-bold flex items-center gap-1.5 text-primary">
-                  <Sparkles className="w-4 h-4" /> Benefícios Finex Inclusos:
+                  <Sparkles className="w-4 h-4" /> Contratação & Acompanhamento Seguro pelo App:
                 </p>
                 <p className="text-[11px] text-muted-foreground">
-                  Ao contratar, o profissional liberará sua ficha de treino personalizada no aplicativo Finex com vídeos demonstrativos e controle de cargas.
+                  Toda a contratação, liberação da ficha de treino, controle de cargas e suporte ocorrem 100% pelo aplicativo Finex através do nosso Chat integrado.
                 </p>
               </div>
 
@@ -979,10 +964,10 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
                 <Button
                   type="button"
                   variant="hero"
-                  onClick={handleSendWhatsAppHiring}
-                  className="rounded-xl font-black bg-gradient-to-r from-emerald-500 to-teal-500 text-white gap-1.5 shadow-md"
+                  onClick={handleStartInAppChatHiring}
+                  className="rounded-xl font-black bg-gradient-to-r from-primary to-secondary text-black gap-1.5 shadow-md"
                 >
-                  <MessageCircle className="w-4 h-4" /> Iniciar no WhatsApp
+                  <MessageCircle className="w-4 h-4" /> Conversar no Chat do App
                 </Button>
               </DialogFooter>
             </div>
@@ -1022,6 +1007,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
         recipientName={profile.name}
         recipientAvatar={profile.avatarUrl || undefined}
         title={`Conversa com ${profile.name}`}
+        initialMessage={chatInitialMessage}
       />
     </div>
   );

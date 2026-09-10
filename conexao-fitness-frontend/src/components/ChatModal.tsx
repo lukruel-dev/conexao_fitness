@@ -23,6 +23,7 @@ interface ChatModalProps {
   title?: string;
   recipientName?: string;
   recipientAvatar?: string;
+  initialMessage?: string;
 }
 
 const QUICK_EMOJIS = ["💪", "🔥", "🏋️‍♂️", "🥗", "👏", "⚡", "🎯"];
@@ -34,11 +35,18 @@ const ChatModal = ({
   title,
   recipientName,
   recipientAvatar,
+  initialMessage,
 }: ChatModalProps) => {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [content, setContent] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (open && initialMessage && !content) {
+      setContent(initialMessage);
+    }
+  }, [open, initialMessage]);
 
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ["chat-messages", bookingId],

@@ -93,7 +93,7 @@ const PRESET_LOCATIONS = [
 const SUGGESTED_PLAN_BENEFITS = [
   "Ficha de Treino Personalizada no App Finex",
   "Ajustes Semanais de Volume e Carga",
-  "Suporte e Dúvidas via WhatsApp 24/7",
+  "Suporte e Dúvidas pelo Chat do App Finex",
   "Vídeos demonstrativos de execução dos exercícios",
   "Avaliação Física por Bioimpedância e Dobras",
   "Ajuste na Periodização a cada 4 semanas",
@@ -119,7 +119,7 @@ export default function MeusServicos() {
   const [planSelectedBenefits, setPlanSelectedBenefits] = useState<string[]>([
     "Ficha de Treino Personalizada no App Finex",
     "Ajustes Semanais de Volume e Carga",
-    "Suporte e Dúvidas via WhatsApp 24/7",
+    "Suporte e Dúvidas pelo Chat do App Finex",
   ]);
   const [customBenefitInput, setCustomBenefitInput] = useState("");
 
@@ -522,7 +522,7 @@ export default function MeusServicos() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="ONLINE">Online (App Finex + WhatsApp)</SelectItem>
+                            <SelectItem value="ONLINE">Online (100% pelo App Finex)</SelectItem>
                             <SelectItem value="PRESENCIAL">Presencial (Academia / Domicílio)</SelectItem>
                             <SelectItem value="HIBRIDO">Híbrido (Online + Presencial)</SelectItem>
                           </SelectContent>
@@ -1073,35 +1073,32 @@ export default function MeusServicos() {
               </div>
             </div>
 
-            {/* Contatos & Redes */}
+            {/* Comunicação Segura & Redes */}
             <div className="bg-card border border-border/80 rounded-3xl p-6 sm:p-8 space-y-4 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                   <MessageCircle className="w-5 h-5" />
                 </div>
                 <div>
                   <h2 className="text-xl font-display font-bold text-foreground">
-                    Contatos Diretos para Contratação
+                    Comunicação Segura & Redes
                   </h2>
                   <p className="text-xs text-muted-foreground">
-                    Os alunos poderão entrar em contato diretamente para contratar seus planos.
+                    Toda a contratação de planos e acompanhamento de treinos ocorre exclusivamente pelo Chat interno do App Finex.
                   </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <MessageCircle className="w-3.5 h-3.5 text-emerald-500" /> WhatsApp para Alunos (com DDD)
-                  </label>
-                  <Input
-                    placeholder="Ex: 5555999999999"
-                    value={whatsapp}
-                    onChange={(e) => setWhatsapp(e.target.value)}
-                    className="rounded-xl"
-                  />
-                </div>
+              <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-1 text-xs text-foreground">
+                <p className="font-bold flex items-center gap-1.5 text-primary">
+                  <Sparkles className="w-4 h-4" /> Proteção Anti-Fraude e Garantia de Repasses Finex
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  Para garantir sua segurança jurídica, controle de alunos e fidelidade dos planos, os alunos conversam com você e contratam seus serviços exclusivamente através do nosso Chat integrado.
+                </p>
+              </div>
 
+              <div className="grid grid-cols-1 gap-4 pt-2 max-w-md">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
                     <Instagram className="w-3.5 h-3.5 text-pink-500" /> Instagram Profissional (@)

@@ -129,7 +129,7 @@ export async function getPublicUserProfile(id: string): Promise<PublicUserProfil
           includedBenefits: [
             "Ficha de Treino Personalizada no App Finex",
             "Ajustes Semanais de Volume e Carga",
-            "Suporte Contínuo via WhatsApp",
+            "Suporte e Dúvidas pelo Chat do App Finex",
             "Avaliação Física e Análise de Evolução",
           ],
           methodology: "Metodologia personalizada focada em resultados sustentáveis, biomecânica correta e evolução progressiva de cargas.",
@@ -236,7 +236,7 @@ export async function getPublicUserProfile(id: string): Promise<PublicUserProfil
     includedBenefits: [
       "Ficha de Treino Personalizada no App Finex",
       "Ajustes Semanais de Volume e Carga",
-      "Suporte e Dúvidas via WhatsApp 24/7",
+      "Suporte e Dúvidas pelo Chat do App Finex",
       "Avaliação Física por Bioimpedância",
     ],
     methodology: "Metodologia baseada em evidências científicas com foco em segurança articular, adesão a longo prazo e resultados mensuráveis.",
@@ -395,7 +395,7 @@ export async function getMyPersonalProfile(): Promise<PersonalProfileData> {
     includedBenefits: [
       "Ficha de Treino Personalizada no App Finex",
       "Ajustes Semanais de Carga e Volume",
-      "Suporte e Dúvidas via WhatsApp 24/7",
+      "Suporte e Dúvidas pelo Chat do App Finex",
       "Vídeos demonstrativos de execução",
       "Avaliação Física por Bioimpedância e Dobras",
     ],
