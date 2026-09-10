@@ -347,99 +347,121 @@ const Buscar = () => {
             </div>
           ) : services && services.length > 0 ? (
             <div className="grid gap-4">
-              {services.map((s) => (
-                <Link
-                  key={s.id}
-                  to={s.providerType === "ACADEMIA" ? `/perfil/${s.providerId}` : `/servico/${s.id}`}
-                  className={`relative block bg-card rounded-2xl p-5 transition-all ${
-                    s.isPremium
-                      ? "border-2 border-yellow-400 shadow-[0_0_0_4px_rgba(250,204,21,0.12)] hover:shadow-[0_0_0_6px_rgba(250,204,21,0.18)]"
-                      : "border border-border hover:border-primary/40 hover:shadow-card"
-                  }`}
-                >
-                  {s.isPremium && (
-                    <span className="absolute -top-2 left-4 flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-amber-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
-                      <BadgeCheck className="w-3 h-3" />
-                      DESTAQUE
-                    </span>
-                  )}
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex gap-4 flex-1">
-                      {/* Provider Image */}
-                      <div className="shrink-0 flex items-start mt-1">
-                        <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-primary to-secondary shadow-[0_0_10px_rgba(45,212,191,0.3)]">
-                          <img 
-                            src={s.providerAvatar || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=400&auto=format&fit=crop"} 
-                            alt={s.providerName || "Profissional"} 
-                            className="w-full h-full rounded-full object-cover border-2 border-background"
-                          />
-                        </div>
-                      </div>
+              {services.map((s) => {
+                const avatarSrc = (() => {
+                  if (s.providerAvatar) return s.providerAvatar;
+                  const lowerName = (s.providerName || s.name || "").toLowerCase();
+                  const lowerMod = (s.modality || "").toLowerCase();
+                  const lowerTitle = (s.professionTitle || "").toLowerCase();
+                  if (s.providerType === "ACADEMIA" || lowerMod.includes("academia")) {
+                    return "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400&auto=format&fit=crop";
+                  }
+                  if (lowerName.includes("camila") || lowerName.includes("dra") || lowerMod.includes("nutri") || lowerTitle.includes("nutri")) {
+                    return "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop";
+                  }
+                  if (lowerName.includes("rodrigo") || lowerMod.includes("fisio") || lowerTitle.includes("fisio")) {
+                    return "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=400&auto=format&fit=crop";
+                  }
+                  if (lowerName.includes("diego") || lowerMod.includes("personal") || lowerTitle.includes("personal")) {
+                    return "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop";
+                  }
+                  return "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop";
+                })();
 
-                      {/* Content */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span
-                            className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                              s.providerType === "ACADEMIA"
-                                ? "bg-primary/10 text-primary"
-                                : "bg-secondary/10 text-secondary"
-                            }`}
-                          >
-                            {s.providerType === "ACADEMIA"
-                              ? "Academia Parceira"
-                              : s.professionTitle || "Profissional"}
+                return (
+                  <Link
+                    key={s.id}
+                    to={`/perfil/${s.providerId || s.id}`}
+                    className={`relative block bg-card rounded-2xl p-5 transition-all ${
+                      s.isPremium
+                        ? "border-2 border-yellow-400 shadow-[0_0_0_4px_rgba(250,204,21,0.12)] hover:shadow-[0_0_0_6px_rgba(250,204,21,0.18)]"
+                        : "border border-border hover:border-primary/40 hover:shadow-card"
+                    }`}
+                  >
+                    {s.isPremium && (
+                      <span className="absolute -top-2 left-4 flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-amber-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
+                        <BadgeCheck className="w-3 h-3" />
+                        DESTAQUE
+                      </span>
+                    )}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="flex gap-4 flex-1">
+                        {/* Provider Image */}
+                        <div className="shrink-0 flex items-start mt-1">
+                          <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-primary to-secondary shadow-[0_0_10px_rgba(45,212,191,0.3)]">
+                            <img 
+                              src={avatarSrc} 
+                              alt={s.providerName || "Profissional"} 
+                              className="w-full h-full rounded-full object-cover border-2 border-background"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                s.providerType === "ACADEMIA"
+                                  ? "bg-primary/10 text-primary"
+                                  : "bg-secondary/10 text-secondary"
+                              }`}
+                            >
+                              {s.providerType === "ACADEMIA"
+                                ? "Academia Parceira"
+                                : s.professionTitle || "Profissional"}
+                            </span>
+                            <span className="text-xs text-muted-foreground">{s.modality}</span>
+                          </div>
+                          <h3 className="font-display font-bold text-lg text-foreground">{s.name}</h3>
+                        <p className="text-sm text-muted-foreground mt-0.5">
+                          {s.providerName}
+                          {s.providerType === "PERSONAL" && s.professionTitle ? ` • ${s.professionTitle}` : ""}
+                        </p>
+                        <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                          {(() => {
+                            const rating = s.providerRating ?? s.rating;
+                            const total = s.totalReviews ?? s.reviewsCount;
+                            if (rating == null) return null;
+                            return (
+                              <span className="flex items-center gap-1">
+                                <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                                <span className="text-foreground font-medium">{Number(rating).toFixed(1)}</span>
+                                <span>({total ?? 0} {(total ?? 0) === 1 ? "avaliação" : "avaliações"})</span>
+                              </span>
+                            );
+                          })()}
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5" />
+                            {s.durationMinutes} min
                           </span>
-                          <span className="text-xs text-muted-foreground">{s.modality}</span>
-                        </div>
-                        <h3 className="font-display font-bold text-lg text-foreground">{s.name}</h3>
-                      <p className="text-sm text-muted-foreground mt-0.5">
-                        {s.providerName}
-                        {s.providerType === "PERSONAL" && s.professionTitle ? ` • ${s.professionTitle}` : ""}
-                      </p>
-                      <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                        {(() => {
-                          const rating = s.providerRating ?? s.rating;
-                          const total = s.totalReviews ?? s.reviewsCount;
-                          if (rating == null) return null;
-                          return (
-                            <span className="flex items-center gap-1">
-                              <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                              <span className="text-foreground font-medium">{Number(rating).toFixed(1)}</span>
-                              <span>({total ?? 0} {(total ?? 0) === 1 ? "avaliação" : "avaliações"})</span>
-                            </span>
-                          );
-                        })()}
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5" />
-                          {s.durationMinutes} min
-                        </span>
-                        {(() => {
-                          const d = s.distance ?? s.distanceKm;
-                          return d != null ? (
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-3.5 h-3.5 text-primary" />
-                              A {d.toFixed(1).replace(".", ",")} km de você
-                            </span>
-                          ) : null;
-                        })()}
-                      </div>
-                    </div>
-                    </div>
-                    <div className="flex md:flex-col items-end justify-between md:justify-center gap-2">
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-secondary">{formatBRL(s.price)}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {s.type === "PLANO_MENSAL" ? "por mês" : s.type === "DAY_PASS" ? "day pass" : "por sessão"}
+                          {(() => {
+                            const d = s.distance ?? s.distanceKm;
+                            return d != null ? (
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5 text-primary" />
+                                A {d.toFixed(1).replace(".", ",")} km de você
+                              </span>
+                            ) : null;
+                          })()}
                         </div>
                       </div>
-                      <Button variant="hero" size="sm">
-                        {s.providerType === "ACADEMIA" ? "Conhecer Academia & Planos" : "Ver horários"}
-                      </Button>
+                      </div>
+                      <div className="flex md:flex-col items-end justify-between md:justify-center gap-2">
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-secondary">{formatBRL(s.price)}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {s.type === "PLANO_MENSAL" ? "por mês" : s.type === "DAY_PASS" ? "day pass" : "por sessão"}
+                          </div>
+                        </div>
+                        <Button variant="hero" size="sm">
+                          {s.providerType === "ACADEMIA" ? "Conhecer Academia & Planos" : "Ver Perfil & Planos"}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-20 text-muted-foreground">

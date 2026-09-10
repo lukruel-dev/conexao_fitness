@@ -78,6 +78,7 @@ const App = () => (
               <Route path="/cadastro" element={<Cadastro />} />
               <Route path="/perfil" element={<Perfil />} />
               <Route path="/perfil/:id" element={<PerfilPublico />} />
+              <Route path="/perfil-publico/:id" element={<PerfilPublico />} />
               <Route path="/profissional/:id" element={<PerfilPublico />} />
               <Route path="/minha-agenda" element={<MinhaAgenda />} />
               <Route path="/gestao-academia" element={<GestaoAcademia />} />

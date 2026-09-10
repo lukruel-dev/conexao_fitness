@@ -116,8 +116,8 @@ export const FeaturedSpotlight: React.FC = () => {
                       className="h-8 text-xs font-semibold px-3 gap-1 shadow-sm"
                       asChild
                     >
-                      <Link to={`/servico/${gym.id}`}>
-                        Ver Detalhes
+                      <Link to={`/perfil/${gym.providerId || gym.id}`}>
+                        Conhecer Academia & Planos
                       </Link>
                     </Button>
                   </div>

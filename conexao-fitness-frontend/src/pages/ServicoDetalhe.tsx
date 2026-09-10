@@ -42,7 +42,16 @@ const ServicoDetalhe = () => {
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(s);
     });
-    return Array.from(map.entries()).map(([day, items]) => ({ day, items }));
+    return Array.from(map.entries()).map(([day, items]) => {
+      const seenTimes = new Set<string>();
+      const deduped = items.filter((slot) => {
+        const timeStr = formatTime(slot.startsAt);
+        if (seenTimes.has(timeStr)) return false;
+        seenTimes.add(timeStr);
+        return true;
+      });
+      return { day, items: deduped };
+    });
   }, [slots]);
 
   const bookingMutation = useMutation({
@@ -76,6 +85,28 @@ const ServicoDetalhe = () => {
     service?.name?.toLowerCase().includes("day pass") ||
     service?.name?.toLowerCase().includes("passe diário") ||
     (service?.providerType === "ACADEMIA" && service?.type !== "PLANO_MENSAL");
+
+  const avatarSrc = (() => {
+    if (service?.providerAvatar && !service.providerAvatar.includes("photo-1612349317150-e413f6a5b16d")) {
+      return service.providerAvatar;
+    }
+    const lowerName = (service?.providerName || "").toLowerCase();
+    const lowerMod = (service?.modality || "").toLowerCase();
+    const lowerTitle = (service?.professionTitle || "").toLowerCase();
+    if (service?.providerType === "ACADEMIA" || lowerMod.includes("academia")) {
+      return "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400&auto=format&fit=crop";
+    }
+    if (lowerName.includes("camila") || lowerName.includes("dra") || lowerMod.includes("nutri") || lowerTitle.includes("nutri")) {
+      return "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop";
+    }
+    if (lowerName.includes("rodrigo") || lowerMod.includes("fisio") || lowerTitle.includes("fisio")) {
+      return "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=400&auto=format&fit=crop";
+    }
+    if (lowerName.includes("diego") || lowerMod.includes("personal") || lowerTitle.includes("personal")) {
+      return "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop";
+    }
+    return "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop";
+  })();
 
   const handleReserve = () => {
     if (!isAuthenticated) {
@@ -137,7 +168,7 @@ const ServicoDetalhe = () => {
                 <div className="shrink-0">
                   <div className="w-24 h-24 md:w-32 md:h-32 rounded-full p-[3px] bg-gradient-to-tr from-primary to-secondary shadow-[0_0_15px_rgba(45,212,191,0.5)]">
                     <img 
-                      src={service.providerAvatar || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=400&auto=format&fit=crop"} 
+                      src={avatarSrc} 
                       alt={service.providerName || "Profissional"} 
                       className="w-full h-full rounded-full object-cover border-4 border-background"
                     />
@@ -188,7 +219,7 @@ const ServicoDetalhe = () => {
                     <p className="mt-4 text-foreground/90 leading-relaxed text-sm md:text-base">{service.description}</p>
                   )}
 
-                  {service.providerType === "ACADEMIA" && (
+                  {service.providerType === "ACADEMIA" ? (
                     <div className="mt-5 pt-4 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 bg-primary/5 p-3.5 rounded-xl border border-primary/20">
                       <div>
                         <p className="text-xs font-bold text-foreground">Conheça a estrutura completa desta academia</p>
@@ -201,6 +232,21 @@ const ServicoDetalhe = () => {
                         onClick={() => navigate(`/perfil/${service.providerId}`)}
                       >
                         Ver Perfil da Academia
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="mt-5 pt-4 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 bg-secondary/5 p-3.5 rounded-xl border border-secondary/20">
+                      <div>
+                        <p className="text-xs font-bold text-foreground">Conheça os planos mensais e metodologia do profissional</p>
+                        <p className="text-[11px] text-muted-foreground">Veja a metodologia completa, especialidades, chat direto e planos.</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="hero"
+                        className="rounded-xl text-xs font-bold"
+                        onClick={() => navigate(`/perfil/${service.providerId}`)}
+                      >
+                        Ver Perfil Completo
                       </Button>
                     </div>
                   )}
