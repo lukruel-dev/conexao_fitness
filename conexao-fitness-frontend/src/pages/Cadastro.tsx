@@ -73,8 +73,66 @@ const Cadastro = () => {
       setSocialAuth(stateData);
       setName(stateData.name);
       setEmail(stateData.email);
+      if (stateData.avatarUrl) {
+        setAvatarPreview(stateData.avatarUrl);
+      }
     }
   }, [location.state]);
+
+  const isValidCPF = (cpf: string) => {
+    const clean = cpf.replace(/\D/g, "");
+    if (clean.length !== 11) return false;
+    if (/^(\d)\1{10}$/.test(clean)) return false;
+    
+    let sum = 0;
+    for (let i = 0; i < 9; i++) {
+      sum += parseInt(clean.charAt(i), 10) * (10 - i);
+    }
+    let rev = 11 - (sum % 11);
+    if (rev === 10 || rev === 11) rev = 0;
+    if (rev !== parseInt(clean.charAt(9), 10)) return false;
+
+    sum = 0;
+    for (let i = 0; i < 10; i++) {
+      sum += parseInt(clean.charAt(i), 10) * (11 - i);
+    }
+    rev = 11 - (sum % 11);
+    if (rev === 10 || rev === 11) rev = 0;
+    if (rev !== parseInt(clean.charAt(10), 10)) return false;
+
+    return true;
+  };
+
+  const isValidCNPJ = (cnpj: string) => {
+    const clean = cnpj.replace(/\D/g, "");
+    if (clean.length !== 14) return false;
+    if (/^(\d)\1{13}$/.test(clean)) return false;
+
+    let length = clean.length - 2;
+    let numbers = clean.substring(0, length);
+    const digits = clean.substring(length);
+    let sum = 0;
+    let pos = length - 7;
+    for (let i = length; i >= 1; i--) {
+      sum += parseInt(numbers.charAt(length - i), 10) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+    if (result !== parseInt(digits.charAt(0), 10)) return false;
+
+    length = length + 1;
+    numbers = clean.substring(0, length);
+    sum = 0;
+    pos = length - 7;
+    for (let i = length; i >= 1; i--) {
+      sum += parseInt(numbers.charAt(length - i), 10) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+    if (result !== parseInt(digits.charAt(1), 10)) return false;
+
+    return true;
+  };
 
   const formatCpfCnpj = (value: string) => {
     const numbers = value.replace(/\D/g, "");
@@ -145,29 +203,19 @@ const Cadastro = () => {
   const professionTitle = selectedProfessions.join(", ");
 
   const handleOAuthSelected = async (data: OAuthUserData) => {
+    // Para todos os papéis: Salva os dados da conta social e exige CPF + confirmação da foto
+    setSocialAuth(data);
+    setName(data.name || name);
+    setEmail(data.email || email);
+    if (data.avatarUrl && !avatarPreview) {
+      setAvatarPreview(data.avatarUrl);
+    }
+    
     if (role === "STUDENT") {
-      // Para ALUNO: Conclui o cadastro imediatamente via Google/Apple
-      try {
-        const res = await oauthLogin({
-          provider: data.provider,
-          email: data.email,
-          name: data.name,
-          avatarUrl: data.avatarUrl,
-          role: "STUDENT",
-        });
-
-        if ("accessToken" in res && res.accessToken) {
-          toast.success("Conta criada e conectada com sucesso!");
-          navigate("/buscar");
-        }
-      } catch (err) {
-        toast.error("Erro no cadastro social", { description: (err as Error).message });
-      }
+      toast.info(
+        `Conta ${data.provider === "google" ? "Google" : "Apple"} conectada! Preencha seu CPF e confirme sua foto de perfil para concluir.`
+      );
     } else {
-      // Para PROFISSIONAL ou ACADEMIA: Salva a conta social vinculada e foca nos campos obrigatórios
-      setSocialAuth(data);
-      setName(data.name);
-      setEmail(data.email);
       toast.info(
         `Conta ${data.provider === "google" ? "Google" : "Apple"} vinculada! Por favor, preencha os dados complementares abaixo.`
       );
@@ -176,6 +224,42 @@ const Cadastro = () => {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 1. Validação OBRIGATÓRIA de Foto de Perfil
+    if (!avatarFile && !avatarPreview && !socialAuth?.avatarUrl) {
+      toast.error("A foto de perfil é obrigatória para cadastro!", {
+        description: role === "STUDENT"
+          ? "Tire uma selfie com a câmera ou envie uma foto do seu rosto para reconhecimento e segurança."
+          : role === "ACADEMIA"
+          ? "Envie o logotipo ou foto da academia para identificação no app."
+          : "Tire uma foto ou envie uma imagem profissional para seu perfil."
+      });
+      return;
+    }
+
+    // 2. Validação OBRIGATÓRIA de CPF / CNPJ
+    const cleanDoc = cpf.replace(/\D/g, "");
+    if (!cleanDoc) {
+      toast.error(role === "ACADEMIA" ? "Por favor, preencha o CNPJ da academia" : "Por favor, preencha o seu CPF");
+      return;
+    }
+
+    if (role === "ACADEMIA") {
+      if (cleanDoc.length !== 14 || !isValidCNPJ(cpf)) {
+        toast.error("CNPJ inválido", { description: "Por favor, digite um CNPJ válido com 14 dígitos." });
+        return;
+      }
+    } else {
+      if (cleanDoc.length !== 11 || !isValidCPF(cpf)) {
+        toast.error("CPF inválido", { description: "Por favor, digite um CPF válido com 11 dígitos." });
+        return;
+      }
+    }
+
+    if (!phone) {
+      toast.error("Por favor, preencha o telefone de contato");
+      return;
+    }
     
     if (role === "PERSONAL") {
       if (selectedProfessions.length === 0) {
@@ -190,25 +274,6 @@ const Cadastro = () => {
         toast.error("Por favor, anexe seu comprovante de registro profissional");
         return;
       }
-      if (!cpf) {
-        toast.error("Por favor, preencha seu CPF");
-        return;
-      }
-      if (!phone) {
-        toast.error("Por favor, preencha seu telefone");
-        return;
-      }
-    }
-
-    if (role === "ACADEMIA") {
-      if (!cpf) {
-        toast.error("Por favor, preencha o CNPJ da academia");
-        return;
-      }
-      if (!phone) {
-        toast.error("Por favor, preencha o telefone de contato");
-        return;
-      }
     }
 
     try {
@@ -217,7 +282,7 @@ const Cadastro = () => {
 
       setIsUploading(true);
 
-      // Upload do documento de registro
+      // Upload do documento de registro profissional/academia
       if ((role === "PERSONAL" || role === "ACADEMIA") && documentFile) {
         try {
           const res = await uploadDocument(documentFile);
@@ -229,21 +294,32 @@ const Cadastro = () => {
         }
       }
 
-      // Upload da foto de perfil se fornecida
+      // Upload da foto de perfil obrigatória se novo arquivo foi selecionado
       if (avatarFile) {
         try {
           const res = await uploadAvatar(avatarFile);
           userAvatarUrl = res.url;
         } catch (err) {
-          console.warn("Falha no upload do avatar:", err);
-          // Continua o cadastro mesmo que o avatar falhe
+          toast.error("Erro ao enviar foto de perfil", { description: (err as Error).message });
+          setIsUploading(false);
+          return;
         }
+      }
+
+      if (!userAvatarUrl && !avatarPreview && !socialAuth?.avatarUrl) {
+        toast.error("A foto de perfil é obrigatória para criar a conta.");
+        setIsUploading(false);
+        return;
+      }
+
+      if (!userAvatarUrl) {
+        userAvatarUrl = avatarPreview || socialAuth?.avatarUrl;
       }
 
       let newUser: any;
 
       if (socialAuth) {
-        // Cadastro via OAuth com dados complementares
+        // Cadastro via OAuth com dados complementares e CPF obrigatório
         const res = await oauthLogin({
           provider: socialAuth.provider,
           email: socialAuth.email,
@@ -530,120 +606,132 @@ const Cadastro = () => {
               </>
             )}
 
-            {(role === "PERSONAL" || role === "ACADEMIA") && (
-              <div className="space-y-2 p-4 rounded-xl border border-border bg-card/60">
-                <Label className="text-sm font-semibold text-foreground flex items-center justify-between">
-                  <span>{role === "ACADEMIA" ? "Logotipo da Academia" : "Foto de Perfil Profissional"}</span>
-                  <span className="text-xs text-muted-foreground font-normal">Recomendado</span>
-                </Label>
+            {/* Foto de Perfil Obrigatória para TODOS os perfis */}
+            <div className={`space-y-2 p-4 rounded-xl border transition-all ${!avatarPreview ? 'border-primary/50 bg-primary/5 ring-1 ring-primary/20' : 'border-border bg-card/60'}`}>
+              <Label className="text-sm font-semibold text-foreground flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Camera className="w-4 h-4 text-primary" />
+                  {role === "ACADEMIA"
+                    ? "Logotipo ou Foto da Academia *"
+                    : role === "PERSONAL"
+                    ? "Foto de Perfil Profissional *"
+                    : "Foto de Perfil (Rosto / Selfie) *"}
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/20 text-primary font-bold uppercase tracking-wider">
+                  Obrigatória
+                </span>
+              </Label>
 
-                <div className="flex items-center gap-4 mt-2">
-                  <div className="relative w-20 h-20 rounded-full border-2 border-dashed border-border bg-muted/50 flex items-center justify-center overflow-hidden shrink-0 group">
-                    {avatarPreview ? (
-                      <img
-                        src={avatarPreview}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center text-muted-foreground">
-                        <Camera className="w-6 h-6 mb-1 opacity-70" />
-                        <span className="text-[10px]">Foto</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex-1 space-y-1.5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-8 px-3 text-xs gap-1.5 border-border hover:bg-accent font-medium shadow-sm"
-                        onClick={async () => {
-                          if (isNativePlatform()) {
-                            try {
-                              const file = await captureNativePhoto({ source: "camera" });
-                              if (file) handleAvatarChange(file);
-                            } catch (err: any) {
-                              toast.error("Não foi possível abrir a câmera", { description: err?.message });
-                            }
-                          } else {
-                            cameraInputRef.current?.click();
-                          }
-                        }}
-                      >
-                        <Camera className="w-3.5 h-3.5 text-primary" />
-                        Tirar Foto (Câmera)
-                      </Button>
-
-                      {/* Input de câmera direta do celular/dispositivo */}
-                      <input
-                        ref={cameraInputRef}
-                        type="file"
-                        accept="image/*"
-                        capture="user"
-                        className="hidden"
-                        onChange={(e) => handleAvatarChange(e.target.files?.[0] || null)}
-                      />
-
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        className="h-8 px-3 text-xs gap-1.5 font-medium shadow-sm"
-                        onClick={async () => {
-                          if (isNativePlatform()) {
-                            try {
-                              const file = await captureNativePhoto({ source: "photos" });
-                              if (file) handleAvatarChange(file);
-                            } catch (err: any) {
-                              toast.error("Não foi possível abrir a galeria", { description: err?.message });
-                            }
-                          } else {
-                            const fileInput = document.getElementById("avatarFileInput") as HTMLInputElement;
-                            fileInput?.click();
-                          }
-                        }}
-                      >
-                        <UploadCloud className="w-3.5 h-3.5" />
-                        {avatarPreview ? "Trocar imagem" : "Galeria / Arquivos"}
-                      </Button>
-                      <input
-                        id="avatarFileInput"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleAvatarChange(e.target.files?.[0] || null)}
-                      />
-
-                      {avatarPreview && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => handleAvatarChange(null)}
-                        >
-                          <Trash2 className="w-3.5 h-3.5 mr-1" /> Remover
-                        </Button>
-                      )}
+              <div className="flex items-center gap-4 mt-2">
+                <div className={`relative w-20 h-20 rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden shrink-0 group transition-all ${avatarPreview ? 'border-primary ring-2 ring-primary/30' : 'border-primary/50 bg-muted/50'}`}>
+                  {avatarPreview ? (
+                    <img
+                      src={avatarPreview}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-muted-foreground p-1 text-center">
+                      <Camera className="w-6 h-6 mb-0.5 text-primary opacity-80" />
+                      <span className="text-[9px] font-semibold text-foreground">Sua Foto</span>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      Formatos JPG, PNG ou WEBP. Uma boa foto transmite mais confiança aos alunos!
-                    </p>
-                  </div>
+                  )}
                 </div>
 
-                <CameraCaptureModal
-                  open={isCameraOpen}
-                  onOpenChange={setIsCameraOpen}
-                  onCapture={handleAvatarChange}
-                  title={role === "ACADEMIA" ? "Logotipo / Foto da Academia" : "Foto de Perfil Profissional"}
-                  description="Capture uma foto direta pela câmera ou webcam para seu perfil."
-                />
+                <div className="flex-1 space-y-1.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-3 text-xs gap-1.5 border-primary/40 hover:bg-primary/10 text-foreground font-medium shadow-sm"
+                      onClick={async () => {
+                        if (isNativePlatform()) {
+                          try {
+                            const file = await captureNativePhoto({ source: "camera" });
+                            if (file) handleAvatarChange(file);
+                          } catch (err: any) {
+                            toast.error("Não foi possível abrir a câmera", { description: err?.message });
+                          }
+                        } else {
+                          setIsCameraOpen(true);
+                        }
+                      }}
+                    >
+                      <Camera className="w-3.5 h-3.5 text-primary" />
+                      Tirar Foto (Câmera)
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="h-8 px-3 text-xs gap-1.5 font-medium shadow-sm"
+                      onClick={async () => {
+                        if (isNativePlatform()) {
+                          try {
+                            const file = await captureNativePhoto({ source: "photos" });
+                            if (file) handleAvatarChange(file);
+                          } catch (err: any) {
+                            toast.error("Não foi possível abrir a galeria", { description: err?.message });
+                          }
+                        } else {
+                          const fileInput = document.getElementById("avatarFileInput") as HTMLInputElement;
+                          fileInput?.click();
+                        }
+                      }}
+                    >
+                      <UploadCloud className="w-3.5 h-3.5" />
+                      {avatarPreview ? "Trocar imagem" : "Galeria / Arquivos"}
+                    </Button>
+                    <input
+                      id="avatarFileInput"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleAvatarChange(e.target.files?.[0] || null)}
+                    />
+
+                    {avatarPreview && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleAvatarChange(null)}
+                      >
+                        <Trash2 className="w-3.5 h-3.5 mr-1" /> Remover
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-tight">
+                    {role === "STUDENT"
+                      ? "Foto frontal nítida do seu rosto. Necessária para segurança e liberação por biometria nas academias."
+                      : role === "ACADEMIA"
+                      ? "Formatos JPG, PNG ou WEBP. Imagem de qualidade para a vitrine da academia."
+                      : "Formatos JPG, PNG ou WEBP. Uma boa foto transmite mais confiança aos alunos!"}
+                  </p>
+                </div>
               </div>
-            )}
+
+              <CameraCaptureModal
+                open={isCameraOpen}
+                onOpenChange={setIsCameraOpen}
+                onCapture={handleAvatarChange}
+                title={
+                  role === "ACADEMIA"
+                    ? "Logotipo / Foto da Academia"
+                    : role === "PERSONAL"
+                    ? "Foto de Perfil Profissional"
+                    : "Foto de Perfil (Selfie)"
+                }
+                description={
+                  role === "STUDENT"
+                    ? "Enquadre seu rosto no círculo e tire uma selfie para seu cadastro."
+                    : "Capture uma foto direta pela câmera para seu perfil."
+                }
+              />
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="name">

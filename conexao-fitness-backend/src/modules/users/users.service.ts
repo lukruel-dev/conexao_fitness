@@ -112,6 +112,14 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   async create(dto: CreateUserDto): Promise<User> {
+    const cleanDoc = (dto.cpf || dto.cnpj || '').replace(/\D/g, '');
+    if (!cleanDoc && dto.role !== 'ADMIN') {
+      throw new BadRequestException('CPF ou CNPJ é obrigatório para cadastro.');
+    }
+    if (!dto.avatarUrl && dto.role !== 'ADMIN') {
+      throw new BadRequestException('Foto de perfil é obrigatória para cadastro.');
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(dto.password, salt);
 

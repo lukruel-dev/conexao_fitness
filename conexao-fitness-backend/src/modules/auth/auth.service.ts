@@ -130,10 +130,23 @@ export class AuthService {
     }
 
     const selectedRole = dto.role || 'STUDENT';
+    const cleanDoc = (dto.cpf || dto.cnpj || '').replace(/\D/g, '');
 
-    // Se for PERSONAL ou ACADEMIA e ainda faltar dados obrigatórios
+    // Para TODOS os perfis (STUDENT, PERSONAL, ACADEMIA), CPF/CNPJ e Foto de Perfil são obrigatórios
+    if (!cleanDoc || !dto.avatarUrl) {
+      return {
+        requiresAdditionalData: true,
+        provider: dto.provider,
+        email: dto.email,
+        name: dto.name,
+        avatarUrl: dto.avatarUrl,
+        role: selectedRole,
+      };
+    }
+
+    // Se for PERSONAL e faltar dados profissionais
     if (selectedRole === 'PERSONAL') {
-      const hasRequiredFields = !!(dto.professionTitle && dto.professionalRegistrationId && dto.cpf);
+      const hasRequiredFields = !!(dto.professionTitle && dto.professionalRegistrationId && cleanDoc);
       if (!hasRequiredFields) {
         return {
           requiresAdditionalData: true,
