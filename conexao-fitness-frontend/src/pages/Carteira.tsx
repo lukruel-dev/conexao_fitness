@@ -2,15 +2,33 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Navigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Wallet, Plus, CreditCard, ArrowRight, QrCode, Zap } from "lucide-react";
+import {
+  Wallet,
+  Plus,
+  CreditCard,
+  ArrowRight,
+  QrCode,
+  Zap,
+  Building2,
+  Calendar,
+  Receipt,
+  Search,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getMyBalance, createTopup, simulateTopupSuccess } from "@/services/wallet";
+import {
+  getMyBalance,
+  createTopup,
+  simulateTopupSuccess,
+  getWalletStatement,
+} from "@/services/wallet";
 import { CheckoutModal } from "@/components/CheckoutModal";
 import { FinexDayPassQrModal } from "@/components/FinexDayPassQrModal";
+import { AcademiaWalletView } from "@/components/AcademiaWalletView";
+import { ProfessionalWalletView } from "@/components/ProfessionalWalletView";
 
 export default function Carteira() {
   const { user, isAuthenticated } = useAuth();
@@ -20,11 +38,18 @@ export default function Carteira() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [currentPaymentIntentId, setCurrentPaymentIntentId] = useState<string | null>(null);
   const [dayPassModalOpen, setDayPassModalOpen] = useState(false);
+  const [studentSearchTerm, setStudentSearchTerm] = useState("");
 
   const { data: balance, isLoading } = useQuery({
     queryKey: ["wallet-balance"],
     queryFn: getMyBalance,
     enabled: !!user,
+  });
+
+  const { data: statementData } = useQuery({
+    queryKey: ["wallet-statement"],
+    queryFn: getWalletStatement,
+    enabled: !!user && user.role === "STUDENT",
   });
 
   useEffect(() => {
@@ -33,20 +58,18 @@ export default function Carteira() {
     const canceled = searchParams.get("canceled");
 
     if (success === "true" && paymentIntent) {
-      // User returned from Stripe checkout successfully. 
-      // In a real prod environment, Stripe Webhooks would update the balance.
-      // Since our webhook currently isn't wired to fulfill topups, we simulate success manually:
       toast.promise(
         simulateTopupSuccess(paymentIntent).then(() => {
           qc.invalidateQueries({ queryKey: ["wallet-balance"] });
+          qc.invalidateQueries({ queryKey: ["wallet-statement"] });
         }),
         {
-          loading: 'Confirmando pagamento...',
-          success: 'Recarga realizada com sucesso!',
-          error: 'Erro ao confirmar recarga.',
+          loading: "Confirmando pagamento...",
+          success: "Recarga realizada com sucesso!",
+          error: "Erro ao confirmar recarga.",
         }
       );
-      
+
       searchParams.delete("success");
       searchParams.delete("payment_intent");
       setSearchParams(searchParams, { replace: true });
@@ -69,7 +92,7 @@ export default function Carteira() {
     },
     onError: (err: any) => {
       toast.error("Erro ao adicionar saldo", { description: err.message });
-    }
+    },
   });
 
   const handleAddFunds = (e: React.FormEvent) => {
@@ -84,6 +107,39 @@ export default function Carteira() {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
+  // Se o usuário logado for Academia, renderiza a visão completa de Faturamento, Extrato com Nome dos Alunos e Saques
+  if (user?.role === "ACADEMIA") {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <main className="flex-1 container mx-auto px-4 pt-24 md:pt-28 pb-16 max-w-5xl">
+          <AcademiaWalletView />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Se o usuário logado for Profissional (Personal Trainer, Nutri, Fisio), renderiza a visão profissional de rendimentos
+  if (user?.role === "PERSONAL") {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <main className="flex-1 container mx-auto px-4 pt-24 md:pt-28 pb-16 max-w-5xl">
+          <ProfessionalWalletView />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Visão padrão para Aluno / Atleta (Consumidor)
+  const studentTransactions = (statementData?.transactions || []).filter(
+    (t) =>
+      !studentSearchTerm ||
+      t.description.toLowerCase().includes(studentSearchTerm.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
@@ -95,60 +151,54 @@ export default function Carteira() {
           <span>Minha <span className="gradient-text">Carteira</span></span>
         </h1>
         <p className="text-muted-foreground text-sm sm:text-base mb-8">
-          Gerencie seu saldo e adicione fundos para pagar suas aulas.
+          Gerencie seu saldo e adicione fundos para pagar treinos avulsos (Day Pass), aulas e matrículas.
         </p>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 flex flex-col justify-center items-center text-center shadow-sm relative overflow-hidden">
+        <div className="grid md:grid-cols-2 gap-6 mb-10">
+          <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 flex flex-col justify-center items-center text-center shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5">
               <Wallet className="w-32 h-32" />
             </div>
-            <h2 className="text-sm font-medium text-muted-foreground mb-2">Saldo Atual (Disponível)</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+              Saldo Atual (Disponível)
+            </h2>
             {isLoading ? (
               <div className="h-12 w-32 bg-muted animate-pulse rounded-lg mb-2"></div>
             ) : (
-              <p className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-foreground">
-                R$ {(balance?.current_balance || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <p className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold text-foreground">
+                R${" "}
+                {(balance?.current_balance || 0).toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </p>
             )}
-            
-            {(user?.role === "PERSONAL" || user?.role === "ACADEMIA") && (
-              <div className="mt-4 pt-4 border-t border-border/50 w-full flex flex-col items-center">
-                <h3 className="text-xs font-medium text-muted-foreground">Saldo Pendente (Aulas Futuras)</h3>
-                <p className="text-lg font-bold text-yellow-500 mt-1">
-                  R$ {(balance?.pending_balance || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-1 max-w-[250px]">
-                  O saldo pendente é retido até que a aula seja concluída (liberação automática a cada hora).
-                </p>
-              </div>
-            )}
 
-            {user?.role === "STUDENT" && (
-              <div className="mt-4 pt-4 border-t border-border/50 w-full flex flex-col items-center gap-2.5">
-                <p className="text-xs text-muted-foreground">
-                  Use seu saldo para pagar treinos avulsos (Day Pass) instantâneos em academias parceiras.
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setDayPassModalOpen(true)}
-                  className="rounded-xl text-xs gap-1.5 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 font-bold px-4"
-                >
-                  <QrCode className="w-3.5 h-3.5" /> Abrir QR Day Pass Finex
-                </Button>
-              </div>
-            )}
+            <div className="mt-5 pt-5 border-t border-border/60 w-full flex flex-col items-center gap-2.5">
+              <p className="text-xs text-muted-foreground text-center">
+                Apresente seu QR Code na catraca de qualquer academia para debitar seu Day Pass instantaneamente.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setDayPassModalOpen(true)}
+                className="rounded-2xl text-xs gap-1.5 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 font-bold px-5 py-2.5 shadow-sm"
+              >
+                <QrCode className="w-4 h-4" /> Abrir QR Day Pass Finex
+              </Button>
+            </div>
           </div>
 
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+          <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-sm">
             <h3 className="font-display font-bold text-lg mb-4 flex items-center gap-2">
               <Plus className="w-5 h-5 text-primary" /> Adicionar Saldo
             </h3>
             <form onSubmit={handleAddFunds} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs sm:text-sm font-medium text-muted-foreground">Recarga rápida:</label>
+                <label className="text-xs sm:text-sm font-medium text-muted-foreground">
+                  Recarga rápida:
+                </label>
                 <div className="grid grid-cols-4 gap-2 mb-1">
                   {[20, 50, 100, 200].map((quickAmount) => (
                     <button
@@ -170,13 +220,15 @@ export default function Carteira() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Outro Valor (R$)</label>
                 <div className="relative flex items-center">
-                  <span className="absolute left-3.5 text-muted-foreground font-medium text-sm">R$</span>
-                  <Input 
-                    type="number" 
-                    step="0.01" 
+                  <span className="absolute left-3.5 text-muted-foreground font-medium text-sm">
+                    R$
+                  </span>
+                  <Input
+                    type="number"
+                    step="0.01"
                     min="5"
-                    className="pl-11 text-base"
-                    placeholder="0,00" 
+                    className="pl-11 text-base rounded-xl"
+                    placeholder="0,00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     required
@@ -184,13 +236,15 @@ export default function Carteira() {
                 </div>
                 <p className="text-xs text-muted-foreground">Valor mínimo de R$ 5,00.</p>
               </div>
-              <Button 
-                type="submit" 
-                variant="hero" 
-                className="w-full h-auto py-3.5 px-3 text-xs sm:text-sm font-semibold whitespace-normal leading-snug flex items-center justify-center gap-2" 
+              <Button
+                type="submit"
+                variant="hero"
+                className="w-full h-auto py-3.5 px-3 text-xs sm:text-sm font-semibold whitespace-normal leading-snug flex items-center justify-center gap-2 rounded-xl shadow-lg shadow-primary/20"
                 disabled={topupMutation.isPending || !amount}
               >
-                {topupMutation.isPending ? "Processando..." : (
+                {topupMutation.isPending ? (
+                  "Processando..."
+                ) : (
                   <>
                     <CreditCard className="w-4 h-4 shrink-0" />
                     <span>Pagar com Cartão (Stripe)</span>
@@ -201,8 +255,72 @@ export default function Carteira() {
             </form>
           </div>
         </div>
+
+        {/* Extrato do Aluno */}
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h3 className="font-display font-bold text-lg flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-primary" /> Extrato de Pagamentos & Recargas
+            </h3>
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Filtrar compras..."
+                value={studentSearchTerm}
+                onChange={(e) => setStudentSearchTerm(e.target.value)}
+                className="pl-8 text-xs rounded-xl h-9"
+              />
+            </div>
+          </div>
+
+          {studentTransactions.length === 0 ? (
+            <div className="text-center py-10 bg-card/40 border border-dashed border-border rounded-2xl p-6">
+              <p className="text-xs text-muted-foreground">Nenhuma movimentação encontrada.</p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {studentTransactions.map((tx) => {
+                const isDebit = tx.type === "DEBIT" || tx.type === "DAY_PASS";
+                const dateFormatted = new Date(tx.createdAt).toLocaleString("pt-BR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+
+                return (
+                  <div
+                    key={tx.id}
+                    className="bg-card border border-border/70 rounded-2xl p-4 flex items-center justify-between shadow-sm"
+                  >
+                    <div className="space-y-1">
+                      <p className="font-bold text-sm text-foreground">{tx.description}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <Calendar className="w-3 h-3" /> {dateFormatted}
+                      </p>
+                    </div>
+                    <p
+                      className={`font-display font-extrabold text-base ${
+                        isDebit ? "text-foreground" : "text-emerald-500"
+                      }`}
+                    >
+                      {isDebit ? "-" : "+"} R${" "}
+                      {Math.abs(tx.netAmount || tx.amount).toLocaleString("pt-BR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </main>
       <Footer />
+
       <CheckoutModal
         isOpen={!!clientSecret}
         onClose={() => {
@@ -217,11 +335,12 @@ export default function Carteira() {
             toast.promise(
               simulateTopupSuccess(currentPaymentIntentId).then(() => {
                 qc.invalidateQueries({ queryKey: ["wallet-balance"] });
+                qc.invalidateQueries({ queryKey: ["wallet-statement"] });
               }),
               {
-                loading: 'Confirmando recarga...',
-                success: 'Recarga creditada na sua carteira!',
-                error: 'Erro ao confirmar saldo.',
+                loading: "Confirmando recarga...",
+                success: "Recarga creditada na sua carteira!",
+                error: "Erro ao confirmar saldo.",
               }
             );
           }

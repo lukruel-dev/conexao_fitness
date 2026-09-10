@@ -290,38 +290,39 @@ export class UsersService implements OnApplicationBootstrap {
     const user = await this.findOneOrFail(userId);
     let profile = user.academiaProfile;
     if (!profile) {
-      profile = this.academiaProfileRepo.create({
+      const newProfile = this.academiaProfileRepo.create({
         userId: user.id,
         razaoSocial: user.name,
         nomeFantasia: user.name,
         cnpj: user.cpf || '',
       });
-      profile = await this.academiaProfileRepo.save(profile);
+      profile = await this.academiaProfileRepo.save(newProfile);
     }
+    const safeProfile = profile;
 
     return {
       userId: user.id,
       name: user.name,
       email: user.email,
       avatarUrl: user.avatarUrl,
-      coverUrl: profile.coverUrl,
-      razaoSocial: profile.razaoSocial,
-      nomeFantasia: profile.nomeFantasia,
-      cnpj: profile.cnpj,
-      bio: profile.bio || user.bio || '',
-      address: profile.address,
-      city: profile.city || user.cityBase,
-      state: profile.state,
-      zipCode: profile.zipCode,
-      phone: profile.phone || user.phone,
-      whatsapp: profile.whatsapp,
-      instagram: profile.instagram,
-      website: profile.website,
-      openingHours: profile.openingHours,
-      facilities: profile.facilities || [],
-      modalities: profile.modalities || [],
-      galleryUrls: profile.galleryUrls || [],
-      dayPassPrice: profile.dayPassPrice ? Number(profile.dayPassPrice) : undefined,
+      coverUrl: safeProfile.coverUrl,
+      razaoSocial: safeProfile.razaoSocial,
+      nomeFantasia: safeProfile.nomeFantasia,
+      cnpj: safeProfile.cnpj,
+      bio: safeProfile.bio || user.bio || '',
+      address: safeProfile.address,
+      city: safeProfile.city || user.cityBase,
+      state: safeProfile.state,
+      zipCode: safeProfile.zipCode,
+      phone: safeProfile.phone || user.phone,
+      whatsapp: safeProfile.whatsapp,
+      instagram: safeProfile.instagram,
+      website: safeProfile.website,
+      openingHours: safeProfile.openingHours,
+      facilities: safeProfile.facilities || [],
+      modalities: safeProfile.modalities || [],
+      galleryUrls: safeProfile.galleryUrls || [],
+      dayPassPrice: safeProfile.dayPassPrice ? Number(safeProfile.dayPassPrice) : undefined,
     };
   }
 

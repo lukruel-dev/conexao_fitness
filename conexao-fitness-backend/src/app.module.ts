@@ -37,6 +37,8 @@ import { ServiceCatalogModule } from './modules/service-catalog/service-catalog.
 import { WalletModule } from './modules/wallet/wallet.module';
 import { WalletAccount } from './modules/wallet/entities/wallet-account.entity';
 import { PaymentIntent } from './modules/wallet/entities/payment-intent.entity';
+import { WalletTransaction } from './modules/wallet/entities/wallet-transaction.entity';
+import { WalletWithdrawal } from './modules/wallet/entities/wallet-withdrawal.entity';
 import { QRModule as QrModule } from './modules/qr/qr.module';
 import { ProfessionsModule } from './modules/professions/professions.module';
 import { Profession } from './modules/professions/entities/profession.entity';
@@ -82,6 +84,8 @@ const isDev = process.env.NODE_ENV !== 'production';
               ServiceCatalog,
               WalletAccount,
               PaymentIntent,
+              WalletTransaction,
+              WalletWithdrawal,
               Profession,
               Post,
               PostLike,
@@ -118,6 +122,8 @@ const isDev = process.env.NODE_ENV !== 'production';
               ServiceCatalog,
               WalletAccount,
               PaymentIntent,
+              WalletTransaction,
+              WalletWithdrawal,
               Profession,
               Post,
               PostLike,

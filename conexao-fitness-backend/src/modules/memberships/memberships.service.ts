@@ -206,19 +206,43 @@ export class MembershipsService {
     const priceNum = Number(plan.price);
     const paymentMethod = dto.paymentMethod || EnrollmentPaymentMethod.STRIPE;
 
-    // Se o pagamento for via carteira, debita o saldo
+    // Se o pagamento for via carteira, debita o saldo do aluno e credita a academia
     if (paymentMethod === EnrollmentPaymentMethod.WALLET) {
-      const balance = await this.walletService.getBalance(studentId);
+      const balance = await this.walletService.getMyBalance(studentId);
       if (balance.current_balance < priceNum) {
         throw new BadRequestException(
           `Saldo insuficiente na carteira (Disponível: R$ ${balance.current_balance.toFixed(2)} - Necessário: R$ ${priceNum.toFixed(2)})`,
         );
       }
-      await this.walletService.debitBalance(
-        studentId,
-        priceNum,
-        `Matrícula online: ${plan.name} na academia ${academia.name}`,
-      );
+      await this.walletService.deductBalance(studentId, priceNum);
+      const gymFee = Number((priceNum * 0.05).toFixed(2)); // taxa reduzida para matrículas
+      const gymNet = Number((priceNum - gymFee).toFixed(2));
+      await this.walletService.addBalance(academiaId, gymNet);
+
+      await this.walletService.recordTransaction({
+        userId: academiaId,
+        type: 'ENROLLMENT',
+        amount: priceNum,
+        fee: gymFee,
+        description: `Matrícula: Plano ${plan.name}`,
+        sourceUserId: student.id,
+        sourceUserName: student.name,
+        sourceUserAvatar: student.avatarUrl,
+        targetUserId: academiaId,
+        referenceType: 'ENROLLMENT',
+        paymentMethod: 'FINEX_WALLET',
+      });
+
+      await this.walletService.recordTransaction({
+        userId: studentId,
+        type: 'DEBIT',
+        amount: priceNum,
+        description: `Matrícula: ${plan.name} (${academia.name})`,
+        sourceUserId: student.id,
+        targetUserId: academiaId,
+        referenceType: 'ENROLLMENT',
+        paymentMethod: 'FINEX_WALLET',
+      });
     }
 
     const now = new Date();
@@ -619,6 +643,34 @@ export class MembershipsService {
       notes: 'Debitado instantaneamente via QR Code da carteira Finex na recepção.',
     });
     const savedEnrollment = await this.enrollmentRepo.save(enrollment);
+
+    // Gravar extrato para academia e para o aluno
+    await this.walletService.recordTransaction({
+      userId: academiaId,
+      type: 'DAY_PASS',
+      amount: amount,
+      fee: platformFee,
+      description: 'Day Pass Finex - Catraca Digital',
+      sourceUserId: student.id,
+      sourceUserName: student.name,
+      sourceUserAvatar: student.avatarUrl,
+      targetUserId: academiaId,
+      referenceType: 'DAY_PASS',
+      referenceId: savedEnrollment.id,
+      paymentMethod: 'FINEX_WALLET',
+    });
+
+    await this.walletService.recordTransaction({
+      userId: student.id,
+      type: 'DEBIT',
+      amount: amount,
+      description: 'Day Pass Finex - Acesso Academia',
+      sourceUserId: student.id,
+      targetUserId: academiaId,
+      referenceType: 'DAY_PASS',
+      referenceId: savedEnrollment.id,
+      paymentMethod: 'FINEX_WALLET',
+    });
 
     // 7. Registrar log de acesso liberado
     const log = this.accessLogRepo.create({

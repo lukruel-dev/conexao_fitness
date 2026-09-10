@@ -19,7 +19,7 @@ export class WalletAccount {
     type: 'decimal',
     precision: 12,
     scale: 2,
-    default: 0,
+    default: '0.00',
   })
   currentBalance: string;
 
@@ -28,10 +28,22 @@ export class WalletAccount {
     type: 'decimal',
     precision: 12,
     scale: 2,
-    default: 0,
+    default: '0.00',
   })
   pendingBalance: string;
 
   @Column({ default: 'ACTIVE' })
   status: 'ACTIVE' | 'FROZEN' | 'CLOSED';
+
+  @Column({ name: 'pix_key_type', nullable: true })
+  pixKeyType?: 'CPF' | 'CNPJ' | 'EMAIL' | 'PHONE' | 'RANDOM';
+
+  @Column({ name: 'pix_key', nullable: true })
+  pixKey?: string;
+
+  @Column({ name: 'pix_holder_name', nullable: true })
+  pixHolderName?: string;
+
+  @Column({ name: 'bank_name', nullable: true })
+  bankName?: string;
 }
