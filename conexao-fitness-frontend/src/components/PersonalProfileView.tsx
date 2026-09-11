@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatBRL } from '@/lib/format';
+import { resolveMediaUrl } from '@/lib/mediaUrl';
 import { listServices } from '@/services/services';
 import { PostCard } from '@/components/feed/PostCard';
 import type { PublicUserProfile, Service } from '@/types/api';
@@ -82,6 +83,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
   const [isDirectChatOpen, setIsDirectChatOpen] = useState(false);
   const [chatInitialMessage, setChatInitialMessage] = useState<string>('');
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
 
   // Carregar planos e serviços do profissional
   const { data: services = [], isLoading: isLoadingServices } = useQuery({
@@ -283,18 +285,17 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
     });
   };
 
-  const avatarImage = (() => {
-    if (profile.avatarUrl && !profile.avatarUrl.includes("photo-1612349317150-e413f6a5b16d")) {
-      return profile.avatarUrl;
-    }
-    if (isNutri) {
-      return "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop";
-    }
-    if (isFisio) {
-      return "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=400&auto=format&fit=crop";
-    }
-    return "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop";
-  })();
+  const fallbackAvatar = isNutri
+    ? "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop"
+    : isFisio
+    ? "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=400&auto=format&fit=crop"
+    : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop";
+
+  const avatarImage = resolveMediaUrl(
+    profile.avatarUrl && !avatarLoadError && !profile.avatarUrl.includes("photo-1612349317150-e413f6a5b16d")
+      ? profile.avatarUrl
+      : fallbackAvatar
+  );
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -309,6 +310,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
                   src={avatarImage}
                   alt={profile.name}
                   className="w-full h-full rounded-2xl object-cover"
+                  onError={() => setAvatarLoadError(true)}
                 />
               </div>
               <span

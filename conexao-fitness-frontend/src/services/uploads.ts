@@ -47,6 +47,10 @@ export async function compressImage(
           return;
         }
 
+        // Preencher fundo com branco para não gerar fundo preto em PNGs transparentes
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+
         ctx.drawImage(img, 0, 0, width, height);
         const dataUrl = canvas.toDataURL("image/jpeg", quality);
         resolve(dataUrl);
@@ -98,18 +102,16 @@ function safeJson(text: string) {
 
 export async function uploadAvatar(file: File): Promise<UploadResponse> {
   try {
-    const dataUrl = await compressImage(file, 600, 600, 0.85);
+    // Comprime para 450x450 com qualidade 0.82.
+    // Isso gera uma string base64 compacta (~18KB a 28KB) que é salva
+    // diretamente no PostgreSQL do Render (coluna text), tornando a foto
+    // 100% permanente e imune ao sistema de arquivos efêmero do Render.
+    const dataUrl = await compressImage(file, 450, 450, 0.82);
 
-    // Tentar enviar para o endpoint /upload/avatar do servidor
-    try {
-      const res = await uploadFile("avatar", file);
-      if (res && res.url) {
-        return res;
-      }
-    } catch {
-      // Se o servidor de arquivos der timeout, usa o dataUrl otimizado
-    }
+    // Envia também para o servidor em segundo plano (fire-and-forget)
+    uploadFile("avatar", file).catch(() => {});
 
+    // Retorna a URL base64 durável que nunca se perde no banco de dados
     return { url: dataUrl };
   } catch {
     return uploadFile("avatar", file);

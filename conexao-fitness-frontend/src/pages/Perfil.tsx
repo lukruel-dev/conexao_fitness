@@ -75,6 +75,11 @@ const Perfil = () => {
   // Estado das postagens do perfil do usuário
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [postsLoading, setPostsLoading] = useState(false);
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
+
+  useEffect(() => {
+    setAvatarLoadError(false);
+  }, [user?.avatarUrl]);
 
   // Estado e validação da Biografia (Bio)
   const [bioText, setBioText] = useState(user?.bio || "");
@@ -165,6 +170,7 @@ const Perfil = () => {
     },
     onSuccess: (updated) => {
       setUser(updated);
+      setAvatarLoadError(false);
       toast.success("Foto de perfil atualizada!");
     },
     onError: (err: Error) =>
@@ -278,8 +284,13 @@ const Perfil = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
               <div className="relative shrink-0">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden ring-4 ring-primary/20">
-                  {user.avatarUrl ? (
-                    <img src={resolveMediaUrl(user.avatarUrl)} alt={user.name} className="w-full h-full object-cover" />
+                  {user.avatarUrl && !avatarLoadError ? (
+                    <img
+                      src={resolveMediaUrl(user.avatarUrl)}
+                      alt={user.name}
+                      className="w-full h-full object-cover"
+                      onError={() => setAvatarLoadError(true)}
+                    />
                   ) : (
                     <User className="w-10 h-10 text-primary" />
                   )}

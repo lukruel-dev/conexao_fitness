@@ -44,7 +44,7 @@ export class WalletTransaction {
   @Column({ name: 'source_user_name', nullable: true })
   sourceUserName?: string; // Student name
 
-  @Column({ name: 'source_user_avatar', nullable: true })
+  @Column({ name: 'source_user_avatar', type: 'text', nullable: true })
   sourceUserAvatar?: string;
 
   @Column({ name: 'target_user_id', nullable: true })

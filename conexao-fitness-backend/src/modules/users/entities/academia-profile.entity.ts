@@ -32,7 +32,7 @@ export class AcademiaProfile {
   @Column({ type: 'text', nullable: true })
   bio?: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   coverUrl?: string;
 
   @Column({ nullable: true })
@@ -74,7 +74,7 @@ export class AcademiaProfile {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   dayPassPrice?: number;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   documentUrl?: string;
 
   @Column({ type: 'uuid', nullable: true })

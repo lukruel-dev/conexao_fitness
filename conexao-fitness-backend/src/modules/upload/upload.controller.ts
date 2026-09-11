@@ -73,7 +73,21 @@ export class UploadController {
     const safeFilename = filename.replace(/[^a-zA-Z0-9_.-]/g, '');
     const filePath = path.join(process.cwd(), 'uploads', safeFolder, safeFilename);
 
+    const ext = path.extname(safeFilename).toLowerCase();
     if (!fs.existsSync(filePath)) {
+      const imageExts = ['.jpg', '.jpeg', '.png', '.webp', '.svg', '.gif'];
+      if (folder === 'avatars' || imageExts.includes(ext)) {
+        const defaultSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+          <circle cx="64" cy="64" r="64" fill="#18181b"/>
+          <circle cx="64" cy="48" r="24" fill="#a1a1aa"/>
+          <path d="M 24 112 C 24 88, 44 80, 64 80 C 84 80, 104 88, 104 112 Z" fill="#a1a1aa"/>
+        </svg>`;
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.setHeader('Cache-Control', 'public, max-age=300');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        return res.status(200).send(defaultSvg);
+      }
+
       res.status(404).send(
         `<!DOCTYPE html>
         <html lang="pt-BR">
@@ -91,8 +105,6 @@ export class UploadController {
       );
       return;
     }
-
-    const ext = path.extname(safeFilename).toLowerCase();
     const mimeTypes: Record<string, string> = {
       '.pdf': 'application/pdf',
       '.png': 'image/png',

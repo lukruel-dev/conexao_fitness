@@ -50,6 +50,8 @@ import {
   ValidateAccessResponse,
 } from '@/services/memberships';
 import { getMyAcademiaProfile, updateMyAcademiaProfile } from '@/services/users';
+import { compressImage } from '@/services/uploads';
+import { resolveMediaUrl } from '@/lib/mediaUrl';
 import { formatBRL } from '@/lib/format';
 import { toast } from 'sonner';
 import {
@@ -245,6 +247,43 @@ export default function GestaoAcademia() {
   const [newFacilityInput, setNewFacilityInput] = useState('');
   const [newModalityInput, setNewModalityInput] = useState('');
   const [newGalleryInput, setNewGalleryInput] = useState('');
+
+  const coverFileInputRef = useRef<HTMLInputElement>(null);
+  const logoFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePickLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Selecione um arquivo de imagem válido');
+      return;
+    }
+    try {
+      const dataUrl = await compressImage(file, 450, 450, 0.82);
+      setProfileForm((prev) => ({ ...prev, avatarUrl: dataUrl }));
+      toast.success('Logo selecionado com sucesso!');
+    } catch {
+      toast.error('Não foi possível processar a imagem');
+    }
+    e.target.value = '';
+  };
+
+  const handlePickCover = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Selecione um arquivo de imagem válido');
+      return;
+    }
+    try {
+      const dataUrl = await compressImage(file, 1200, 600, 0.82);
+      setProfileForm((prev) => ({ ...prev, coverUrl: dataUrl }));
+      toast.success('Imagem de capa selecionada com sucesso!');
+    } catch {
+      toast.error('Não foi possível processar a imagem de capa');
+    }
+    e.target.value = '';
+  };
 
   useEffect(() => {
     if (gymProfileData) {
@@ -1910,33 +1949,85 @@ export default function GestaoAcademia() {
                     <ImageIcon className="w-4 h-4 text-primary" /> Imagens da Marca
                   </h3>
 
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-xs font-semibold">Foto de Capa / Banner (URL)</Label>
+                  <div className="space-y-5">
+                    {/* Foto de Capa / Banner */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-semibold">Foto de Capa / Banner</Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => coverFileInputRef.current?.click()}
+                          className="h-7 text-xs gap-1.5 border-primary/40 text-primary hover:bg-primary hover:text-white font-medium"
+                        >
+                          <Camera className="w-3.5 h-3.5" /> Escolher do Computador / Celular
+                        </Button>
+                      </div>
+                      <input
+                        ref={coverFileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePickCover}
+                      />
                       <Input
                         value={profileForm.coverUrl}
                         onChange={(e) => setProfileForm({ ...profileForm, coverUrl: e.target.value })}
-                        placeholder="https://images.unsplash.com/..."
+                        placeholder="Cole uma URL de imagem ou escolha pelo botão acima..."
                         className="rounded-xl mt-1 text-xs"
                       />
                       {profileForm.coverUrl && (
-                        <div className="mt-2 h-28 rounded-xl overflow-hidden border border-border">
-                          <img src={profileForm.coverUrl} alt="Preview Capa" className="w-full h-full object-cover" />
+                        <div className="mt-2 h-28 rounded-xl overflow-hidden border border-border relative">
+                          <img
+                            src={resolveMediaUrl(profileForm.coverUrl)}
+                            alt="Preview Capa"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1400&auto=format&fit=crop";
+                            }}
+                          />
                         </div>
                       )}
                     </div>
 
-                    <div>
-                      <Label className="text-xs font-semibold">Logo / Foto de Perfil (URL)</Label>
+                    {/* Logo / Foto de Perfil */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-semibold">Logo / Foto de Perfil</Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => logoFileInputRef.current?.click()}
+                          className="h-7 text-xs gap-1.5 border-primary/40 text-primary hover:bg-primary hover:text-white font-medium"
+                        >
+                          <Camera className="w-3.5 h-3.5" /> Escolher Logo
+                        </Button>
+                      </div>
+                      <input
+                        ref={logoFileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePickLogo}
+                      />
                       <Input
                         value={profileForm.avatarUrl}
                         onChange={(e) => setProfileForm({ ...profileForm, avatarUrl: e.target.value })}
-                        placeholder="https://images.unsplash.com/..."
+                        placeholder="Cole uma URL de imagem ou escolha pelo botão acima..."
                         className="rounded-xl mt-1 text-xs"
                       />
                       {profileForm.avatarUrl && (
                         <div className="mt-2 w-16 h-16 rounded-xl overflow-hidden border border-border">
-                          <img src={profileForm.avatarUrl} alt="Preview Logo" className="w-full h-full object-cover" />
+                          <img
+                            src={resolveMediaUrl(profileForm.avatarUrl)}
+                            alt="Preview Logo"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=400&auto=format&fit=crop";
+                            }}
+                          />
                         </div>
                       )}
                     </div>

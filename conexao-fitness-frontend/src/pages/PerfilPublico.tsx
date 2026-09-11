@@ -383,11 +383,14 @@ const PerfilPublico: React.FC = () => {
                 <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full p-1 bg-gradient-to-tr from-primary via-secondary to-primary shadow-lg">
                   <img
                     src={
-                      profile.avatarUrl ||
+                      resolveMediaUrl(profile.avatarUrl) ||
                       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300"
                     }
                     alt={profile.name}
                     className="w-full h-full rounded-full object-cover border-2 border-background"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300";
+                    }}
                   />
                 </div>
                 {profile.role === "PERSONAL" && (

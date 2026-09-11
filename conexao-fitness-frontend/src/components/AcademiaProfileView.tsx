@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatBRL } from '@/lib/format';
+import { resolveMediaUrl } from '@/lib/mediaUrl';
 import { MembershipPlan } from '@/services/memberships';
 import { EnrollmentModal } from '@/components/EnrollmentModal';
 import { StudentAccessPassModal } from '@/components/StudentAccessPassModal';
@@ -89,12 +90,11 @@ export const AcademiaProfileView: React.FC<AcademiaProfileViewProps> = ({
   });
 
   // Valores padrão ou customizados da academia
-  const coverImage =
-    profile.coverUrl ||
-    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1400&auto=format&fit=crop';
-  const avatarImage =
-    profile.avatarUrl ||
-    'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=400&auto=format&fit=crop';
+  const defaultCover = 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1400&auto=format&fit=crop';
+  const defaultAvatar = 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=400&auto=format&fit=crop';
+
+  const coverImage = resolveMediaUrl(profile.coverUrl) || defaultCover;
+  const avatarImage = resolveMediaUrl(profile.avatarUrl) || defaultAvatar;
   const gymName = profile.nomeFantasia || profile.name || 'Academia';
   const legalName = profile.razaoSocial;
   const cnpj = profile.cnpj;
@@ -195,6 +195,9 @@ export const AcademiaProfileView: React.FC<AcademiaProfileViewProps> = ({
             src={coverImage}
             alt={gymName}
             className="w-full h-full object-cover object-center filter brightness-90 transform hover:scale-105 transition-transform duration-700"
+            onError={(e) => {
+              e.currentTarget.src = defaultCover;
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
           
@@ -241,6 +244,9 @@ export const AcademiaProfileView: React.FC<AcademiaProfileViewProps> = ({
                     src={avatarImage}
                     alt={gymName}
                     className="w-full h-full rounded-xl object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = defaultAvatar;
+                    }}
                   />
                 </div>
                 <span className="absolute -bottom-2 -right-2 bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-md border-2 border-background flex items-center gap-1">

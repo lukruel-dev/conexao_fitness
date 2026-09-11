@@ -35,7 +35,7 @@ export class User {
   @Column()
   passwordHash: string;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'text', nullable: true })
   avatarUrl?: string;
 
   @Column({ type: 'varchar', default: 'STUDENT' })
