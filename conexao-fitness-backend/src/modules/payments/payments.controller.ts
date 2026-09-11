@@ -21,14 +21,12 @@ export class PaymentsController {
     return { url };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('subscriptions')
-  async createSubscription(@Body('priceId') priceId: string, @CurrentUser() user: any) {
-    if (user.role === 'STUDENT') {
-      return { error: 'Only providers can subscribe' };
-    }
+  async createSubscription(@Body('priceId') priceId: string, @Body('planName') planName: string, @CurrentUser() user: any) {
     if (!priceId) {
       return { error: 'priceId is required' };
     }
-    return this.paymentsService.createSubscriptionPaymentIntent(user.id, priceId);
+    return this.paymentsService.createSubscriptionPaymentIntent(user?.id, priceId);
   }
 }
