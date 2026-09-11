@@ -37,6 +37,8 @@ import {
   Save,
   Check,
   QrCode,
+  Trophy,
+  Award,
 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
