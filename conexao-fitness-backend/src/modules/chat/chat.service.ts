@@ -7,6 +7,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { EmailService } from '../notifications/email.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { User } from '../users/entities/user.entity';
+import { validateChatMessage } from '../../common/utils/bio-validator';
 
 @Injectable()
 export class ChatService {
@@ -44,26 +45,19 @@ export class ChatService {
       throw new ForbiddenException('Chat is only available for CONFIRMED bookings');
     }
 
-    // Filtro de Segurança (Regex)
-    // Censurar Pix, números de 8 a 11 dígitos, etc.
-    let safeContent = content;
-    
-    // Substitui palavras-chave relacionadas a pagamentos por fora
-    const paymentRegex = /\b(pix|transferência|deposito|depósito|whatsapp|whats|zap)\b/gi;
-    safeContent = safeContent.replace(paymentRegex, '[BLOQUEADO PELO SISTEMA]');
-
-    // Substitui sequências de 8 a 11 números (possível telefone)
-    const phoneRegex = /\b\d{8,11}\b/g;
-    safeContent = safeContent.replace(phoneRegex, '[BLOQUEADO PELO SISTEMA]');
-    
-    // Telefone formatado ex: (11) 99999-9999
-    const formattedPhoneRegex = /\(?\d{2}\)?\s?\d{4,5}-?\d{4}/g;
-    safeContent = safeContent.replace(formattedPhoneRegex, '[BLOQUEADO PELO SISTEMA]');
+    // Validação estrita de segurança e anti-desintermediação
+    const validation = validateChatMessage(content);
+    if (!validation.isValid) {
+      throw new BadRequestException(
+        validation.errorMessage ||
+          'Por segurança, não é permitido o compartilhamento de telefones, WhatsApp ou contatos externos.',
+      );
+    }
 
     const message = this.messageRepo.create({
       bookingId,
       senderId,
-      content: safeContent,
+      content: content.trim(),
     });
 
     const savedMessage = await this.messageRepo.save(message);

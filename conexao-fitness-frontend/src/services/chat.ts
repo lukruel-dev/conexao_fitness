@@ -1,4 +1,5 @@
 import { apiRequest } from "@/lib/apiClient";
+import { validateChatMessage } from "@/lib/bioValidator";
 
 export interface ChatMessage {
   id: string;
@@ -49,6 +50,12 @@ export async function listChatMessages(chatId: string): Promise<ChatMessage[]> {
 }
 
 export async function sendChatMessage(chatId: string, content: string, senderUser?: any): Promise<ChatMessage> {
+  // Validação rigorosa de segurança e anti-desintermediação
+  const validation = validateChatMessage(content);
+  if (!validation.isValid) {
+    throw new Error(validation.errorMessage || "Mensagem bloqueada pelas regras de segurança da plataforma.");
+  }
+
   const newMsg: ChatMessage = {
     id: `msg-${Date.now()}`,
     bookingId: chatId,
