@@ -19,7 +19,15 @@ export class AuthService {
 
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.usersService.findByEmail(email);
-    if (user && await bcrypt.compare(pass, user.passwordHash)) {
+    if (!user) return null;
+
+    if (user.passwordHash?.includes('TempPasswordHash')) {
+      throw new UnauthorizedException(
+        'Sua matrícula foi realizada no balcão da academia! Acesse a tela de Criar Conta para cadastrar sua senha pessoal com este e-mail.',
+      );
+    }
+
+    if (await bcrypt.compare(pass, user.passwordHash)) {
       if (user.status === 'SUSPENSO') {
         throw new UnauthorizedException('Conta suspensa. Entre em contato com o suporte.');
       }
@@ -107,10 +115,49 @@ export class AuthService {
   }
 
   async register(dto: CreateUserDto) {
-    const existingUser = await this.usersService.findByEmail(dto.email);
+    let existingUser = await this.usersService.findByEmail(dto.email);
+
+    if (!existingUser && dto.cpf) {
+      const cleanCpf = dto.cpf.replace(/\D/g, '');
+      if (cleanCpf) {
+        existingUser = await this.usersService.findByCpf(cleanCpf);
+      }
+    }
+
     if (existingUser) {
+      const isTemporaryAccount = existingUser.passwordHash?.includes('TempPasswordHash');
+      if (isTemporaryAccount) {
+        const salt = await bcrypt.genSalt(10);
+        existingUser.passwordHash = await bcrypt.hash(dto.password, salt);
+
+        // Se era email temporário e agora o aluno informou o email real
+        if (dto.email && dto.email.includes('@') && !dto.email.endsWith('.temp')) {
+          existingUser.email = dto.email.toLowerCase().trim();
+        }
+
+        if (dto.name && (!existingUser.name || existingUser.name.startsWith('Aluno '))) {
+          existingUser.name = dto.name;
+        }
+        if (dto.avatarUrl && !existingUser.avatarUrl) {
+          existingUser.avatarUrl = dto.avatarUrl;
+        }
+        if (dto.cpf && !existingUser.cpf) {
+          existingUser.cpf = dto.cpf.replace(/\D/g, '');
+        }
+        if (dto.phone && !existingUser.phone) {
+          existingUser.phone = dto.phone.replace(/\D/g, '');
+        }
+        if (existingUser.status === 'PENDENTE_KYC') {
+          existingUser.status = 'ATIVO';
+        }
+
+        const updatedUser = await this.usersService.save(existingUser);
+        return this.login(updatedUser);
+      }
+
       throw new ConflictException('Este e-mail já está em uso.');
     }
+
     const user = await this.usersService.create(dto);
     return this.login(user);
   }

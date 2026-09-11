@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,8 +13,12 @@ import { ArrowLeft } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, oauthLogin, loading } = useAuth();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("email") || "";
+  });
   const [password, setPassword] = useState("");
   const [oauthProvider, setOauthProvider] = useState<"google" | "apple" | null>(null);
 
@@ -23,7 +27,13 @@ const Login = () => {
     try {
       const loggedUser = await login({ email, password });
       toast.success("Bem-vindo de volta!");
-      if (loggedUser?.role === "ADMIN") {
+
+      const searchParams = new URLSearchParams(location.search);
+      const redirectUrl = searchParams.get("redirect");
+
+      if (redirectUrl) {
+        navigate(redirectUrl);
+      } else if (loggedUser?.role === "ADMIN") {
         navigate("/perfil");
       } else if (loggedUser?.role === "PERSONAL" || loggedUser?.role === "ACADEMIA") {
         navigate("/agenda-profissional");

@@ -182,7 +182,20 @@ export class UsersService implements OnApplicationBootstrap {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepo.findOne({ where: { email } });
+    return this.usersRepo.findOne({ where: { email: email.toLowerCase().trim() } });
+  }
+
+  async findByCpf(cpf: string): Promise<User | null> {
+    const clean = cpf.replace(/\D/g, '');
+    if (!clean) return null;
+    return this.usersRepo
+      .createQueryBuilder('u')
+      .where("REPLACE(REPLACE(REPLACE(COALESCE(u.cpf, ''), '.', ''), '-', ''), '/', '') = :clean", { clean })
+      .getOne();
+  }
+
+  async save(user: User): Promise<User> {
+    return this.usersRepo.save(user);
   }
 
   async findOne(id: string): Promise<User | null> {

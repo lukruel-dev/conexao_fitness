@@ -31,6 +31,11 @@ export class ManualEnrollmentDto {
   @IsOptional()
   studentCpf?: string;
 
+  @ApiPropertyOptional({ description: 'Telefone/WhatsApp do aluno para envio de acesso' })
+  @IsString()
+  @IsOptional()
+  studentPhone?: string;
+
   @ApiPropertyOptional({ description: 'Foto do aluno capturada na câmera ou enviada por arquivo' })
   @IsString()
   @IsOptional()

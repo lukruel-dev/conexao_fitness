@@ -37,11 +37,20 @@ const Cadastro = () => {
     return "STUDENT";
   });
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("name") || "";
+  });
+  const [email, setEmail] = useState(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("email") || "";
+  });
   const [password, setPassword] = useState("");
   const [cpf, setCpf] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("phone") || "";
+  });
   const [professionalRegistrationId, setProfessionalRegistrationId] = useState("");
   const [razaoSocial, setRazaoSocial] = useState("");
   const [nomeFantasia, setNomeFantasia] = useState("");
@@ -362,8 +371,13 @@ const Cadastro = () => {
 
       setIsUploading(false);
 
+      const searchParams = new URLSearchParams(location.search);
+      const redirectUrl = searchParams.get("redirect");
+
       toast.success("Conta criada com sucesso!");
-      if (newUser?.role === "ADMIN") {
+      if (redirectUrl) {
+        navigate(redirectUrl);
+      } else if (newUser?.role === "ADMIN") {
         navigate("/admin");
       } else if (newUser?.role === "PERSONAL" || newUser?.role === "ACADEMIA") {
         navigate("/agenda-profissional");

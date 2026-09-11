@@ -63,6 +63,7 @@ export interface GymEnrollment {
     email: string;
     avatarUrl?: string;
     cpf?: string;
+    phone?: string;
   };
   academiaId: string;
   academia?: {
@@ -204,6 +205,7 @@ export interface ManualEnrollmentDto {
   studentName: string;
   studentEmail: string;
   studentCpf?: string;
+  studentPhone?: string;
   studentPhotoUrl?: string;
   planId?: string;
   planName: string;
@@ -600,6 +602,7 @@ export async function createManualEnrollment(dto: ManualEnrollmentDto): Promise<
         name: dto.studentName,
         email: dto.studentEmail || 'aluno@balcao.com',
         cpf: dto.studentCpf,
+        phone: dto.studentPhone,
         avatarUrl: dto.studentPhotoUrl,
       },
     };

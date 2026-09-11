@@ -22,6 +22,7 @@ import {
   ExternalLink,
   Zap,
   Wallet,
+  Smartphone,
 } from 'lucide-react';
 import { formatBRL } from '@/lib/format';
 
@@ -94,6 +95,23 @@ export default function MinhasMatriculas() {
           >
             <QrCode className="w-4 h-4" /> QR Day Pass
           </Button>
+        </div>
+
+        {/* DICA DE ACESSO RÁPIDO / PWA */}
+        <div className="mb-8 p-4 rounded-2xl bg-card border border-border/80 flex items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Smartphone className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                📱 Acesso Rápido na Catraca: Adicione à Tela Inicial
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                No menu do navegador (ou botão Compartilhar no iPhone), toque em <strong>"Adicionar à Tela de Início"</strong> para abrir seu QR Code com 1 toque na portaria!
+              </p>
+            </div>
+          </div>
         </div>
 
         {isLoading ? (

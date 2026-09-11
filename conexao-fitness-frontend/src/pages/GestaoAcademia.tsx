@@ -131,6 +131,7 @@ export default function GestaoAcademia() {
     studentName: string;
     studentEmail: string;
     studentCpf: string;
+    studentPhone: string;
     studentPhotoUrl: string;
     planId: string;
     planName: string;
@@ -143,6 +144,7 @@ export default function GestaoAcademia() {
     studentName: '',
     studentEmail: '',
     studentCpf: '',
+    studentPhone: '',
     studentPhotoUrl: '',
     planId: '',
     planName: 'Plano Mensal Balcão',
@@ -152,11 +154,17 @@ export default function GestaoAcademia() {
     notifyStudent: true,
   });
 
+  const [enrolledSuccessData, setEnrolledSuccessData] = useState<{
+    enrollment: GymEnrollment;
+    studentPhone?: string;
+  } | null>(null);
+
   const [foundStudent, setFoundStudent] = useState<{
     id: string;
     name: string;
     email: string;
     cpf?: string;
+    phone?: string;
     avatarUrl?: string;
   } | null>(null);
   const [isSearchingCpf, setIsSearchingCpf] = useState(false);
@@ -619,6 +627,7 @@ export default function GestaoAcademia() {
           studentCpf: cpfVal,
           studentName: res.student!.name,
           studentEmail: res.student!.email,
+          studentPhone: (res.student as any)?.phone || prev.studentPhone,
           studentId: res.student!.id,
           studentPhotoUrl: res.student!.avatarUrl || prev.studentPhotoUrl,
         }));
@@ -633,6 +642,52 @@ export default function GestaoAcademia() {
     } finally {
       setIsSearchingCpf(false);
     }
+  };
+
+  // Envio de comprovante e instruções de acesso via WhatsApp
+  const handleSendWhatsApp = (enrollment: GymEnrollment, customPhone?: string) => {
+    const studentName = enrollment.student?.name || 'Aluno(a)';
+    const studentEmail = enrollment.student?.email || '';
+    const planName = enrollment.planName || 'Plano da Academia';
+    const endDate = enrollment.endDate
+      ? new Date(enrollment.endDate).toLocaleDateString('pt-BR')
+      : 'em 30 dias';
+    const qrCode = enrollment.qrAccessCode || 'Disponível no app';
+    const gymName = user?.name || 'Academia';
+
+    // Link direto para cadastro com preenchimento automático
+    const registerUrl = studentEmail
+      ? `https://conexao-fitness-web.onrender.com/cadastro?email=${encodeURIComponent(studentEmail)}&name=${encodeURIComponent(studentName)}&redirect=/minhas-matriculas`
+      : 'https://conexao-fitness-web.onrender.com/cadastro?redirect=/minhas-matriculas';
+
+    const message = `Olá, *${studentName}*! 👋 Tudo bem?
+Sua matrícula na academia *${gymName}* foi confirmada com sucesso! 🏋️‍♂️✨
+
+📋 *Detalhes da sua Matrícula:*
+• *Plano:* ${planName}
+• *Validade:* até ${endDate}
+• *Código de Acesso:* \`${qrCode}\`
+
+📲 *Como acessar a academia pelo seu celular:*
+1️⃣ Abra o aplicativo pelo link:
+👉 ${registerUrl}
+2️⃣ Cadastre sua senha pessoal utilizando este mesmo e-mail: *${studentEmail}*
+3️⃣ Pronto! Na tela inicial, toque em *Catraca Digital / Meu QR Code* para liberar seu acesso.
+
+💡 *Dica:* No navegador do celular (Chrome ou Safari), toque em *"Compartilhar"* ou nos 3 pontinhos e selecione *"Adicionar à Tela de Início"*. O app funcionará como um aplicativo oficial, abrindo seu QR Code instantaneamente na catraca!
+
+Qualquer dúvida estamos à disposição na recepção. Bons treinos! 💪🚀`;
+
+    const rawPhone = customPhone || enrollment.student?.phone || '';
+    const cleanPhone = rawPhone.replace(/\D/g, '');
+
+    let waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+    if (cleanPhone) {
+      const fullPhone = cleanPhone.length <= 11 ? `55${cleanPhone}` : cleanPhone;
+      waUrl = `https://api.whatsapp.com/send?phone=${fullPhone}&text=${encodeURIComponent(message)}`;
+    }
+
+    window.open(waUrl, '_blank', 'noopener,noreferrer');
   };
 
   // Mutação para Matrícula Manual
@@ -650,6 +705,7 @@ export default function GestaoAcademia() {
         studentName: manualForm.studentName,
         studentEmail: manualForm.studentEmail,
         studentCpf: manualForm.studentCpf || undefined,
+        studentPhone: manualForm.studentPhone || undefined,
         studentPhotoUrl: manualForm.studentPhotoUrl || undefined,
         planId: manualForm.planId || undefined,
         planName: manualForm.planName,
@@ -659,7 +715,7 @@ export default function GestaoAcademia() {
         notifyStudent: manualForm.notifyStudent,
       });
     },
-    onSuccess: () => {
+    onSuccess: (createdEnrollment: GymEnrollment) => {
       qc.invalidateQueries({ queryKey: ['gym-enrollments'] });
       qc.invalidateQueries({ queryKey: ['gym-dashboard-stats'] });
       qc.invalidateQueries({ queryKey: ['wallet-statement'] });
@@ -669,11 +725,16 @@ export default function GestaoAcademia() {
       stopPhotoCamera();
       setManualEnrollmentOpen(false);
       setFoundStudent(null);
+      setEnrolledSuccessData({
+        enrollment: createdEnrollment,
+        studentPhone: manualForm.studentPhone,
+      });
       setManualForm({
         studentId: '',
         studentName: '',
         studentEmail: '',
         studentCpf: '',
+        studentPhone: '',
         studentPhotoUrl: '',
         planId: '',
         planName: 'Plano Mensal Balcão',
@@ -1275,50 +1336,70 @@ export default function GestaoAcademia() {
                           </TableCell>
 
                           <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                  <MoreVertical className="w-4 h-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="rounded-2xl w-48">
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setRenewModalEnrollment(e);
-                                    setRenewForm({
-                                      additionalDays: 30,
-                                      amountPaid: Number(e.amountPaid || 99.9),
-                                    });
-                                  }}
-                                  className="gap-2 cursor-pointer font-semibold text-primary"
-                                >
-                                  <RefreshCw className="w-4 h-4" /> Renovar Matrícula
-                                </DropdownMenuItem>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleSendWhatsApp(e)}
+                                className="h-8 px-2.5 rounded-xl border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 gap-1.5"
+                                title="Enviar dados de acesso via WhatsApp"
+                              >
+                                <MessageCircle className="w-3.5 h-3.5 text-emerald-500" />
+                                <span className="hidden sm:inline text-xs font-semibold">WhatsApp</span>
+                              </Button>
 
-                                {e.status === 'ACTIVE' ? (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                    <MoreVertical className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="rounded-2xl w-52">
                                   <DropdownMenuItem
-                                    onClick={() => updateStatusMutation.mutate({ id: e.id, status: 'SUSPENDED' })}
-                                    className="gap-2 cursor-pointer text-amber-500"
+                                    onClick={() => handleSendWhatsApp(e)}
+                                    className="gap-2 cursor-pointer font-semibold text-emerald-600 dark:text-emerald-400"
                                   >
-                                    <Pause className="w-4 h-4" /> Suspender Acesso
+                                    <MessageCircle className="w-4 h-4" /> Enviar por WhatsApp
                                   </DropdownMenuItem>
-                                ) : e.status === 'SUSPENDED' ? (
-                                  <DropdownMenuItem
-                                    onClick={() => updateStatusMutation.mutate({ id: e.id, status: 'ACTIVE' })}
-                                    className="gap-2 cursor-pointer text-emerald-500"
-                                  >
-                                    <Play className="w-4 h-4" /> Reativar Acesso
-                                  </DropdownMenuItem>
-                                ) : null}
 
-                                <DropdownMenuItem
-                                  onClick={() => updateStatusMutation.mutate({ id: e.id, status: 'CANCELLED' })}
-                                  className="gap-2 cursor-pointer text-destructive"
-                                >
-                                  <XCircle className="w-4 h-4" /> Cancelar Matrícula
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setRenewModalEnrollment(e);
+                                      setRenewForm({
+                                        additionalDays: 30,
+                                        amountPaid: Number(e.amountPaid || 99.9),
+                                      });
+                                    }}
+                                    className="gap-2 cursor-pointer font-semibold text-primary"
+                                  >
+                                    <RefreshCw className="w-4 h-4" /> Renovar Matrícula
+                                  </DropdownMenuItem>
+
+                                  {e.status === 'ACTIVE' ? (
+                                    <DropdownMenuItem
+                                      onClick={() => updateStatusMutation.mutate({ id: e.id, status: 'SUSPENDED' })}
+                                      className="gap-2 cursor-pointer text-amber-500"
+                                    >
+                                      <Pause className="w-4 h-4" /> Suspender Acesso
+                                    </DropdownMenuItem>
+                                  ) : e.status === 'SUSPENDED' ? (
+                                    <DropdownMenuItem
+                                      onClick={() => updateStatusMutation.mutate({ id: e.id, status: 'ACTIVE' })}
+                                      className="gap-2 cursor-pointer text-emerald-500"
+                                    >
+                                      <Play className="w-4 h-4" /> Reativar Acesso
+                                    </DropdownMenuItem>
+                                  ) : null}
+
+                                  <DropdownMenuItem
+                                    onClick={() => updateStatusMutation.mutate({ id: e.id, status: 'CANCELLED' })}
+                                    className="gap-2 cursor-pointer text-destructive"
+                                  >
+                                    <XCircle className="w-4 h-4" /> Cancelar Matrícula
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -2687,6 +2768,22 @@ export default function GestaoAcademia() {
                   />
                 </div>
               </div>
+
+              <div>
+                <Label className="text-xs font-semibold flex items-center gap-1.5">
+                  <MessageCircle className="w-3.5 h-3.5 text-emerald-500" /> WhatsApp do Aluno (Opcional)
+                </Label>
+                <Input
+                  type="tel"
+                  placeholder="(55) 99999-9999"
+                  value={manualForm.studentPhone}
+                  onChange={(e) => setManualForm({ ...manualForm, studentPhone: e.target.value })}
+                  className="rounded-xl mt-1 text-xs"
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Permite enviar com 1 clique o comprovante, link de ativação e tutorial de acesso no celular.
+                </p>
+              </div>
             </div>
 
             {/* SEÇÃO 3: PLANO E VALORES */}
@@ -2818,6 +2915,121 @@ export default function GestaoAcademia() {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL: SUCESSO DE MATRÍCULA & ENVIO WHATSAPP */}
+      <Dialog
+        open={!!enrolledSuccessData}
+        onOpenChange={(open) => {
+          if (!open) setEnrolledSuccessData(null);
+        }}
+      >
+        <DialogContent className="max-w-md rounded-3xl p-6 bg-card border-border shadow-2xl">
+          <DialogHeader>
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center mx-auto mb-2">
+              <CheckCircle2 className="w-7 h-7" />
+            </div>
+            <DialogTitle className="text-center font-display text-xl font-bold">
+              Matrícula Realizada com Sucesso! 🎉
+            </DialogTitle>
+            <DialogDescription className="text-center text-xs text-muted-foreground">
+              O aluno já está com acesso ativo à academia no sistema.
+            </DialogDescription>
+          </DialogHeader>
+
+          {enrolledSuccessData && (
+            <div className="space-y-4 my-2">
+              {/* Resumo do Aluno */}
+              <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/80 flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0 overflow-hidden border border-primary/20">
+                  {enrolledSuccessData.enrollment.student?.avatarUrl ? (
+                    <img
+                      src={enrolledSuccessData.enrollment.student.avatarUrl}
+                      alt={enrolledSuccessData.enrollment.student.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    enrolledSuccessData.enrollment.student?.name?.[0]?.toUpperCase() || 'A'
+                  )}
+                </div>
+                <div className="truncate flex-1">
+                  <h4 className="font-bold text-sm text-foreground truncate">
+                    {enrolledSuccessData.enrollment.student?.name || 'Aluno'}
+                  </h4>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {enrolledSuccessData.enrollment.student?.email}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[11px] font-semibold text-primary">
+                      {enrolledSuccessData.enrollment.planName}
+                    </span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-background border text-muted-foreground">
+                      {enrolledSuccessData.enrollment.qrAccessCode}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bloco WhatsApp */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/25 space-y-3">
+                <div className="flex items-start gap-2.5">
+                  <MessageCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-bold text-foreground">
+                      Enviar Acesso por WhatsApp
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                      Envia o link direto para cadastrar senha, instruções do QR Code de entrada e dica para salvar o app na tela de início.
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-[11px] font-semibold text-muted-foreground">
+                    Número de WhatsApp do Aluno
+                  </Label>
+                  <Input
+                    type="tel"
+                    placeholder="(55) 99999-9999"
+                    value={enrolledSuccessData.studentPhone || ''}
+                    onChange={(e) =>
+                      setEnrolledSuccessData({
+                        ...enrolledSuccessData,
+                        studentPhone: e.target.value,
+                      })
+                    }
+                    className="rounded-xl mt-1 text-xs h-9 bg-background"
+                  />
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={() => {
+                    handleSendWhatsApp(
+                      enrolledSuccessData.enrollment,
+                      enrolledSuccessData.studentPhone,
+                    );
+                    setEnrolledSuccessData(null);
+                  }}
+                  className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-2 shadow-md shadow-emerald-600/20 h-10"
+                >
+                  <MessageCircle className="w-4 h-4" /> Enviar Acesso via WhatsApp Agora
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="sm:justify-between gap-2 border-t pt-3">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setEnrolledSuccessData(null)}
+              className="rounded-xl text-xs w-full"
+            >
+              Concluir sem enviar WhatsApp
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

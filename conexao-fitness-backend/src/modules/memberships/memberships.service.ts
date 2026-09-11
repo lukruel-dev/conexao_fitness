@@ -370,12 +370,14 @@ export class MembershipsService {
         ? dto.studentEmail.toLowerCase().trim()
         : `aluno.${randomUUID().substring(0, 8)}@conexaofitness.temp`;
       const cleanCpf = dto.studentCpf ? dto.studentCpf.replace(/\D/g, '') : undefined;
+      const cleanPhone = dto.studentPhone ? dto.studentPhone.replace(/\D/g, '') : undefined;
 
       try {
         student = this.userRepo.create({
           name: dto.studentName,
           email: tempEmail,
           cpf: cleanCpf,
+          phone: cleanPhone,
           avatarUrl: dto.studentPhotoUrl || undefined,
           role: 'STUDENT',
           status: 'ATIVO',
@@ -405,6 +407,11 @@ export class MembershipsService {
       await this.userRepo.save(student);
     }
 
+    if (dto.studentPhone && !student.phone) {
+      student.phone = dto.studentPhone.replace(/\D/g, '');
+      await this.userRepo.save(student).catch(() => {});
+    }
+
     const now = new Date();
     const duration = dto.durationDays || 30;
     const endDate = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000);
@@ -431,6 +438,7 @@ export class MembershipsService {
     });
 
     const saved = await this.enrollmentRepo.save(enrollment);
+    saved.student = student;
 
     // Enviar notificação para o aluno no aplicativo Finex para confirmar / visualizar a matrícula
     if (student.id && academia) {
