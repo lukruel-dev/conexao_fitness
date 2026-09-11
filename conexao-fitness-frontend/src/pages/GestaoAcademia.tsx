@@ -434,7 +434,7 @@ export default function GestaoAcademia() {
 
   // Mutação para Criar/Editar Plano
   const savePlanMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const modalities = planForm.modalities.split(',').map((m) => m.trim()).filter(Boolean);
       const benefits = planForm.benefits.split(',').map((b) => b.trim()).filter(Boolean);
       const parsedPrice = typeof planForm.price === 'string'
@@ -445,7 +445,7 @@ export default function GestaoAcademia() {
       const safeDays = isNaN(parsedDays) || parsedDays <= 0 ? 30 : parsedDays;
 
       if (editingPlan) {
-        return updateGymPlan(editingPlan.id, {
+        return await updateGymPlan(editingPlan.id, {
           name: planForm.name,
           description: planForm.description,
           price: safePrice,
@@ -454,7 +454,7 @@ export default function GestaoAcademia() {
           benefits,
         });
       }
-      return createGymPlan({
+      return await createGymPlan({
         name: planForm.name,
         description: planForm.description,
         price: safePrice,
@@ -463,13 +463,25 @@ export default function GestaoAcademia() {
         benefits,
       });
     },
-    onSuccess: () => {
+    onSuccess: (savedPlan) => {
+      if (savedPlan) {
+        qc.setQueryData(['gym-my-plans', user?.id], (old: any) => {
+          const list = Array.isArray(old) ? [...old] : [];
+          if (editingPlan) {
+            return list.map((p: any) => (p.id === editingPlan.id ? savedPlan : p));
+          }
+          const exists = list.some((p: any) => p.id === savedPlan.id);
+          return exists ? list : [savedPlan, ...list];
+        });
+      }
       qc.invalidateQueries({ queryKey: ['gym-my-plans'] });
       toast.success(editingPlan ? 'Plano atualizado com sucesso!' : 'Novo plano de matrícula criado!');
       setNewPlanModalOpen(false);
       setEditingPlan(null);
     },
-    onError: (err: Error) => toast.error('Erro ao salvar plano', { description: err.message }),
+    onError: (err: Error) => {
+      toast.error('Erro ao salvar plano', { description: err.message });
+    },
   });
 
   // Mutação para Deletar Plano

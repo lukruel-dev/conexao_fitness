@@ -283,67 +283,70 @@ export async function createGymPlan(dto: CreatePlanDto): Promise<MembershipPlan>
   const academiaId = user?.id || 'default-gym';
   const numPrice = typeof dto.price === 'string' ? parseFloat(String(dto.price).replace(',', '.')) : Number(dto.price);
   const safePrice = isNaN(numPrice) ? 99.9 : numPrice;
+  let serviceId = `plan_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
 
+  // 1. Cria o serviço oficial no marketplace / catalogo (Suportado nativamente pelo backend)
   try {
-    return await apiRequest<MembershipPlan>('/memberships/plans', {
+    if (user?.id) {
+      const createdService = await createService({
+        providerType: 'ACADEMIA',
+        providerId: user.id,
+        name: dto.name,
+        description: dto.description || '',
+        modality: dto.modalities?.[0] || 'Musculação',
+        durationMinutes: (dto.durationDays || 30) * 1440,
+        type: 'PLANO_MENSAL',
+        price: safePrice.toFixed(2),
+        isActive: dto.isActive !== undefined ? dto.isActive : true,
+        benefits: dto.benefits || [],
+      });
+      if (createdService?.id) {
+        serviceId = createdService.id;
+      }
+    }
+  } catch (sErr) {
+    console.warn('[Memberships] createService note:', sErr);
+  }
+
+  // 2. Tenta salvar na tabela específica de memberships
+  try {
+    const res = await apiRequest<MembershipPlan>('/memberships/plans', {
       method: 'POST',
       body: {
         ...dto,
         price: safePrice,
       },
     });
+    if (res && res.id) return res;
   } catch (err: any) {
-    console.warn('[Memberships] /memberships/plans failed, executing resilient fallback:', err);
-
-    let createdId = `plan_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
-    try {
-      if (user?.id) {
-        const createdService = await createService({
-          providerType: 'ACADEMIA',
-          providerId: user.id,
-          name: dto.name,
-          description: dto.description || '',
-          modality: dto.modalities?.[0] || 'Musculação',
-          durationMinutes: (dto.durationDays || 30) * 1440,
-          type: 'PLANO_MENSAL',
-          price: safePrice.toFixed(2),
-          isActive: dto.isActive !== undefined ? dto.isActive : true,
-          benefits: dto.benefits || [],
-        });
-        if (createdService?.id) {
-          createdId = createdService.id;
-        }
-      }
-    } catch (sErr) {
-      console.warn('[Memberships] Fallback createService error:', sErr);
-    }
-
-    const newPlan: MembershipPlan = {
-      id: createdId,
-      academiaId,
-      name: dto.name,
-      description: dto.description,
-      price: safePrice,
-      durationDays: dto.durationDays || 30,
-      recurrence: dto.recurrence || PlanRecurrence.MONTHLY,
-      modalities: dto.modalities || ['Musculação', 'Cardio'],
-      benefits: dto.benefits || ['Acesso Livre', 'Vestiários'],
-      isActive: dto.isActive !== undefined ? dto.isActive : true,
-      activeEnrollmentsCount: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    const storageKey = `cf_gym_plans_${academiaId}`;
-    try {
-      const existingRaw = localStorage.getItem(storageKey);
-      const existing: MembershipPlan[] = existingRaw ? JSON.parse(existingRaw) : [];
-      existing.unshift(newPlan);
-      localStorage.setItem(storageKey, JSON.stringify(existing));
-    } catch {}
-
-    return newPlan;
+    console.warn('[Memberships] /memberships/plans skipped, using service record');
   }
+
+  const newPlan: MembershipPlan = {
+    id: serviceId,
+    academiaId,
+    name: dto.name,
+    description: dto.description,
+    price: safePrice,
+    durationDays: dto.durationDays || 30,
+    recurrence: dto.recurrence || PlanRecurrence.MONTHLY,
+    modalities: dto.modalities || ['Musculação', 'Cardio'],
+    benefits: dto.benefits || ['Acesso Livre', 'Vestiários'],
+    isActive: dto.isActive !== undefined ? dto.isActive : true,
+    activeEnrollmentsCount: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const storageKey = `cf_gym_plans_${academiaId}`;
+  try {
+    const existingRaw = localStorage.getItem(storageKey);
+    const existing: MembershipPlan[] = existingRaw ? JSON.parse(existingRaw) : [];
+    existing.unshift(newPlan);
+    localStorage.setItem(storageKey, JSON.stringify(existing));
+  } catch {}
+
+  return newPlan;
 }
 
 export async function updateGymPlan(id: string, dto: UpdatePlanDto): Promise<MembershipPlan> {
