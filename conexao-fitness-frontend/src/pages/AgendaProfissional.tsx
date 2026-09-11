@@ -8,8 +8,9 @@ import { listBookingsByProvider } from "@/services/bookings";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDateTime, formatBookingSchedule } from "@/lib/format";
 import type { BookingStatus } from "@/types/api";
-import { Calendar, MessageCircle, Users, AlertCircle, Clock, CheckCircle2, ChevronRight } from "lucide-react";
+import { Calendar, MessageCircle, Users, AlertCircle, Clock, CheckCircle2, ChevronRight, Sparkles, Dumbbell, Utensils } from "lucide-react";
 import ChatModal from "@/components/ChatModal";
+import { IntelligentPrescriptionWizard } from "@/components/prescription/IntelligentPrescriptionWizard";
 
 const filters: { value: BookingStatus | ""; label: string }[] = [
   { value: "", label: "Todos" },
@@ -30,6 +31,8 @@ export default function AgendaProfissional() {
   const [chatBooking, setChatBooking] = useState<{ id: string; name?: string } | null>(null);
   const [readChats, setReadChats] = useState<Set<string>>(new Set());
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isPrescriptionWizardOpen, setIsPrescriptionWizardOpen] = useState(false);
+  const [selectedStudentForPrescription, setSelectedStudentForPrescription] = useState<{ id: string; name: string } | undefined>(undefined);
 
   const isProvider = user?.role === "PERSONAL" || user?.role === "ACADEMIA";
 
@@ -188,7 +191,23 @@ export default function AgendaProfissional() {
                   </div>
                 </div>
                 {b.status === "CONFIRMED" && (
-                  <div className="flex flex-col md:flex-row items-center gap-3 mt-4 md:mt-0">
+                  <div className="flex flex-col sm:flex-row items-center gap-2 mt-4 md:mt-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedStudentForPrescription({
+                          id: b.studentId || b.student?.id || "student-1",
+                          name: b.student?.name || "Aluno",
+                        });
+                        setIsPrescriptionWizardOpen(true);
+                      }}
+                      className="w-full sm:w-auto text-xs font-bold rounded-xl border-amber-500/40 text-amber-400 hover:bg-amber-500/10 gap-1.5"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      Prescrever Treino / Dieta
+                    </Button>
+
                     {(() => {
                       const hasUnreadChat = notifications?.some(n => !n.isRead && n.type === "CHAT" && n.referenceId === b.id);
                       return hasUnreadChat && !readChats.has(b.id) ? (
@@ -205,7 +224,7 @@ export default function AgendaProfissional() {
                         setChatBooking({ id: b.id, name: `${b.service?.name} (${b.student?.name})` });
                         setReadChats(prev => new Set(prev).add(b.id));
                       }}
-                      className="w-full md:w-auto"
+                      className="w-full sm:w-auto text-xs"
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Abrir Chat
@@ -226,6 +245,13 @@ export default function AgendaProfissional() {
           title={chatBooking.name}
         />
       )}
+
+      <IntelligentPrescriptionWizard
+        open={isPrescriptionWizardOpen}
+        onOpenChange={setIsPrescriptionWizardOpen}
+        prefilledStudent={selectedStudentForPrescription}
+      />
+
       <Footer />
     </div>
   );

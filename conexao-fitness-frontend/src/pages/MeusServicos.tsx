@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { formatBRL } from "@/lib/format";
 import type { Service, PersonalProfileData, UpdatePersonalProfileDto } from "@/types/api";
+import { IntelligentPrescriptionWizard } from "@/components/prescription/IntelligentPrescriptionWizard";
 import {
   Loader2,
   Plus,
@@ -38,6 +39,7 @@ import {
   Users,
   ChevronRight,
   Sliders,
+  Utensils,
 } from "lucide-react";
 import {
   Table,
@@ -144,6 +146,7 @@ export default function MeusServicos() {
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [newImageUrl, setNewImageUrl] = useState("");
   const [isSavingCustomization, setIsSavingCustomization] = useState(false);
+  const [isPrescriptionWizardOpen, setIsPrescriptionWizardOpen] = useState(false);
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user?.role !== "PERSONAL" && user?.role !== "ACADEMIA") return <Navigate to="/" replace />;
@@ -404,7 +407,17 @@ export default function MeusServicos() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="hero"
+              size="sm"
+              onClick={() => setIsPrescriptionWizardOpen(true)}
+              className="rounded-xl font-bold text-xs shadow-glow gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-black animate-pulse" />
+              Prescritor Inteligente (Elite)
+            </Button>
+
             <Button variant="outline" size="sm" className="rounded-xl font-bold text-xs" asChild>
               <Link to={`/perfil-publico/${user.id}`}>
                 <Globe className="w-3.5 h-3.5 mr-1.5 text-primary" /> Ver Perfil Público
@@ -1247,6 +1260,14 @@ export default function MeusServicos() {
             )}
           </DialogContent>
         </Dialog>
+
+        <IntelligentPrescriptionWizard
+          open={isPrescriptionWizardOpen}
+          onOpenChange={setIsPrescriptionWizardOpen}
+          onPrescriptionPublished={() => {
+            queryClient.invalidateQueries({ queryKey: ["my-services", user.id] });
+          }}
+        />
       </main>
       <Footer />
     </div>
