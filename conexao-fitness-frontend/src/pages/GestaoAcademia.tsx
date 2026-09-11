@@ -117,8 +117,8 @@ export default function GestaoAcademia() {
   const [planForm, setPlanForm] = useState({
     name: '',
     description: '',
-    price: 99.9,
-    durationDays: 30,
+    price: '99.90' as string | number,
+    durationDays: '30' as string | number,
     modalities: 'Musculação, Cardio',
     benefits: 'Acesso Livre, Vestiários, Avaliação Física',
   });
@@ -437,13 +437,19 @@ export default function GestaoAcademia() {
     mutationFn: () => {
       const modalities = planForm.modalities.split(',').map((m) => m.trim()).filter(Boolean);
       const benefits = planForm.benefits.split(',').map((b) => b.trim()).filter(Boolean);
+      const parsedPrice = typeof planForm.price === 'string'
+        ? parseFloat(planForm.price.replace(',', '.'))
+        : Number(planForm.price);
+      const safePrice = isNaN(parsedPrice) ? 99.9 : parsedPrice;
+      const parsedDays = Number(planForm.durationDays);
+      const safeDays = isNaN(parsedDays) || parsedDays <= 0 ? 30 : parsedDays;
 
       if (editingPlan) {
         return updateGymPlan(editingPlan.id, {
           name: planForm.name,
           description: planForm.description,
-          price: Number(planForm.price),
-          durationDays: Number(planForm.durationDays),
+          price: safePrice,
+          durationDays: safeDays,
           modalities,
           benefits,
         });
@@ -451,15 +457,15 @@ export default function GestaoAcademia() {
       return createGymPlan({
         name: planForm.name,
         description: planForm.description,
-        price: Number(planForm.price),
-        durationDays: Number(planForm.durationDays),
+        price: safePrice,
+        durationDays: safeDays,
         modalities,
         benefits,
       });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['gym-my-plans'] });
-      toast.success(editingPlan ? 'Plano atualizado com sucesso!' : 'Novo plano criado!');
+      toast.success(editingPlan ? 'Plano atualizado com sucesso!' : 'Novo plano de matrícula criado!');
       setNewPlanModalOpen(false);
       setEditingPlan(null);
     },
@@ -2265,11 +2271,10 @@ export default function GestaoAcademia() {
               <div>
                 <Label className="text-xs font-semibold">Preço (R$) *</Label>
                 <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="99.90"
+                  type="text"
+                  placeholder="99,90"
                   value={planForm.price}
-                  onChange={(e) => setPlanForm({ ...planForm, price: Number(e.target.value) })}
+                  onChange={(e) => setPlanForm({ ...planForm, price: e.target.value })}
                   className="rounded-xl mt-1 text-xs"
                 />
               </div>
@@ -2280,7 +2285,7 @@ export default function GestaoAcademia() {
                   type="number"
                   placeholder="30"
                   value={planForm.durationDays}
-                  onChange={(e) => setPlanForm({ ...planForm, durationDays: Number(e.target.value) })}
+                  onChange={(e) => setPlanForm({ ...planForm, durationDays: e.target.value })}
                   className="rounded-xl mt-1 text-xs"
                 />
               </div>
