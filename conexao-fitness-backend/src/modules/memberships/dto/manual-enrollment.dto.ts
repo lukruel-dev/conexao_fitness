@@ -6,6 +6,7 @@ import {
   IsString,
   Min,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { EnrollmentPaymentMethod } from '../entities/gym-enrollment.entity';
 
@@ -46,11 +47,20 @@ export class ManualEnrollmentDto {
   planName: string;
 
   @ApiProperty({ description: 'Valor pago pelo aluno', example: 120.0 })
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      const sanitized = value.includes(',') ? value.replace(/\./g, '').replace(',', '.') : value;
+      const n = parseFloat(sanitized);
+      return isNaN(n) ? 0 : n;
+    }
+    return Number(value);
+  })
   @IsNumber()
   @Min(0)
   amountPaid: number;
 
   @ApiProperty({ description: 'Duração da matrícula em dias', example: 30 })
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   @Min(1)
   durationDays: number;

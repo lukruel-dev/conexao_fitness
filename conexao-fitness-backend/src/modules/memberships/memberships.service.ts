@@ -353,9 +353,10 @@ export class MembershipsService {
       const cleanCpf = dto.studentCpf.replace(/\D/g, '');
       student = await this.userRepo
         .createQueryBuilder('u')
-        .where('REPLACE(REPLACE(REPLACE(u.cpf, \'.\', \'\'), \'-\', \'\'), \'/\', \'\') = :cpf', {
-          cpf: cleanCpf,
-        })
+        .where(
+          'REPLACE(REPLACE(REPLACE(COALESCE(u.cpf, \'\'), \'.\', \'\'), \'-\', \'\'), \'/\', \'\') = :cpf OR u.cpf = :rawCpf',
+          { cpf: cleanCpf, rawCpf: dto.studentCpf },
+        )
         .getOne();
     }
     
@@ -368,17 +369,37 @@ export class MembershipsService {
       const tempEmail = dto.studentEmail
         ? dto.studentEmail.toLowerCase().trim()
         : `aluno.${randomUUID().substring(0, 8)}@conexaofitness.temp`;
+      const cleanCpf = dto.studentCpf ? dto.studentCpf.replace(/\D/g, '') : undefined;
 
-      student = this.userRepo.create({
-        name: dto.studentName,
-        email: tempEmail,
-        cpf: dto.studentCpf,
-        avatarUrl: dto.studentPhotoUrl || undefined,
-        role: 'STUDENT',
-        status: 'ATIVO',
-        passwordHash: '$2a$10$TempPasswordHashConexaoFitnessPass1234567890123456789012',
-      });
-      student = await this.userRepo.save(student);
+      try {
+        student = this.userRepo.create({
+          name: dto.studentName,
+          email: tempEmail,
+          cpf: cleanCpf,
+          avatarUrl: dto.studentPhotoUrl || undefined,
+          role: 'STUDENT',
+          status: 'ATIVO',
+          passwordHash: '$2a$10$TempPasswordHashConexaoFitnessPass1234567890123456789012',
+        });
+        student = await this.userRepo.save(student);
+      } catch (saveErr) {
+        // Se já existia usuário com mesmo email ou CPF, reaproveita o cadastro
+        if (dto.studentEmail) {
+          student = await this.userRepo.findOneBy({ email: dto.studentEmail.toLowerCase().trim() });
+        }
+        if (!student && cleanCpf) {
+          student = await this.userRepo
+            .createQueryBuilder('u')
+            .where(
+              'REPLACE(REPLACE(REPLACE(COALESCE(u.cpf, \'\'), \'.\', \'\'), \'-\', \'\'), \'/\', \'\') = :cpf',
+              { cpf: cleanCpf },
+            )
+            .getOne();
+        }
+        if (!student) {
+          throw saveErr;
+        }
+      }
     } else if (dto.studentPhotoUrl && (!student.avatarUrl || dto.studentPhotoUrl.startsWith('data:') || dto.studentPhotoUrl.startsWith('http'))) {
       student.avatarUrl = dto.studentPhotoUrl;
       await this.userRepo.save(student);
@@ -389,12 +410,17 @@ export class MembershipsService {
     const endDate = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000);
     const qrAccessCode = this.generateQrAccessCode();
 
+    const numPaid = typeof dto.amountPaid === 'string'
+      ? parseFloat(String(dto.amountPaid).replace(',', '.'))
+      : Number(dto.amountPaid);
+    const safePaid = isNaN(numPaid) || numPaid < 0 ? 99.9 : numPaid;
+
     const enrollment = this.enrollmentRepo.create({
       studentId: student.id,
       academiaId,
       planId: dto.planId || undefined,
       planName: dto.planName,
-      amountPaid: dto.amountPaid.toFixed(2),
+      amountPaid: safePaid.toFixed(2),
       paymentMethod: dto.paymentMethod || EnrollmentPaymentMethod.MANUAL,
       paymentStatus: EnrollmentPaymentStatus.PAID,
       status: EnrollmentStatus.ACTIVE,

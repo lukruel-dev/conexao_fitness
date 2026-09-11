@@ -126,7 +126,19 @@ export default function GestaoAcademia() {
   });
 
   // Estados de Matrícula Manual, Busca por CPF Finex e Foto
-  const [manualForm, setManualForm] = useState({
+  const [manualForm, setManualForm] = useState<{
+    studentId: string;
+    studentName: string;
+    studentEmail: string;
+    studentCpf: string;
+    studentPhotoUrl: string;
+    planId: string;
+    planName: string;
+    amountPaid: string | number;
+    durationDays: number;
+    notes: string;
+    notifyStudent: boolean;
+  }>({
     studentId: '',
     studentName: '',
     studentEmail: '',
@@ -134,7 +146,7 @@ export default function GestaoAcademia() {
     studentPhotoUrl: '',
     planId: '',
     planName: 'Plano Mensal Balcão',
-    amountPaid: 99.9,
+    amountPaid: '99.90',
     durationDays: 30,
     notes: '',
     notifyStudent: true,
@@ -625,8 +637,15 @@ export default function GestaoAcademia() {
 
   // Mutação para Matrícula Manual
   const manualEnrollMutation = useMutation({
-    mutationFn: () =>
-      createManualEnrollment({
+    mutationFn: () => {
+      const rawPaid = String(manualForm.amountPaid ?? '').trim();
+      const cleanPaid = rawPaid.includes(',')
+        ? rawPaid.replace(/\./g, '').replace(',', '.')
+        : rawPaid;
+      const numPaid = parseFloat(cleanPaid);
+      const safeAmount = isNaN(numPaid) || numPaid < 0 ? 99.9 : numPaid;
+
+      return createManualEnrollment({
         studentId: manualForm.studentId || undefined,
         studentName: manualForm.studentName,
         studentEmail: manualForm.studentEmail,
@@ -634,11 +653,12 @@ export default function GestaoAcademia() {
         studentPhotoUrl: manualForm.studentPhotoUrl || undefined,
         planId: manualForm.planId || undefined,
         planName: manualForm.planName,
-        amountPaid: Number(manualForm.amountPaid),
-        durationDays: Number(manualForm.durationDays),
+        amountPaid: safeAmount,
+        durationDays: Number(manualForm.durationDays) || 30,
         notes: manualForm.notes || undefined,
         notifyStudent: manualForm.notifyStudent,
-      }),
+      });
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['gym-enrollments'] });
       qc.invalidateQueries({ queryKey: ['gym-dashboard-stats'] });
@@ -657,7 +677,7 @@ export default function GestaoAcademia() {
         studentPhotoUrl: '',
         planId: '',
         planName: 'Plano Mensal Balcão',
-        amountPaid: 99.9,
+        amountPaid: '99.90',
         durationDays: 30,
         notes: '',
         notifyStudent: true,
@@ -2717,11 +2737,11 @@ export default function GestaoAcademia() {
                 <div>
                   <Label className="text-xs font-semibold">Valor Cobrado (R$) *</Label>
                   <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="99,90"
                     value={manualForm.amountPaid}
-                    onChange={(e) => setManualForm({ ...manualForm, amountPaid: Number(e.target.value) })}
+                    onChange={(e) => setManualForm({ ...manualForm, amountPaid: e.target.value })}
                     className="rounded-xl mt-1 text-xs font-bold"
                     required
                   />

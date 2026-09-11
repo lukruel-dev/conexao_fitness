@@ -1,10 +1,43 @@
 import { apiRequest } from '@/lib/apiClient';
 
-export type PlanRecurrence = 'MONTHLY' | 'QUARTERLY' | 'SEMIANNUAL' | 'ANNUAL' | 'SINGLE';
-export type EnrollmentStatus = 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'SUSPENDED' | 'PENDING_PAYMENT';
-export type EnrollmentPaymentMethod = 'STRIPE' | 'WALLET' | 'PIX' | 'MANUAL';
-export type EnrollmentPaymentStatus = 'PAID' | 'PENDING' | 'REFUNDED';
-export type AccessStatus = 'GRANTED' | 'DENIED';
+export const PlanRecurrence = {
+  MONTHLY: 'MONTHLY',
+  QUARTERLY: 'QUARTERLY',
+  SEMIANNUAL: 'SEMIANNUAL',
+  ANNUAL: 'ANNUAL',
+  SINGLE: 'SINGLE',
+} as const;
+export type PlanRecurrence = (typeof PlanRecurrence)[keyof typeof PlanRecurrence];
+
+export const EnrollmentStatus = {
+  ACTIVE: 'ACTIVE',
+  EXPIRED: 'EXPIRED',
+  CANCELLED: 'CANCELLED',
+  SUSPENDED: 'SUSPENDED',
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+} as const;
+export type EnrollmentStatus = (typeof EnrollmentStatus)[keyof typeof EnrollmentStatus];
+
+export const EnrollmentPaymentMethod = {
+  STRIPE: 'STRIPE',
+  WALLET: 'WALLET',
+  PIX: 'PIX',
+  MANUAL: 'MANUAL',
+} as const;
+export type EnrollmentPaymentMethod = (typeof EnrollmentPaymentMethod)[keyof typeof EnrollmentPaymentMethod];
+
+export const EnrollmentPaymentStatus = {
+  PAID: 'PAID',
+  PENDING: 'PENDING',
+  REFUNDED: 'REFUNDED',
+} as const;
+export type EnrollmentPaymentStatus = (typeof EnrollmentPaymentStatus)[keyof typeof EnrollmentPaymentStatus];
+
+export const AccessStatus = {
+  GRANTED: 'GRANTED',
+  DENIED: 'DENIED',
+} as const;
+export type AccessStatus = (typeof AccessStatus)[keyof typeof AccessStatus];
 
 export interface MembershipPlan {
   id: string;
@@ -492,7 +525,7 @@ export async function enrollOnline(academiaId: string, dto: EnrollOnlineDto): Pr
       endDate: new Date(Date.now() + 30 * 86400000).toISOString(),
       status: EnrollmentStatus.ACTIVE,
       amountPaid: 99.9,
-      paymentMethod: dto.paymentMethod,
+      paymentMethod: dto.paymentMethod || EnrollmentPaymentMethod.MANUAL,
       paymentStatus: EnrollmentPaymentStatus.PAID,
       qrAccessCode: `CF-ACAD-${(user?.id || 'DEMO').slice(0, 6).toUpperCase()}`,
       daysRemaining: 30,
@@ -525,16 +558,27 @@ export async function lookupFinexStudent(query: string): Promise<LookupStudentRe
 }
 
 export async function createManualEnrollment(dto: ManualEnrollmentDto): Promise<GymEnrollment> {
+  const numPaid = typeof dto.amountPaid === 'string'
+    ? parseFloat(String(dto.amountPaid).replace(/\./g, '').replace(',', '.'))
+    : Number(dto.amountPaid);
+  const safePaid = isNaN(numPaid) || numPaid < 0 ? 99.9 : numPaid;
+  const safeDuration = Number(dto.durationDays) || 30;
+
+  const payload: ManualEnrollmentDto = {
+    ...dto,
+    amountPaid: safePaid,
+    durationDays: safeDuration,
+    paymentMethod: dto.paymentMethod || EnrollmentPaymentMethod.MANUAL,
+  };
+
   try {
     return await apiRequest<GymEnrollment>('/memberships/enrollments/manual', {
       method: 'POST',
-      body: dto,
+      body: payload,
     });
   } catch (err) {
     console.warn('[Memberships] createManualEnrollment error, fallback to local storage:', err);
     const user = getStoredUser();
-    const numPaid = typeof dto.amountPaid === 'string' ? parseFloat(String(dto.amountPaid).replace(',', '.')) : Number(dto.amountPaid);
-    const duration = Number(dto.durationDays) || 30;
 
     const newEnrollment: GymEnrollment = {
       id: `enr_manual_${Date.now()}`,
@@ -543,13 +587,13 @@ export async function createManualEnrollment(dto: ManualEnrollmentDto): Promise<
       planId: dto.planId,
       planName: dto.planName || 'Plano Mensal Balcão',
       startDate: new Date().toISOString(),
-      endDate: new Date(Date.now() + duration * 86400000).toISOString(),
+      endDate: new Date(Date.now() + safeDuration * 86400000).toISOString(),
       status: EnrollmentStatus.ACTIVE,
-      amountPaid: isNaN(numPaid) ? 99.9 : numPaid,
-      paymentMethod: dto.paymentMethod || EnrollmentPaymentMethod.CASH,
+      amountPaid: safePaid,
+      paymentMethod: dto.paymentMethod || EnrollmentPaymentMethod.MANUAL,
       paymentStatus: EnrollmentPaymentStatus.PAID,
       qrAccessCode: `CF-ACAD-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
-      daysRemaining: duration,
+      daysRemaining: safeDuration,
       notes: dto.notes,
       student: {
         id: dto.studentId || `student_${Date.now()}`,
