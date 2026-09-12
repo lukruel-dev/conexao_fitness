@@ -209,7 +209,7 @@ export class MembershipsController {
     @CurrentUser() user: any,
     @Query('limit') limit?: number,
   ) {
-    return this.membershipsService.getGymAccessLogs(user.id, limit ? Number(limit) : 30);
+    return this.membershipsService.getGymAccessLogs(user.id, limit ? Number(limit) : 60);
   }
 
   @ApiOperation({ summary: 'Dashboard e indicadores da academia (MRR, Alunos Ativos, Check-ins)' })

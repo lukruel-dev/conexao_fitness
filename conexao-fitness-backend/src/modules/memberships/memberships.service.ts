@@ -661,18 +661,35 @@ export class MembershipsService {
 
     // 1. Identificar o aluno pelo QR Code universal, ID, CPF ou e-mail
     let cleanId = dto.studentIdentifier.trim();
-    if (cleanId.startsWith('CONEXAO_FITNESS_USER:') || cleanId.startsWith('CONEXAO_FITNESS_STUDENT:') || cleanId.startsWith('CONEXAO_FITNESS_ACCESS:')) {
+    if (
+      cleanId.startsWith('CONEXAO_FITNESS_USER:') ||
+      cleanId.startsWith('CONEXAO_FITNESS_STUDENT:') ||
+      cleanId.startsWith('CONEXAO_FITNESS_ACCESS:') ||
+      cleanId.startsWith('CONEXAO_FITNESS_DAYPASS:')
+    ) {
       const parts = cleanId.split(':');
       cleanId = parts[1] || cleanId;
     }
 
-    const student = await this.userRepo
-      .createQueryBuilder('user')
-      .where('user.id = :id OR user.cpf = :id OR LOWER(user.email) = :email', {
-        id: cleanId,
-        email: cleanId.toLowerCase(),
-      })
-      .getOne();
+    const isIdUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+    const cleanIdCpf = cleanId.replace(/\D/g, '');
+
+    let student: User | null = null;
+    if (isIdUuid) {
+      student = await this.userRepo.findOneBy({ id: cleanId });
+    }
+    if (!student && cleanIdCpf && cleanIdCpf.length >= 6) {
+      student = await this.userRepo
+        .createQueryBuilder('user')
+        .where(
+          'user.cpf = :cleanIdCpf OR REPLACE(REPLACE(REPLACE(COALESCE(user.cpf, \'\'), \'.\', \'\'), \'-\', \'\'), \'/\', \'\') = :cleanIdCpf',
+          { cleanIdCpf },
+        )
+        .getOne();
+    }
+    if (!student && cleanId.includes('@')) {
+      student = await this.userRepo.findOneBy({ email: cleanId.toLowerCase().trim() });
+    }
 
     if (!student) {
       const log = this.accessLogRepo.create({
@@ -875,42 +892,78 @@ export class MembershipsService {
     if (
       cleanCode.startsWith('CONEXAO_FITNESS_ACCESS:') ||
       cleanCode.startsWith('CONEXAO_FITNESS_USER:') ||
-      cleanCode.startsWith('CONEXAO_FITNESS_STUDENT:')
+      cleanCode.startsWith('CONEXAO_FITNESS_STUDENT:') ||
+      cleanCode.startsWith('CONEXAO_FITNESS_DAYPASS:')
     ) {
       const parts = cleanCode.split(':');
       cleanCode = parts[1] || cleanCode;
     }
 
-    // Busca matrícula pelo QR Access Code ou pelo CPF do aluno
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanCode);
+    const cleanCpf = cleanCode.replace(/\D/g, '');
+
+    // Busca matrícula pelo QR Access Code, ID do aluno, CPF ou e-mail
     const qb = this.enrollmentRepo
       .createQueryBuilder('enrollment')
       .leftJoinAndSelect('enrollment.student', 'student')
-      .where('enrollment.academiaId = :academiaId', { academiaId })
-      .andWhere(
-        '(enrollment.qrAccessCode = :code OR student.id = :code OR student.cpf = :code OR LOWER(student.email) = :codeEmail)',
-        { code: cleanCode, codeEmail: cleanCode.toLowerCase() },
-      )
-      .orderBy('enrollment.endDate', 'DESC');
+      .leftJoinAndSelect('enrollment.plan', 'plan')
+      .where('enrollment.academiaId = :academiaId', { academiaId });
 
+    if (isUuid) {
+      qb.andWhere(
+        '(enrollment.qrAccessCode = :code OR enrollment.studentId = :code OR student.id = :code)',
+        { code: cleanCode },
+      );
+    } else if (cleanCpf && cleanCpf.length >= 6) {
+      qb.andWhere(
+        '(enrollment.qrAccessCode = :code OR student.cpf = :cleanCpf OR REPLACE(REPLACE(REPLACE(COALESCE(student.cpf, \'\'), \'.\', \'\'), \'-\', \'\'), \'/\', \'\') = :cleanCpf OR LOWER(student.email) = :codeEmail)',
+        { code: cleanCode, cleanCpf, codeEmail: cleanCode.toLowerCase() },
+      );
+    } else {
+      qb.andWhere(
+        '(enrollment.qrAccessCode = :code OR LOWER(student.email) = :codeEmail)',
+        { code: cleanCode, codeEmail: cleanCode.toLowerCase() },
+      );
+    }
+
+    qb.orderBy('enrollment.endDate', 'DESC');
     const enrollment = await qb.getOne();
 
     const now = new Date();
 
     // 1. Caso a matrícula NÃO exista para esta academia, verificar se é um usuário Finex para Day Pass
     if (!enrollment) {
-      // Buscar se existe um aluno cadastrado no Finex com esse identificador
-      const studentUser = await this.userRepo
-        .createQueryBuilder('user')
-        .where('user.id = :id OR user.cpf = :id OR LOWER(user.email) = :email', {
-          id: cleanCode,
-          email: cleanCode.toLowerCase(),
-        })
-        .getOne();
+      let studentUser: User | null = null;
+      if (isUuid) {
+        studentUser = await this.userRepo.findOneBy({ id: cleanCode });
+      }
+      if (!studentUser && cleanCpf && cleanCpf.length >= 6) {
+        studentUser = await this.userRepo
+          .createQueryBuilder('user')
+          .where(
+            'user.cpf = :cleanCpf OR REPLACE(REPLACE(REPLACE(COALESCE(user.cpf, \'\'), \'.\', \'\'), \'-\', \'\'), \'/\', \'\') = :cleanCpf',
+            { cleanCpf },
+          )
+          .getOne();
+      }
+      if (!studentUser && cleanCode.includes('@')) {
+        studentUser = await this.userRepo.findOneBy({ email: cleanCode.toLowerCase().trim() });
+      }
 
       if (studentUser) {
         const dayPassPrice = await this.getDayPassPrice(academiaId);
         const balance = await this.walletService.getMyBalance(studentUser.id);
         const hasEnough = balance.current_balance >= dayPassPrice;
+
+        // Registrar tentativa no histórico com os dados completos do aluno!
+        const log = this.accessLogRepo.create({
+          academiaId,
+          studentId: studentUser.id,
+          status: AccessStatus.DENIED,
+          denialReason: 'Aluno Finex (Sem matrícula ativa • Day Pass disponível)',
+          deviceInfo: dto.deviceInfo || 'Catraca Principal',
+        });
+        const savedLog = await this.accessLogRepo.save(log);
 
         return {
           granted: false,
@@ -926,6 +979,7 @@ export class MembershipsService {
             avatarUrl: studentUser.avatarUrl,
             cpf: studentUser.cpf,
           },
+          accessLogId: savedLog.id,
           reason: 'Aluno sem matrícula mensal ativa nesta academia.',
           message: `Aluno ${studentUser.name} sem matrícula ativa. Day Pass disponível por R$ ${dayPassPrice.toFixed(2)} (Saldo na carteira: R$ ${balance.current_balance.toFixed(2)}).`,
         };
@@ -1131,7 +1185,7 @@ export class MembershipsService {
     };
   }
 
-  async getGymAccessLogs(academiaId: string, limit = 30): Promise<GymAccessLog[]> {
+  async getGymAccessLogs(academiaId: string, limit = 60): Promise<GymAccessLog[]> {
     return this.accessLogRepo.find({
       where: { academiaId },
       relations: ['student', 'enrollment'],

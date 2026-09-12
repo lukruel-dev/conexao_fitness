@@ -100,6 +100,7 @@ import {
   BellRing,
   X,
   Check,
+  Mail,
 } from 'lucide-react';
 
 export default function GestaoAcademia() {
@@ -109,6 +110,8 @@ export default function GestaoAcademia() {
   const [activeTab, setActiveTab] = useState<'enrollments' | 'turnstile' | 'plans' | 'logs' | 'profile'>('enrollments');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<EnrollmentStatus | ''>('');
+  const [logsSearchTerm, setLogsSearchTerm] = useState('');
+  const [logsStatusFilter, setLogsStatusFilter] = useState<'ALL' | 'GRANTED' | 'DENIED'>('ALL');
 
   // Modais
   const [newPlanModalOpen, setNewPlanModalOpen] = useState(false);
@@ -223,8 +226,35 @@ export default function GestaoAcademia() {
 
   const { data: accessLogs, isLoading: loadingLogs } = useQuery({
     queryKey: ['gym-access-logs', user?.id],
-    queryFn: () => getGymAccessLogs(30),
+    queryFn: () => getGymAccessLogs(60),
     enabled: !!user && isGym,
+    refetchInterval: 4000,
+  });
+
+  const filteredAccessLogs = (accessLogs || []).filter((log) => {
+    if (logsStatusFilter === 'GRANTED' && log.status !== 'GRANTED') return false;
+    if (logsStatusFilter === 'DENIED' && log.status !== 'DENIED') return false;
+
+    if (logsSearchTerm.trim()) {
+      const q = logsSearchTerm.toLowerCase().trim();
+      const name = log.student?.name?.toLowerCase() || '';
+      const email = log.student?.email?.toLowerCase() || '';
+      const cpf = log.student?.cpf?.replace(/\D/g, '') || '';
+      const qDigits = q.replace(/\D/g, '');
+      const plan = log.enrollment?.planName?.toLowerCase() || '';
+      const reason = log.denialReason?.toLowerCase() || '';
+      const device = log.deviceInfo?.toLowerCase() || '';
+
+      const matchName = name.includes(q);
+      const matchEmail = email.includes(q);
+      const matchCpf = qDigits ? cpf.includes(qDigits) : false;
+      const matchPlan = plan.includes(q);
+      const matchReason = reason.includes(q);
+      const matchDevice = device.includes(q);
+
+      return matchName || matchEmail || matchCpf || matchPlan || matchReason || matchDevice;
+    }
+    return true;
   });
 
   const { data: dayPassPriceData } = useQuery({
@@ -1167,7 +1197,7 @@ Qualquer dúvida estamos à disposição na recepção. Bons treinos! 💪🚀`;
                 : 'bg-card text-muted-foreground hover:text-foreground border border-border/60'
             }`}
           >
-            <History className="w-4 h-4" /> Histórico de Acessos
+            <History className="w-4 h-4" /> Histórico de Acessos ({accessLogs?.length ?? 0})
           </button>
 
           <button
@@ -1699,36 +1729,71 @@ Qualquer dúvida estamos à disposição na recepção. Bons treinos! 💪🚀`;
                   {loadingLogs ? (
                     <p className="text-xs text-muted-foreground text-center py-6">Carregando acessos...</p>
                   ) : !accessLogs || accessLogs.length === 0 ? (
-                    <p className="text-xs text-muted-foreground text-center py-6">Nenhum acesso registrado hoje.</p>
+                    <div className="text-center py-8 space-y-2">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                        <History className="w-5 h-5 opacity-60" />
+                      </div>
+                      <p className="text-xs text-muted-foreground">Nenhum acesso registrado ainda.</p>
+                      <p className="text-[10px] text-muted-foreground/70">Aponte a câmera para o QR Code do aluno ou digite o código/CPF abaixo.</p>
+                    </div>
                   ) : (
-                    accessLogs.slice(0, 10).map((log) => (
+                    accessLogs.slice(0, 15).map((log) => (
                       <div
                         key={log.id}
-                        className={`p-3 rounded-2xl border text-xs flex items-center justify-between gap-3 ${
+                        className={`p-3 rounded-2xl border text-xs flex items-center justify-between gap-3 transition-all hover:bg-muted/40 ${
                           log.status === 'GRANTED'
                             ? 'bg-muted/30 border-border/60'
                             : 'bg-destructive/5 border-destructive/20'
                         }`}
                       >
                         <div className="flex items-center gap-2.5 truncate">
-                          <span
-                            className={`w-2 h-2 rounded-full shrink-0 ${
-                              log.status === 'GRANTED' ? 'bg-emerald-500' : 'bg-destructive'
-                            }`}
-                          />
+                          <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden border border-border">
+                            {log.student?.avatarUrl ? (
+                              <img
+                                src={log.student.avatarUrl}
+                                alt={log.student.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLElement).style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              log.student?.name?.[0]?.toUpperCase() || 'A'
+                            )}
+                          </div>
                           <div className="truncate">
-                            <span className="font-bold text-foreground block truncate">
-                              {log.student?.name || 'Tentativa Avulsa'}
+                            <span className="font-bold text-foreground block truncate text-xs">
+                              {log.student?.name || 'Não identificado'}
                             </span>
-                            <span className="text-[10px] text-muted-foreground block">
-                              {log.status === 'GRANTED' ? 'Entrada Autorizada' : log.denialReason}
-                            </span>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span
+                                className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
+                                  log.status === 'GRANTED' ? 'bg-emerald-500' : 'bg-destructive'
+                                }`}
+                              />
+                              <span className="text-[10px] text-muted-foreground truncate block">
+                                {log.status === 'GRANTED'
+                                  ? log.enrollment?.planName || 'Entrada Liberada'
+                                  : log.denialReason || 'Acesso Recusado'}
+                              </span>
+                            </div>
                           </div>
                         </div>
 
-                        <span className="text-[10px] font-mono text-muted-foreground shrink-0">
-                          {new Date(log.accessedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                        <div className="text-right shrink-0">
+                          <span className="text-[10px] font-mono font-medium text-foreground block">
+                            {new Date(log.accessedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          <span
+                            className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full inline-block mt-0.5 ${
+                              log.status === 'GRANTED'
+                                ? 'bg-emerald-500/10 text-emerald-500'
+                                : 'bg-destructive/10 text-destructive'
+                            }`}
+                          >
+                            {log.status === 'GRANTED' ? 'Liberado' : 'Recusado'}
+                          </span>
+                        </div>
                       </div>
                     ))
                   )}
@@ -1875,13 +1940,83 @@ Qualquer dúvida estamos à disposição na recepção. Bons treinos! 💪🚀`;
         {/* ABA 4: HISTÓRICO COMPLETO DE ACESSOS */}
         {/* ========================================================================= */}
         {activeTab === 'logs' && (
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Header com CTA de Atualização */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card border border-border p-5 rounded-3xl shadow-sm">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <History className="w-5 h-5 text-primary" />
+                  <h2 className="font-display font-black text-xl text-foreground">
+                    Histórico Completo de Passagens na Catraca
+                  </h2>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Acompanhe todos os alunos, fotos, CPFs, planos e horários de quem acessou ou tentou acessar a catraca em tempo real.
+                </p>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  qc.invalidateQueries({ queryKey: ['gym-access-logs'] });
+                  toast.success('Histórico de acessos atualizado!');
+                }}
+                className="rounded-xl font-bold gap-2 text-xs shrink-0"
+              >
+                <RefreshCw className="w-3.5 h-3.5" /> Atualizar Histórico
+              </Button>
+            </div>
+
+            {/* Barra de Filtros e Busca */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card p-4 rounded-3xl border border-border shadow-sm">
+              <div className="relative flex-1 w-full sm:w-auto">
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar no histórico por nome do aluno, CPF, email ou plano..."
+                  value={logsSearchTerm}
+                  onChange={(e) => setLogsSearchTerm(e.target.value)}
+                  className="pl-10 h-10 rounded-2xl text-xs sm:text-sm bg-muted/40"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
+                {(
+                  [
+                    { label: `Todos (${accessLogs?.length ?? 0})`, value: 'ALL' },
+                    {
+                      label: `Liberados (${accessLogs?.filter((l) => l.status === 'GRANTED').length ?? 0})`,
+                      value: 'GRANTED',
+                    },
+                    {
+                      label: `Recusados (${accessLogs?.filter((l) => l.status === 'DENIED').length ?? 0})`,
+                      value: 'DENIED',
+                    },
+                  ] as const
+                ).map((f) => (
+                  <button
+                    key={f.value}
+                    onClick={() => setLogsStatusFilter(f.value as any)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-medium shrink-0 transition-all ${
+                      logsStatusFilter === f.value
+                        ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                        : 'bg-muted/70 text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tabela Rica de Perfis */}
             <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/30">
-                    <TableHead>Status</TableHead>
-                    <TableHead>Aluno</TableHead>
+                    <TableHead className="w-[120px]">Status</TableHead>
+                    <TableHead>Perfil do Aluno</TableHead>
+                    <TableHead>Plano / Acesso</TableHead>
                     <TableHead>Dispositivo / Catraca</TableHead>
                     <TableHead>Data & Horário</TableHead>
                     <TableHead>Diagnóstico</TableHead>
@@ -1890,19 +2025,26 @@ Qualquer dúvida estamos à disposição na recepção. Bons treinos! 💪🚀`;
                 <TableBody>
                   {loadingLogs ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                        Carregando histórico...
+                      <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                        <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
+                        Carregando histórico de passagens...
                       </TableCell>
                     </TableRow>
-                  ) : !accessLogs || accessLogs.length === 0 ? (
+                  ) : !filteredAccessLogs || filteredAccessLogs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
-                        Nenhum registro de acesso encontrado.
+                      <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                        <History className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                        <p className="font-semibold text-foreground">Nenhum registro de acesso encontrado.</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {logsSearchTerm
+                            ? 'Nenhum resultado corresponde à sua pesquisa.'
+                            : 'Aproxime o QR Code do aluno na câmera da aba "Catraca Digital" para registrar acessos.'}
+                        </p>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    accessLogs.map((log) => (
-                      <TableRow key={log.id} className="hover:bg-muted/20">
+                    filteredAccessLogs.map((log) => (
+                      <TableRow key={log.id} className="hover:bg-muted/20 transition-colors">
                         <TableCell>
                           {log.status === 'GRANTED' ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
@@ -1915,26 +2057,112 @@ Qualquer dúvida estamos à disposição na recepção. Bons treinos! 💪🚀`;
                           )}
                         </TableCell>
 
+                        {/* Perfil Completo do Aluno */}
                         <TableCell>
-                          <span className="font-bold text-xs text-foreground block">
-                            {log.student?.name || 'Tentativa não identificada'}
-                          </span>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0 overflow-hidden border border-border">
+                              {log.student?.avatarUrl ? (
+                                <img
+                                  src={log.student.avatarUrl}
+                                  alt={log.student.name}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                log.student?.name?.[0]?.toUpperCase() || 'A'
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <span className="font-bold text-sm text-foreground block truncate">
+                                {log.student?.name || 'Não identificado / Desconhecido'}
+                              </span>
+                              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 mt-0.5 text-[11px] text-muted-foreground">
+                                {log.student?.cpf && (
+                                  <span>
+                                    CPF:{' '}
+                                    <strong className="text-foreground/80 font-mono">
+                                      {log.student.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}
+                                    </strong>
+                                  </span>
+                                )}
+                                {log.student?.email && (
+                                  <span className="flex items-center gap-1 truncate">
+                                    <Mail className="w-3 h-3 opacity-60 shrink-0" />
+                                    {log.student.email}
+                                  </span>
+                                )}
+                                {log.student?.phone && (
+                                  <span className="flex items-center gap-1">
+                                    <Phone className="w-3 h-3 opacity-60 shrink-0" />
+                                    {log.student.phone}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         </TableCell>
 
+                        {/* Plano / Tipo de Acesso */}
                         <TableCell>
-                          <span className="text-xs text-muted-foreground">{log.deviceInfo}</span>
+                          {log.enrollment?.planName ? (
+                            <div>
+                              <span className="inline-block px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                                {log.enrollment.planName}
+                              </span>
+                              {log.enrollment.qrAccessCode && (
+                                <span className="block text-[10px] font-mono text-muted-foreground mt-0.5">
+                                  Cod: {log.enrollment.qrAccessCode}
+                                </span>
+                              )}
+                            </div>
+                          ) : log.denialReason?.includes('Day Pass') || log.denialReason?.includes('Finex') ? (
+                            <span className="inline-block px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                              Day Pass Finex
+                            </span>
+                          ) : (
+                            <span className="inline-block px-2.5 py-0.5 rounded-lg text-xs text-muted-foreground bg-muted/60">
+                              Acesso Avulso
+                            </span>
+                          )}
                         </TableCell>
 
+                        {/* Catraca / Dispositivo */}
                         <TableCell>
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(log.accessedAt).toLocaleString('pt-BR')}
-                          </span>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <QrCode className="w-3.5 h-3.5 text-primary/70 shrink-0" />
+                            <span>{log.deviceInfo || 'Catraca Principal'}</span>
+                          </div>
                         </TableCell>
 
+                        {/* Data & Horário */}
                         <TableCell>
-                          <span className="text-xs text-muted-foreground">
-                            {log.status === 'GRANTED' ? 'Validação bem-sucedida' : log.denialReason}
-                          </span>
+                          <div className="text-xs">
+                            <span className="font-bold font-mono text-foreground block">
+                              {new Date(log.accessedAt).toLocaleTimeString('pt-BR', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                              })}
+                            </span>
+                            <span className="text-[11px] text-muted-foreground block">
+                              {new Date(log.accessedAt).toLocaleDateString('pt-BR')}
+                            </span>
+                          </div>
+                        </TableCell>
+
+                        {/* Diagnóstico */}
+                        <TableCell>
+                          {log.status === 'GRANTED' ? (
+                            <span className="text-xs font-medium text-emerald-500">
+                              Validação bem-sucedida
+                            </span>
+                          ) : (
+                            <span className="text-xs font-medium text-destructive">
+                              {log.denialReason || 'Acesso negado'}
+                            </span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))

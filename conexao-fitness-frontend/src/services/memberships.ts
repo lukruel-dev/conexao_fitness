@@ -97,11 +97,20 @@ export interface GymEnrollment {
 export interface GymAccessLog {
   id: string;
   enrollmentId?: string;
+  enrollment?: {
+    id: string;
+    planName: string;
+    status: EnrollmentStatus;
+    qrAccessCode?: string;
+  };
   studentId?: string;
   student?: {
     id: string;
     name: string;
+    email?: string;
     avatarUrl?: string;
+    cpf?: string;
+    phone?: string;
   };
   academiaId: string;
   status: AccessStatus;
@@ -705,7 +714,41 @@ export async function validateGymAccess(dto: ValidateAccessDto): Promise<Validat
       (e: any) => e.qrAccessCode === cleanCode || e.studentId === cleanCode || e.student?.cpf === cleanCode || e.student?.id === cleanCode
     );
 
-    if (matched && matched.status === 'ACTIVE') {
+    const isGranted = !!(matched && matched.status === 'ACTIVE');
+    const rawUser = localStorage.getItem('cf_user');
+    const studentUser = rawUser ? JSON.parse(rawUser) : null;
+    const studentName = studentUser?.name || 'Aluno Conexão Fitness';
+    const studentInfo = matched?.student || (studentUser ? {
+      id: studentUser.id || cleanCode,
+      name: studentName,
+      email: studentUser.email || 'aluno@conexao.com',
+      avatarUrl: studentUser.avatarUrl,
+      cpf: studentUser.cpf || '000.000.000-00',
+    } : undefined);
+
+    const fallbackLog: GymAccessLog = {
+      id: `local_log_${Date.now()}`,
+      status: isGranted ? ('GRANTED' as any) : ('DENIED' as any),
+      student: studentInfo,
+      enrollment: matched ? {
+        id: matched.id,
+        planName: matched.planName || 'Plano de Matrícula',
+        status: matched.status,
+        qrAccessCode: matched.qrAccessCode,
+      } : undefined,
+      academiaId: 'local',
+      denialReason: isGranted ? undefined : 'Aluno Finex (Sem matrícula ativa • Day Pass disponível)',
+      deviceInfo: dto.deviceInfo || 'Catraca Principal',
+      accessedAt: new Date().toISOString(),
+    };
+
+    try {
+      const existingLogs: GymAccessLog[] = JSON.parse(localStorage.getItem('cf_gym_access_logs_local') || '[]');
+      existingLogs.unshift(fallbackLog);
+      localStorage.setItem('cf_gym_access_logs_local', JSON.stringify(existingLogs.slice(0, 80)));
+    } catch {}
+
+    if (isGranted) {
       return {
         granted: true,
         message: 'Acesso Liberado! Bom treino.',
@@ -722,9 +765,6 @@ export async function validateGymAccess(dto: ValidateAccessDto): Promise<Validat
     }
 
     // 2. Fallback para Aluno Finex (Day Pass instantâneo)
-    const rawUser = localStorage.getItem('cf_user');
-    const studentUser = rawUser ? JSON.parse(rawUser) : null;
-    const studentName = studentUser?.name || 'Aluno Conexão Fitness';
     const studentBalance = Number(localStorage.getItem('cf_wallet_balance') || '150.00');
     const dayPassPrice = 25.0;
 
@@ -754,9 +794,12 @@ export async function chargeGymDayPass(dto: ChargeDayPassDto): Promise<ChargeDay
       method: 'POST',
       body: dto,
     });
-  } catch (err: any) {
-    console.warn('Backend charge-daypass error, using resilient local charge:', err);
-    const amount = dto.customAmount && dto.customAmount > 0 ? dto.customAmount : 25.0;
+  } catch (err) {
+    console.warn('Backend charge-daypass error, using resilient charge handler:', err);
+
+    const price = await getMyGymDayPassPrice();
+    const amount = dto.customAmount && dto.customAmount > 0 ? dto.customAmount : price.dayPassPrice;
+
     const currentBalance = Number(localStorage.getItem('cf_wallet_balance') || '150.00');
     const newBalance = Math.max(0, currentBalance - amount);
     localStorage.setItem('cf_wallet_balance', newBalance.toFixed(2));
@@ -764,6 +807,32 @@ export async function chargeGymDayPass(dto: ChargeDayPassDto): Promise<ChargeDay
     const rawUser = localStorage.getItem('cf_user');
     const studentUser = rawUser ? JSON.parse(rawUser) : null;
     const studentName = studentUser?.name || 'Aluno Conexão Fitness';
+
+    const dayPassLog: GymAccessLog = {
+      id: `local_daypass_${Date.now()}`,
+      status: 'GRANTED' as any,
+      student: {
+        id: dto.studentIdentifier,
+        name: studentName,
+        email: studentUser?.email || 'aluno@conexao.com',
+        avatarUrl: studentUser?.avatarUrl,
+        cpf: studentUser?.cpf,
+      },
+      enrollment: {
+        id: `daypass-${Date.now()}`,
+        planName: 'Day Pass Avulso Finex',
+        status: 'ACTIVE' as any,
+      },
+      academiaId: 'local',
+      deviceInfo: dto.deviceInfo || 'Recepção Day Pass Finex',
+      accessedAt: new Date().toISOString(),
+    };
+
+    try {
+      const existingLogs: GymAccessLog[] = JSON.parse(localStorage.getItem('cf_gym_access_logs_local') || '[]');
+      existingLogs.unshift(dayPassLog);
+      localStorage.setItem('cf_gym_access_logs_local', JSON.stringify(existingLogs.slice(0, 80)));
+    } catch {}
 
     return {
       granted: true,
@@ -802,11 +871,17 @@ export async function getMyGymDayPassPrice(): Promise<{ dayPassPrice: number }> 
   }
 }
 
-export async function getGymAccessLogs(limit = 40): Promise<GymAccessLog[]> {
+export async function getGymAccessLogs(limit = 60): Promise<GymAccessLog[]> {
   try {
-    return await apiRequest<GymAccessLog[]>('/memberships/access-logs/my', {
+    const logs = await apiRequest<GymAccessLog[]>('/memberships/access-logs/my', {
       query: { limit },
     });
+    if (Array.isArray(logs) && logs.length > 0) return logs;
+  } catch {}
+
+  try {
+    const localLogs: GymAccessLog[] = JSON.parse(localStorage.getItem('cf_gym_access_logs_local') || '[]');
+    return localLogs.slice(0, limit);
   } catch {
     return [];
   }
