@@ -1272,7 +1272,7 @@ export class MembershipsService {
     const recentLogs = await this.accessLogRepo.find({
       where: {
         academiaId,
-        status: AccessStatus.PERMITTED,
+        status: AccessStatus.GRANTED,
         accessedAt: MoreThanOrEqual(thirtyDaysAgo),
       },
       order: { accessedAt: 'ASC' },

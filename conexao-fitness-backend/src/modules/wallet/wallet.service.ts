@@ -156,7 +156,11 @@ export class WalletService {
       where: { ownerId: userId, ownerType: 'USER' },
     });
 
-    const currentBal = wallet ? Number(wallet.currentBalance) : 0;
+    if (!wallet) {
+      throw new BadRequestException('Carteira não encontrada para este usuário.');
+    }
+
+    const currentBal = Number(wallet.currentBalance);
     if (currentBal < amount) {
       throw new BadRequestException(
         `Saldo insuficiente para saque. Disponível: R$ ${currentBal.toFixed(2)} - Solicitado: R$ ${amount.toFixed(2)}`,
@@ -306,7 +310,7 @@ export class WalletService {
       const accessLogs = await this.accessLogRepo.find({
         where: { academiaId: userId, status: 'GRANTED' as any },
         relations: ['student'],
-        order: { createdAt: 'DESC' },
+        order: { accessedAt: 'DESC' },
         take: 100,
       });
 
@@ -331,7 +335,7 @@ export class WalletService {
             referenceType: 'DAY_PASS',
             referenceId: log.id,
             paymentMethod: 'FINEX_WALLET',
-            createdAt: log.createdAt,
+            createdAt: log.accessedAt,
           });
         }
       }
