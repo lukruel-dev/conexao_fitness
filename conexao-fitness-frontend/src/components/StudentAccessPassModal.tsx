@@ -93,19 +93,19 @@ export const StudentAccessPassModal: React.FC<StudentAccessPassModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 overflow-hidden bg-gradient-to-b from-card to-background border-border/80 rounded-3xl shadow-2xl">
+      <DialogContent className="w-[92vw] max-w-md max-h-[85dvh] sm:max-h-[88vh] p-0 flex flex-col overflow-hidden bg-gradient-to-b from-card to-background border-border/80 rounded-3xl shadow-2xl my-auto">
         {/* Header decorativo da carteirinha */}
-        <div className="relative p-6 pb-4 bg-gradient-to-r from-primary/20 via-primary/10 to-secondary/20 border-b border-border/50">
+        <div className="relative shrink-0 p-4 sm:p-5 pr-10 bg-gradient-to-r from-primary/20 via-primary/10 to-secondary/20 border-b border-border/50">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold shadow-md shadow-primary/20">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold shadow-md shadow-primary/20 shrink-0">
                 <Dumbbell className="w-5 h-5" />
               </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-primary">
+              <div className="min-w-0">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-primary block">
                   Conexão Fitness Pass
                 </span>
-                <DialogTitle className="font-display text-lg font-bold text-foreground line-clamp-1">
+                <DialogTitle className="font-display text-base sm:text-lg font-bold text-foreground truncate">
                   {academiaTitle}
                 </DialogTitle>
               </div>
@@ -113,17 +113,17 @@ export const StudentAccessPassModal: React.FC<StudentAccessPassModalProps> = ({
 
             {/* Status Badge */}
             {!isExpired && !isSuspended && !isCancelled ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 animate-pulse">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 shrink-0">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 ATIVO
               </span>
             ) : isExpired ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-destructive/15 text-destructive border border-destructive/30">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-destructive/15 text-destructive border border-destructive/30 shrink-0">
                 <AlertTriangle className="w-3.5 h-3.5" />
                 VENCIDO
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30 shrink-0">
                 BLOQUEADO
               </span>
             )}
@@ -131,7 +131,7 @@ export const StudentAccessPassModal: React.FC<StudentAccessPassModalProps> = ({
         </div>
 
         {/* Corpo do Passe */}
-        <div className="p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5 space-y-4">
           {/* Card do Aluno & Plano */}
           <div className="p-4 rounded-2xl bg-muted/40 border border-border/60 flex items-center gap-4">
             <div className="w-14 h-14 rounded-full overflow-hidden shrink-0 border-2 border-primary/40 bg-muted flex items-center justify-center shadow-inner">
@@ -175,19 +175,19 @@ export const StudentAccessPassModal: React.FC<StudentAccessPassModalProps> = ({
             <div className="relative p-2 bg-white rounded-2xl shadow-xl">
               <QRCodeSvg
                 value={`CONEXAO_FITNESS_ACCESS:${enrollment.qrAccessCode}`}
-                size={180}
+                size={165}
               />
             </div>
 
             {/* Código em texto para digitação manual se o leitor falhar */}
-            <div className="mt-4 flex items-center gap-2">
-              <span className="text-xs text-muted-foreground font-mono bg-muted/70 px-3 py-1.5 rounded-xl border border-border">
+            <div className="mt-3.5 flex items-center gap-2 max-w-full">
+              <span className="text-xs text-muted-foreground font-mono bg-muted/70 px-2.5 py-1.5 rounded-xl border border-border truncate max-w-[200px]">
                 {enrollment.qrAccessCode}
               </span>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 px-2.5 text-xs gap-1"
+                className="h-8 px-2.5 text-xs gap-1 shrink-0 rounded-xl"
                 onClick={handleCopyCode}
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -196,7 +196,7 @@ export const StudentAccessPassModal: React.FC<StudentAccessPassModalProps> = ({
             </div>
 
             {/* Relógio dinâmico para evitar print estático */}
-            <div className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
               <span>Validação em tempo real: <strong className="text-foreground">{currentTime}</strong></span>
             </div>
@@ -211,9 +211,13 @@ export const StudentAccessPassModal: React.FC<StudentAccessPassModalProps> = ({
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 bg-muted/20 border-t border-border/50 flex justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl">
+        {/* Footer fixo com safe-area */}
+        <div className="shrink-0 p-3.5 sm:p-4 bg-muted/20 border-t border-border/50 flex justify-end pb-[max(0.875rem,env(safe-area-inset-bottom))]">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="rounded-xl px-5 h-9 text-xs font-semibold hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-colors"
+          >
             Fechar Passe
           </Button>
         </div>
