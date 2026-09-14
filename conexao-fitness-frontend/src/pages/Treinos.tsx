@@ -33,6 +33,7 @@ import { WorkoutHeatmap } from "@/components/gamification/WorkoutHeatmap";
 import { StudentDietPlanView } from "@/components/nutrition/StudentDietPlanView";
 import { IntelligentPrescriptionWizard } from "@/components/prescription/IntelligentPrescriptionWizard";
 import type { WorkoutRoutine } from "@/types/workouts";
+import { isNutritionist, isPersonalTrainer } from "@/utils/professionalRoles";
 import { toast } from "sonner";
 
 const Treinos: React.FC = () => {
@@ -43,9 +44,12 @@ const Treinos: React.FC = () => {
   const [isLiveWorkoutOpen, setIsLiveWorkoutOpen] = useState(false);
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [isPrescriptionWizardOpen, setIsPrescriptionWizardOpen] = useState(false);
+  const [prescriptionMode, setPrescriptionMode] = useState<"WORKOUT" | "DIET">("WORKOUT");
   const [editingRoutine, setEditingRoutine] = useState<WorkoutRoutine | null>(null);
 
   const isProfessional = user?.role === "PERSONAL" || user?.role === "ACADEMIA" || user?.role === "ADMIN";
+  const isNutri = isNutritionist(user);
+  const isPersonal = isPersonalTrainer(user);
 
   // Queries
   const { data: routines = [], refetch: refetchRoutines, isLoading: isLoadingRoutines } = useQuery({
@@ -133,14 +137,43 @@ const Treinos: React.FC = () => {
           {/* Ações Rápidas */}
           <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
             {isProfessional && (
-              <Button
-                variant="outline"
-                onClick={() => setIsPrescriptionWizardOpen(true)}
-                className="gap-1.5 text-xs font-bold rounded-2xl border-amber-500/40 text-amber-400 hover:bg-amber-500/10 shadow-sm flex-1 sm:flex-none"
-              >
-                <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-                Prescritor Pro (Elite)
-              </Button>
+              isNutri ? (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setPrescriptionMode("DIET");
+                    setIsPrescriptionWizardOpen(true);
+                  }}
+                  className="gap-1.5 text-xs font-bold rounded-2xl border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 shadow-sm flex-1 sm:flex-none"
+                >
+                  <Utensils className="w-4 h-4 text-emerald-400" />
+                  Prescritor de Dieta (CRN)
+                </Button>
+              ) : isPersonal ? (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setPrescriptionMode("WORKOUT");
+                    setIsPrescriptionWizardOpen(true);
+                  }}
+                  className="gap-1.5 text-xs font-bold rounded-2xl border-primary/40 text-primary hover:bg-primary/10 shadow-sm flex-1 sm:flex-none"
+                >
+                  <Dumbbell className="w-4 h-4 text-primary" />
+                  Prescritor de Treino (CREF)
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setPrescriptionMode("WORKOUT");
+                    setIsPrescriptionWizardOpen(true);
+                  }}
+                  className="gap-1.5 text-xs font-bold rounded-2xl border-amber-500/40 text-amber-400 hover:bg-amber-500/10 shadow-sm flex-1 sm:flex-none"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+                  Prescritor Pro (Admin)
+                </Button>
+              )
             )}
 
             {mainSection === "workout" && (
@@ -484,6 +517,7 @@ const Treinos: React.FC = () => {
       <IntelligentPrescriptionWizard
         open={isPrescriptionWizardOpen}
         onOpenChange={setIsPrescriptionWizardOpen}
+        defaultMode={prescriptionMode}
         onPrescriptionPublished={() => {
           refetchRoutines();
         }}

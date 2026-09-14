@@ -11,6 +11,7 @@ import type { BookingStatus } from "@/types/api";
 import { Calendar, MessageCircle, Users, AlertCircle, Clock, CheckCircle2, ChevronRight, Sparkles, Dumbbell, Utensils } from "lucide-react";
 import ChatModal from "@/components/ChatModal";
 import { IntelligentPrescriptionWizard } from "@/components/prescription/IntelligentPrescriptionWizard";
+import { isNutritionist, isPersonalTrainer } from "@/utils/professionalRoles";
 
 const filters: { value: BookingStatus | ""; label: string }[] = [
   { value: "", label: "Todos" },
@@ -33,8 +34,11 @@ export default function AgendaProfissional() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isPrescriptionWizardOpen, setIsPrescriptionWizardOpen] = useState(false);
   const [selectedStudentForPrescription, setSelectedStudentForPrescription] = useState<{ id: string; name: string } | undefined>(undefined);
+  const [prescriptionMode, setPrescriptionMode] = useState<"WORKOUT" | "DIET">("WORKOUT");
 
   const isProvider = user?.role === "PERSONAL" || user?.role === "ACADEMIA";
+  const isNutri = isNutritionist(user);
+  const isPersonal = isPersonalTrainer(user);
 
   useEffect(() => {
     const chatId = searchParams.get("chat");
@@ -192,21 +196,76 @@ export default function AgendaProfissional() {
                 </div>
                 {b.status === "CONFIRMED" && (
                   <div className="flex flex-col sm:flex-row items-center gap-2 mt-4 md:mt-0">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedStudentForPrescription({
-                          id: b.studentId || b.student?.id || "student-1",
-                          name: b.student?.name || "Aluno",
-                        });
-                        setIsPrescriptionWizardOpen(true);
-                      }}
-                      className="w-full sm:w-auto text-xs font-bold rounded-xl border-amber-500/40 text-amber-400 hover:bg-amber-500/10 gap-1.5"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                      Prescrever Treino / Dieta
-                    </Button>
+                    {isNutri ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStudentForPrescription({
+                            id: b.studentId || b.student?.id || "student-1",
+                            name: b.student?.name || "Aluno",
+                          });
+                          setPrescriptionMode("DIET");
+                          setIsPrescriptionWizardOpen(true);
+                        }}
+                        className="w-full sm:w-auto text-xs font-bold rounded-xl border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 gap-1.5"
+                      >
+                        <Utensils className="w-3.5 h-3.5 text-emerald-400" />
+                        Prescrever Dieta
+                      </Button>
+                    ) : user?.role === "ADMIN" ? (
+                      <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedStudentForPrescription({
+                              id: b.studentId || b.student?.id || "student-1",
+                              name: b.student?.name || "Aluno",
+                            });
+                            setPrescriptionMode("WORKOUT");
+                            setIsPrescriptionWizardOpen(true);
+                          }}
+                          className="text-xs font-bold rounded-xl border-primary/40 text-primary hover:bg-primary/10 gap-1.5"
+                        >
+                          <Dumbbell className="w-3.5 h-3.5" />
+                          Treino
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedStudentForPrescription({
+                              id: b.studentId || b.student?.id || "student-1",
+                              name: b.student?.name || "Aluno",
+                            });
+                            setPrescriptionMode("DIET");
+                            setIsPrescriptionWizardOpen(true);
+                          }}
+                          className="text-xs font-bold rounded-xl border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 gap-1.5"
+                        >
+                          <Utensils className="w-3.5 h-3.5" />
+                          Dieta
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStudentForPrescription({
+                            id: b.studentId || b.student?.id || "student-1",
+                            name: b.student?.name || "Aluno",
+                          });
+                          setPrescriptionMode("WORKOUT");
+                          setIsPrescriptionWizardOpen(true);
+                        }}
+                        className="w-full sm:w-auto text-xs font-bold rounded-xl border-primary/40 text-primary hover:bg-primary/10 gap-1.5"
+                      >
+                        <Dumbbell className="w-3.5 h-3.5 text-primary" />
+                        Prescrever Treino
+                      </Button>
+                    )}
 
                     {(() => {
                       const hasUnreadChat = notifications?.some(n => !n.isRead && n.type === "CHAT" && n.referenceId === b.id);
@@ -249,6 +308,7 @@ export default function AgendaProfissional() {
       <IntelligentPrescriptionWizard
         open={isPrescriptionWizardOpen}
         onOpenChange={setIsPrescriptionWizardOpen}
+        defaultMode={prescriptionMode}
         prefilledStudent={selectedStudentForPrescription}
       />
 

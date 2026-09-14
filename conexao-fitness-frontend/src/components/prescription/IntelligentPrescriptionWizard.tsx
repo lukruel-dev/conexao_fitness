@@ -31,10 +31,17 @@ import {
   RefreshCw,
   User,
   HeartPulse,
+  Lock,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { sounds } from "@/lib/soundEffects";
 import { toast } from "sonner";
+import {
+  isNutritionist,
+  isPersonalTrainer,
+  canPrescribeWorkout,
+  canPrescribeDiet,
+} from "@/utils/professionalRoles";
 import {
   generateDietFromQuestionnaire,
   generateWorkoutFromQuestionnaire,
@@ -65,7 +72,22 @@ export const IntelligentPrescriptionWizard: React.FC<IntelligentPrescriptionWiza
 }) => {
   const { user } = useAuth();
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
-  const [mode, setMode] = useState<"WORKOUT" | "DIET">(defaultMode);
+
+  const isNutri = isNutritionist(user);
+  const isPersonal = isPersonalTrainer(user);
+  const workoutPermission = canPrescribeWorkout(user);
+  const dietPermission = canPrescribeDiet(user);
+
+  const initialMode = isNutri ? "DIET" : isPersonal ? "WORKOUT" : defaultMode;
+  const [mode, setMode] = useState<"WORKOUT" | "DIET">(initialMode);
+
+  React.useEffect(() => {
+    if (open) {
+      if (isNutri) setMode("DIET");
+      else if (isPersonal) setMode("WORKOUT");
+      else setMode(defaultMode);
+    }
+  }, [open, isNutri, isPersonal, defaultMode]);
 
   // Aluno Selecionado
   const [studentName, setStudentName] = useState(prefilledStudent?.name || "Aluno Finex");
@@ -125,6 +147,20 @@ export const IntelligentPrescriptionWizard: React.FC<IntelligentPrescriptionWiza
   };
 
   const handlePublish = async () => {
+    if (mode === "WORKOUT") {
+      const perm = canPrescribeWorkout(user);
+      if (!perm.allowed) {
+        toast.error("Prescrição de treino não autorizada", { description: perm.reason });
+        return;
+      }
+    } else if (mode === "DIET") {
+      const perm = canPrescribeDiet(user);
+      if (!perm.allowed) {
+        toast.error("Prescrição de dieta não autorizada", { description: perm.reason });
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       if (mode === "WORKOUT" && generatedWorkout) {
@@ -192,40 +228,78 @@ export const IntelligentPrescriptionWizard: React.FC<IntelligentPrescriptionWiza
                 <Label className="text-xs font-bold uppercase text-muted-foreground">
                   1. O que você deseja prescrever hoje?
                 </Label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* OPÇÃO 1: Ficha de Treino (Personal Trainer) */}
                   <button
                     type="button"
-                    onClick={() => setMode("WORKOUT")}
-                    className={`p-4 rounded-2xl border text-left transition-all ${
-                      mode === "WORKOUT"
+                    disabled={!workoutPermission.allowed}
+                    onClick={() => {
+                      if (workoutPermission.allowed) setMode("WORKOUT");
+                    }}
+                    className={`p-4 rounded-2xl border text-left transition-all relative ${
+                      !workoutPermission.allowed
+                        ? "opacity-60 bg-muted/20 border-border/40 cursor-not-allowed"
+                        : mode === "WORKOUT"
                         ? "bg-primary/15 border-primary shadow-glow scale-[1.01]"
                         : "bg-muted/40 border-border hover:bg-muted/70"
                     }`}
                   >
-                    <div className="p-2 w-fit rounded-xl bg-primary/20 text-primary mb-2">
-                      <Dumbbell className="w-5 h-5" />
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="p-2 w-fit rounded-xl bg-primary/20 text-primary">
+                        <Dumbbell className="w-5 h-5" />
+                      </div>
+                      {!workoutPermission.allowed ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-destructive/15 text-destructive border border-destructive/30 flex items-center gap-1">
+                          <Lock className="w-3 h-3" /> Exclusivo Personal
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/15 text-primary border border-primary/30">
+                          CREF Habilitado
+                        </span>
+                      )}
                     </div>
                     <h4 className="text-sm font-bold text-foreground">Ficha de Treino</h4>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      Para Personal Trainers (Divisões A/B/C, séries, cargas e descanso).
+                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                      {!workoutPermission.allowed
+                        ? "Exclusivo para Personal Trainers com CREF ativo. Nutricionistas prescrevem planos alimentares."
+                        : "Divisões A/B/C, séries, cargas, repetições e tempo de descanso."}
                     </p>
                   </button>
 
+                  {/* OPÇÃO 2: Plano Alimentar (Nutricionista) */}
                   <button
                     type="button"
-                    onClick={() => setMode("DIET")}
-                    className={`p-4 rounded-2xl border text-left transition-all ${
-                      mode === "DIET"
+                    disabled={!dietPermission.allowed}
+                    onClick={() => {
+                      if (dietPermission.allowed) setMode("DIET");
+                    }}
+                    className={`p-4 rounded-2xl border text-left transition-all relative ${
+                      !dietPermission.allowed
+                        ? "opacity-60 bg-muted/20 border-border/40 cursor-not-allowed"
+                        : mode === "DIET"
                         ? "bg-emerald-500/15 border-emerald-500 shadow-glow scale-[1.01]"
                         : "bg-muted/40 border-border hover:bg-muted/70"
                     }`}
                   >
-                    <div className="p-2 w-fit rounded-xl bg-emerald-500/20 text-emerald-400 mb-2">
-                      <Utensils className="w-5 h-5" />
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="p-2 w-fit rounded-xl bg-emerald-500/20 text-emerald-400">
+                        <Utensils className="w-5 h-5" />
+                      </div>
+                      {!dietPermission.allowed ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-destructive/15 text-destructive border border-destructive/30 flex items-center gap-1">
+                          <Lock className="w-3 h-3" /> Exclusivo Nutricionista
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                          CRN Habilitado
+                        </span>
+                      )}
                     </div>
                     <h4 className="text-sm font-bold text-foreground">Plano Alimentar</h4>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      Para Nutricionistas (Calorias, macros, refeições e suplementos).
+                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                      {!dietPermission.allowed
+                        ? "Exclusivo para Nutricionistas com CRN ativo (CFN). Personal Trainers prescrevem fichas de treino."
+                        : "Cálculo de calorias, divisão de macronutrientes, cardápios e suplementação."}
                     </p>
                   </button>
                 </div>

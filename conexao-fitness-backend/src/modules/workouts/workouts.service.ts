@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -7,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WorkoutRoutine } from './entities/workout-routine.entity';
 import { WorkoutExercise } from './entities/workout-exercise.entity';
+import { User } from '../users/entities/user.entity';
 import { WorkoutSessionLog } from './entities/workout-session-log.entity';
 import { GamificationService } from '../gamification/gamification.service';
 
@@ -251,6 +253,22 @@ export class WorkoutsService {
   ) {
     if (!dto.title) {
       throw new BadRequestException('O título da ficha de treino é obrigatório.');
+    }
+
+    // Validação de segurança: apenas Personal Trainers podem prescrever fichas de treino para alunos
+    if (creatorId && studentId && creatorId !== studentId) {
+      const creator = await this.routineRepo.manager.findOne(User, {
+        where: { id: creatorId },
+        relations: ['personalProfile'],
+      });
+      if (creator && creator.role !== 'ADMIN') {
+        const profession = (creator.personalProfile?.professionTitle || '').toLowerCase();
+        if (profession.includes('nutri') || profession.includes('diet')) {
+          throw new ForbiddenException(
+            'Prescrição de treino bloqueada. Conforme regulamentação do CONFEF/CFN, apenas Personal Trainers e profissionais de Educação Física com CREF ativo podem prescrever fichas de treino.',
+          );
+        }
+      }
     }
 
     const routine = this.routineRepo.create({
