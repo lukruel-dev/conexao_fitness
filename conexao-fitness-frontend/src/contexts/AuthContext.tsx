@@ -145,6 +145,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("cf_wallet_balance", "1450.00");
     } else if (targetRole === 'PERSONAL') {
       localStorage.setItem("cf_wallet_balance", "920.00");
+      import("@/services/bookings").then((m) => m.getDemoBookings());
+    }
+
+    if (targetRole === 'STUDENT') {
+      import("@/services/bookings").then((m) => m.getDemoBookings());
     }
 
     setUser(persona);

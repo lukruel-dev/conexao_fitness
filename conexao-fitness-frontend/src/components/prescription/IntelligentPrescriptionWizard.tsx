@@ -93,6 +93,23 @@ export const IntelligentPrescriptionWizard: React.FC<IntelligentPrescriptionWiza
   const [studentName, setStudentName] = useState(prefilledStudent?.name || "Aluno Finex");
   const [studentId, setStudentId] = useState(prefilledStudent?.id || "current-user");
 
+  React.useEffect(() => {
+    if (prefilledStudent && open) {
+      setStudentName(prefilledStudent.name);
+      setStudentId(prefilledStudent.id);
+      setWorkoutData((prev) => ({
+        ...prev,
+        studentId: prefilledStudent.id,
+        studentName: prefilledStudent.name,
+      }));
+      setDietData((prev) => ({
+        ...prev,
+        studentId: prefilledStudent.id,
+        studentName: prefilledStudent.name,
+      }));
+    }
+  }, [prefilledStudent, open]);
+
   // Estado do Questionário de Treino
   const [workoutData, setWorkoutData] = useState<WorkoutQuestionnaireData>({
     studentId: studentId,

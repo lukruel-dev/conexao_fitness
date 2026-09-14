@@ -1,18 +1,44 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Navigate, useSearchParams, Link } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { listBookingsByProvider } from "@/services/bookings";
+import { listBookingsByProvider, addDemoBooking, resetDemoBookings } from "@/services/bookings";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDateTime, formatBookingSchedule } from "@/lib/format";
 import type { BookingStatus } from "@/types/api";
-import { Calendar, MessageCircle, Users, AlertCircle, Clock, CheckCircle2, ChevronRight, Sparkles, Dumbbell, Utensils, HeartPulse } from "lucide-react";
+import {
+  Calendar,
+  MessageCircle,
+  Users,
+  AlertCircle,
+  Clock,
+  CheckCircle2,
+  ChevronRight,
+  Sparkles,
+  Dumbbell,
+  Utensils,
+  HeartPulse,
+  UserPlus,
+  RotateCcw,
+  Check,
+} from "lucide-react";
 import ChatModal from "@/components/ChatModal";
 import { IntelligentPrescriptionWizard } from "@/components/prescription/IntelligentPrescriptionWizard";
 import { StudentHealthReportModal } from "@/components/health/StudentHealthReportModal";
 import { isNutritionist, isPersonalTrainer } from "@/utils/professionalRoles";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { sounds } from "@/lib/soundEffects";
 
 const filters: { value: BookingStatus | ""; label: string }[] = [
   { value: "", label: "Todos" },
@@ -27,7 +53,39 @@ const statusStyles: Record<BookingStatus, string> = {
   PENDING: "bg-yellow-500/10 text-yellow-500",
 };
 
+const PRESET_STUDENTS = [
+  {
+    name: "Gabriel Souza (Aluno Demo Teste)",
+    service: "Consultoria Premium & Personal VIP",
+    goal: "Hipertrofia e Biomecânica",
+    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
+    badge: "Smartwatch Conectado",
+  },
+  {
+    name: "Mariana Lima (Atleta)",
+    service: "Periodização de Hipertrofia & Força",
+    goal: "Alta Performance & Definição",
+    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
+    badge: "Sono & Fases",
+  },
+  {
+    name: "Rodrigo Alves (Iniciante)",
+    service: "Emagrecimento & Reeducação",
+    goal: "Perda de Gordura & Saúde",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+    badge: "Novo Aluno",
+  },
+  {
+    name: "Larissa Torres (Funcional)",
+    service: "Treinamento Funcional e Resistência",
+    goal: "Condicionamento e Postura",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
+    badge: "Ativa",
+  },
+];
+
 export default function AgendaProfissional() {
+  const qc = useQueryClient();
   const { user, isAuthenticated } = useAuth();
   const [status, setStatus] = useState<BookingStatus | "">("");
   const [chatBooking, setChatBooking] = useState<{ id: string; name?: string } | null>(null);
@@ -38,6 +96,11 @@ export default function AgendaProfissional() {
   const [prescriptionMode, setPrescriptionMode] = useState<"WORKOUT" | "DIET">("WORKOUT");
   const [isHealthReportOpen, setIsHealthReportOpen] = useState(false);
   const [selectedStudentForHealth, setSelectedStudentForHealth] = useState<{ id: string; name: string; avatarUrl?: string } | undefined>(undefined);
+
+  // Modal para adicionar aluno de teste / demo
+  const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
+  const [newStudentName, setNewStudentName] = useState("");
+  const [newStudentService, setNewStudentService] = useState("Consultoria VIP & Prescrição");
 
   const isProvider = user?.role === "PERSONAL" || user?.role === "ACADEMIA";
   const isNutri = isNutritionist(user);
@@ -83,6 +146,36 @@ export default function AgendaProfissional() {
     });
   }, [bookings, notifications, readChats]);
 
+  const handleAddStudent = (preset?: typeof PRESET_STUDENTS[0]) => {
+    const name = preset ? preset.name : newStudentName.trim();
+    if (!name) {
+      toast.error("Informe o nome do aluno.");
+      return;
+    }
+
+    addDemoBooking({
+      name,
+      serviceName: preset ? preset.service : newStudentService,
+      avatarUrl: preset ? preset.avatar : undefined,
+      goal: preset ? preset.goal : "Hipertrofia & Saúde",
+    });
+
+    qc.invalidateQueries({ queryKey: ["provider-bookings"] });
+    sounds.playAchievement();
+    toast.success(`Aluno ${name} adicionado com sucesso!`, {
+      description: "Agora você pode prescrever treinos, dietas e acompanhar dados do relógio.",
+    });
+
+    setIsAddStudentOpen(false);
+    setNewStudentName("");
+  };
+
+  const handleResetDemo = () => {
+    resetDemoBookings();
+    qc.invalidateQueries({ queryKey: ["provider-bookings"] });
+    toast.success("Carteira de alunos demo restaurada!");
+  };
+
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user && !isProvider) return <Navigate to="/" replace />;
 
@@ -90,13 +183,31 @@ export default function AgendaProfissional() {
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
       <main className="flex-1 pt-24 md:pt-28 pb-16 container mx-auto px-4 max-w-4xl">
-        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3 pl-1 overflow-visible">
-          <div className="p-2 sm:p-2.5 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <Users className="w-6 h-6 sm:w-8 sm:h-8" />
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
+          <div>
+            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3 pl-1 overflow-visible">
+              <div className="p-2 sm:p-2.5 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <Users className="w-6 h-6 sm:w-8 sm:h-8" />
+              </div>
+              <span>Meus <span className="gradient-text">Alunos</span></span>
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Acompanhe os agendamentos recebidos, prescreva treinos e consulte dados de relógio inteligente.
+            </p>
           </div>
-          <span>Meus <span className="gradient-text">Alunos</span></span>
-        </h1>
-        <p className="text-muted-foreground mb-6">Acompanhe os agendamentos recebidos e converse com seus alunos.</p>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              onClick={() => setIsAddStudentOpen(true)}
+              variant="hero"
+              size="sm"
+              className="rounded-2xl gap-2 font-bold shadow-glow text-xs"
+            >
+              <UserPlus className="w-4 h-4" />
+              Adicionar Aluno (Demo)
+            </Button>
+          </div>
+        </div>
 
         {/* Banner de Status KYC Finex */}
         {user?.status === "KYC_REJEITADO" ? (
@@ -154,14 +265,32 @@ export default function AgendaProfissional() {
             ))}
           </div>
         ) : !sortedBookings || sortedBookings.length === 0 ? (
-          <div className="bg-card border border-border rounded-2xl p-12 text-center shadow-sm">
+          <div className="bg-card border border-border rounded-2xl p-10 sm:p-12 text-center shadow-sm">
             <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
-            <p className="text-muted-foreground mb-2">
-              Nenhum agendamento encontrado.
+            <p className="text-foreground font-bold mb-1">
+              Nenhum aluno encontrado para este filtro.
             </p>
-            <p className="text-xs text-muted-foreground">
-              Continue divulgando seus serviços para atrair novos alunos!
+            <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto">
+              Adicione um aluno para testar a integração profissional/aluno com prescrição inteligente de treinos, dietas e leitura de relógios inteligentes.
             </p>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <Button
+                onClick={() => setIsAddStudentOpen(true)}
+                size="sm"
+                variant="hero"
+                className="rounded-xl text-xs font-bold gap-2 shadow-glow"
+              >
+                <UserPlus className="w-4 h-4" /> Adicionar Aluno (Demo)
+              </Button>
+              <Button
+                onClick={handleResetDemo}
+                size="sm"
+                variant="outline"
+                className="rounded-xl text-xs font-semibold gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> Restaurar Alunos Padrão
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="space-y-3">
@@ -330,6 +459,9 @@ export default function AgendaProfissional() {
         onOpenChange={setIsPrescriptionWizardOpen}
         defaultMode={prescriptionMode}
         prefilledStudent={selectedStudentForPrescription}
+        onPrescriptionPublished={() => {
+          qc.invalidateQueries({ queryKey: ["provider-bookings"] });
+        }}
       />
 
       <StudentHealthReportModal
@@ -337,6 +469,105 @@ export default function AgendaProfissional() {
         onOpenChange={setIsHealthReportOpen}
         student={selectedStudentForHealth}
       />
+
+      {/* Modal para Adicionar Aluno de Demonstração */}
+      <Dialog open={isAddStudentOpen} onOpenChange={setIsAddStudentOpen}>
+        <DialogContent className="max-w-md rounded-3xl p-5 sm:p-6 bg-card border-border/80 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg sm:text-xl font-bold font-display flex items-center gap-2">
+              <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                <UserPlus className="w-5 h-5" />
+              </div>
+              <span>Adicionar Aluno (Demo)</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Simule a contratação de um aluno para testar a integração profissional/aluno com prescrição inteligente de treinos, dietas, chat e relatórios de relógios inteligentes (smartwatch).
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div>
+              <Label className="text-xs font-bold mb-2.5 block text-foreground">
+                Escolha um Aluno Pré-configurado:
+              </Label>
+              <div className="grid grid-cols-1 gap-2">
+                {PRESET_STUDENTS.map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleAddStudent(preset)}
+                    className="p-3 rounded-2xl border border-border/70 hover:border-primary/50 hover:bg-primary/5 transition-all text-left flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={preset.avatar}
+                        alt={preset.name}
+                        className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/20 shrink-0"
+                      />
+                      <div>
+                        <div className="text-xs font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5 flex-wrap">
+                          <span>{preset.name}</span>
+                          <span className="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-primary/10 text-primary">
+                            {preset.badge}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">{preset.service}</p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-primary group-hover:translate-x-0.5 transition-transform shrink-0 ml-2">
+                      + Adicionar
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative my-2">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border/60" />
+              </div>
+              <div className="relative flex justify-center text-[10px] uppercase">
+                <span className="bg-card px-2 text-muted-foreground font-semibold">
+                  ou crie um aluno personalizado
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="student-name" className="text-xs font-medium">Nome do Aluno</Label>
+                <Input
+                  id="student-name"
+                  placeholder="Ex: Carlos Eduardo"
+                  value={newStudentName}
+                  onChange={(e) => setNewStudentName(e.target.value)}
+                  className="rounded-xl h-9 text-xs mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="student-service" className="text-xs font-medium">Serviço Contratado</Label>
+                <Input
+                  id="student-service"
+                  placeholder="Ex: Consultoria de Musculação VIP"
+                  value={newStudentService}
+                  onChange={(e) => setNewStudentService(e.target.value)}
+                  className="rounded-xl h-9 text-xs mt-1"
+                />
+              </div>
+
+              <Button
+                onClick={() => handleAddStudent()}
+                disabled={!newStudentName.trim()}
+                className="w-full rounded-2xl text-xs font-bold h-10 gap-2 shadow-glow"
+                variant="hero"
+              >
+                <Check className="w-4 h-4" /> Confirmar e Adicionar Aluno
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>
