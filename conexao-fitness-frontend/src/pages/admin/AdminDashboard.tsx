@@ -1,6 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { Users, CreditCard, CalendarCheck, Dumbbell, ArrowRight, ShieldCheck, LogOut } from "lucide-react";
+import {
+  Users,
+  CreditCard,
+  CalendarCheck,
+  Dumbbell,
+  ArrowRight,
+  ShieldCheck,
+  LogOut,
+  Building2,
+  User,
+  Eye,
+  CheckCircle2,
+} from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +31,7 @@ const metricCards = [
 ];
 
 export default function AdminDashboard() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, startImpersonation } = useAuth();
   const navigate = useNavigate();
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
@@ -119,6 +131,189 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* ========================================================================= */}
+        {/* AMBIENTE DE TESTES & SIMULAÇÃO DE PERFIS (IMPERSONATION) */}
+        {/* ========================================================================= */}
+        <div className="mt-12 bg-card/70 border border-border rounded-3xl p-6 sm:p-8 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-wider">
+                <Eye className="w-4 h-4" /> Simulador de Perfis de Teste
+              </div>
+              <h2 className="font-display text-2xl font-bold text-foreground">
+                Ambiente de Simulação & Testes
+              </h2>
+              <p className="text-sm text-muted-foreground max-w-2xl">
+                Alterne instantaneamente para qualquer perfil da plataforma para testar funcionalidades práticas (catraca, agenda, pagamentos e QR Codes). Você pode retornar ao painel admin a qualquer momento com 1 clique na barra superior.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Card 1: ACADEMIA */}
+            <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/[0.03] hover:bg-emerald-500/[0.06] transition-all p-6 flex flex-col justify-between shadow-sm hover:shadow-md">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
+                    <Building2 className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                    Academia Demo
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="font-display font-bold text-lg text-foreground">
+                    Olhar como Academia
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    Acesse a gestão da academia com catraca digital, validador de QR Code, cadastro de planos de matrícula e atendimento no balcão.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 pt-2 border-t border-border/50 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <span>Catraca Digital & Leitor Óptico QR</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <span>Planos de Matrícula & Mensalidades</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <span>Matrícula Manual com envio por WhatsApp</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                    <span>Histórico de Passagens com Fotos</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <Button
+                  className="w-full rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white gap-2 shadow-sm"
+                  onClick={() => {
+                    startImpersonation('ACADEMIA');
+                    navigate('/gestao-academia');
+                  }}
+                >
+                  <Eye className="w-4 h-4" /> Entrar como Academia
+                </Button>
+              </div>
+            </div>
+
+            {/* Card 2: PERSONAL */}
+            <div className="rounded-3xl border border-purple-500/30 bg-purple-500/[0.03] hover:bg-purple-500/[0.06] transition-all p-6 flex flex-col justify-between shadow-sm hover:shadow-md">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold">
+                    <Dumbbell className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-500/15 text-purple-500 border border-purple-500/30">
+                    Profissional Demo
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="font-display font-bold text-lg text-foreground">
+                    Olhar como Profissional
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    Experimente a rotina do Personal Trainer ou Nutricionista: agenda de aulas, serviços, alunos vinculados e carteira financeira.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 pt-2 border-t border-border/50 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                    <span>Agenda Profissional & Aulas</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                    <span>Cadastro de Serviços & Consultorias</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                    <span>Gestão e Acompanhamento de Alunos</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                    <span>Carteira de Recebimentos & Saque</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <Button
+                  className="w-full rounded-2xl font-bold bg-purple-600 hover:bg-purple-500 text-white gap-2 shadow-sm"
+                  onClick={() => {
+                    startImpersonation('PERSONAL');
+                    navigate('/agenda-profissional');
+                  }}
+                >
+                  <Eye className="w-4 h-4" /> Entrar como Profissional
+                </Button>
+              </div>
+            </div>
+
+            {/* Card 3: STUDENT */}
+            <div className="rounded-3xl border border-blue-500/30 bg-blue-500/[0.03] hover:bg-blue-500/[0.06] transition-all p-6 flex flex-col justify-between shadow-sm hover:shadow-md">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
+                    <User className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-500/15 text-blue-500 border border-blue-500/30">
+                    Aluno Demo
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="font-display font-bold text-lg text-foreground">
+                    Olhar como Aluno
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    Vivencie a experiência completa do aluno: passe digital dinâmico com QR Code para catraca, carteira Finex com saldo e treinos.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 pt-2 border-t border-border/50 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    <span>Passe Digital com QR Code Dinâmico</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    <span>Carteira Finex (Saldo de R$ 180,00)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    <span>Meus Treinos & Agendamentos</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                    <span>Busca & Contratação de Planos</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <Button
+                  className="w-full rounded-2xl font-bold bg-blue-600 hover:bg-blue-500 text-white gap-2 shadow-sm"
+                  onClick={() => {
+                    startImpersonation('STUDENT');
+                    navigate('/minhas-matriculas');
+                  }}
+                >
+                  <Eye className="w-4 h-4" /> Entrar como Aluno
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
       <Footer />

@@ -1,16 +1,22 @@
 import FinexLogo from "@/components/FinexLogo";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, X, Building2, Dumbbell, User, Eye, ChevronDown, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import NotificationsBell from "@/components/NotificationsBell";
 import ThemeToggle from "@/components/ThemeToggle";
 import UserPinBadge from "@/components/UserPinBadge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, startImpersonation } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -45,12 +51,67 @@ const Header = () => {
             </Link>
 
             {user?.role === "ADMIN" ? (
-              <Link
-                to="/admin"
-                className="text-secondary font-semibold hover:text-secondary/80 transition-colors font-medium flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/20"
-              >
-                Painel Administrativo
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/admin"
+                  className="text-secondary font-semibold hover:text-secondary/80 transition-colors font-medium flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/20"
+                >
+                  Painel Administrativo
+                </Link>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 cursor-pointer">
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Simular Visão</span>
+                      <ChevronDown className="w-3 h-3 opacity-60" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56 p-1.5 rounded-2xl shadow-xl">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        startImpersonation('ACADEMIA');
+                        navigate('/gestao-academia');
+                      }}
+                      className="rounded-xl cursor-pointer text-xs py-2 gap-2"
+                    >
+                      <Building2 className="w-4 h-4 text-emerald-500" />
+                      <div>
+                        <span className="font-bold block">Academia Demo</span>
+                        <span className="text-[10px] text-muted-foreground block">Catraca, planos e balcão</span>
+                      </div>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => {
+                        startImpersonation('PERSONAL');
+                        navigate('/agenda-profissional');
+                      }}
+                      className="rounded-xl cursor-pointer text-xs py-2 gap-2"
+                    >
+                      <Dumbbell className="w-4 h-4 text-purple-500" />
+                      <div>
+                        <span className="font-bold block">Profissional Demo</span>
+                        <span className="text-[10px] text-muted-foreground block">Agenda, serviços e alunos</span>
+                      </div>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => {
+                        startImpersonation('STUDENT');
+                        navigate('/minhas-matriculas');
+                      }}
+                      className="rounded-xl cursor-pointer text-xs py-2 gap-2"
+                    >
+                      <User className="w-4 h-4 text-blue-500" />
+                      <div>
+                        <span className="font-bold block">Aluno Demo</span>
+                        <span className="text-[10px] text-muted-foreground block">QR Code e carteira Finex</span>
+                      </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : isProvider ? (
               <>
                 {user?.role === "ACADEMIA" && (
@@ -261,13 +322,45 @@ const Header = () => {
               </Link>
 
               {user?.role === "ADMIN" ? (
-                <Link
-                  to="/admin"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="text-secondary font-semibold py-2 text-sm"
-                >
-                  Painel Administrativo
-                </Link>
+                <>
+                  <Link
+                    to="/admin"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-secondary font-semibold py-2 text-sm flex items-center gap-1.5"
+                  >
+                    <ShieldCheck className="w-4 h-4" /> Painel Administrativo
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      startImpersonation('ACADEMIA');
+                      navigate('/gestao-academia');
+                    }}
+                    className="text-left py-2 text-sm font-medium text-emerald-400 hover:text-emerald-300 flex items-center gap-2"
+                  >
+                    <Building2 className="w-4 h-4" /> Olhar como Academia Demo
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      startImpersonation('PERSONAL');
+                      navigate('/agenda-profissional');
+                    }}
+                    className="text-left py-2 text-sm font-medium text-purple-400 hover:text-purple-300 flex items-center gap-2"
+                  >
+                    <Dumbbell className="w-4 h-4" /> Olhar como Profissional Demo
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      startImpersonation('STUDENT');
+                      navigate('/minhas-matriculas');
+                    }}
+                    className="text-left py-2 text-sm font-medium text-blue-400 hover:text-blue-300 flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4" /> Olhar como Aluno Demo
+                  </button>
+                </>
               ) : isProvider ? (
                 <>
                   {user?.role === "ACADEMIA" && (
