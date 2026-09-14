@@ -184,8 +184,16 @@ const NotificationsBell = () => {
                     if (!n.isRead) markRead.mutate(n.id);
                     setOpen(false);
                     const suffix = n.type === "CHAT" && n.referenceId ? `?chat=${n.referenceId}` : "";
-                    if (user?.role === "STUDENT") {
-                      navigate(`/meus-agendamentos${suffix}`);
+                    if (user?.role === "ACADEMIA") {
+                      navigate(`/gestao-academia${suffix}`);
+                    } else if (user?.role === "ADMIN") {
+                      navigate(`/admin${suffix}`);
+                    } else if (user?.role === "STUDENT") {
+                      if (n.type === "ACCESS_GRANTED" || n.type === "DAY_PASS") {
+                        navigate("/minhas-matriculas");
+                      } else {
+                        navigate(`/meus-agendamentos${suffix}`);
+                      }
                     } else {
                       navigate(`/agenda-profissional${suffix}`);
                     }

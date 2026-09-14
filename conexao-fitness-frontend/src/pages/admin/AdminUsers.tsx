@@ -11,7 +11,9 @@ import {
   Search,
   Trash2,
   Users,
+  ArrowLeft,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -261,14 +263,21 @@ export default function AdminUsers() {
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1 container mx-auto px-4 pt-36 pb-28">
-        <div className="mb-8">
-          <div className="flex items-center gap-2 text-secondary text-sm font-semibold uppercase tracking-wider">
-            <ShieldCheck className="w-4 h-4" /> Painel administrativo
+        <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-secondary text-sm font-semibold uppercase tracking-wider">
+              <ShieldCheck className="w-4 h-4" /> Painel administrativo
+            </div>
+            <h1 className="font-display text-3xl md:text-4xl font-bold mt-1">Gestão de Usuários</h1>
+            <p className="text-muted-foreground mt-1">
+              Filtre, selecione em lote, suspenda, reative, exclua e aprove o KYC de profissionais.
+            </p>
           </div>
-          <h1 className="font-display text-3xl md:text-4xl font-bold mt-1">Gestão de Usuários</h1>
-          <p className="text-muted-foreground mt-1">
-            Filtre, selecione em lote, suspenda, reative, exclua e aprove o KYC de profissionais.
-          </p>
+          <Button asChild variant="outline">
+            <Link to="/admin" className="gap-2">
+              <ArrowLeft className="w-4 h-4" /> Voltar ao Painel
+            </Link>
+          </Button>
         </div>
 
         <Card className="mb-6">

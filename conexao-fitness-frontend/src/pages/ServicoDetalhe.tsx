@@ -12,6 +12,7 @@ import { formatBRL, formatDateLong, formatTime } from "@/lib/format";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Clock, MapPin, Star } from "lucide-react";
 import { CheckoutModal } from "@/components/CheckoutModal";
+import { openGuestLoginModal } from "@/components/GuestLoginInductionModal";
 
 const ServicoDetalhe = () => {
   const { id } = useParams<{ id: string }>();
@@ -110,8 +111,7 @@ const ServicoDetalhe = () => {
 
   const handleReserve = () => {
     if (!isAuthenticated) {
-      toast.info("Faça login para reservar", { description: "Você será redirecionado." });
-      navigate("/login");
+      openGuestLoginModal("Faça login ou crie sua conta gratuita para reservar seu horário ou Day Pass!");
       return;
     }
     if (!selectedSlotId) {

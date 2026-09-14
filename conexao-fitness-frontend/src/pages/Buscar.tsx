@@ -454,9 +454,9 @@ const Buscar = () => {
                             {s.type === "PLANO_MENSAL" ? "por mês" : s.type === "DAY_PASS" ? "day pass" : "por sessão"}
                           </div>
                         </div>
-                        <Button variant="hero" size="sm">
+                        <span className="inline-flex items-center justify-center rounded-xl text-xs font-bold px-3.5 py-2 bg-primary text-primary-foreground shadow-sm hover:opacity-95 transition-opacity pointer-events-none">
                           {s.providerType === "ACADEMIA" ? "Conhecer Academia & Planos" : "Ver Perfil & Planos"}
-                        </Button>
+                        </span>
                       </div>
                     </div>
                   </Link>

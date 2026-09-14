@@ -12,7 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trash2, Loader2, Search, Dumbbell, ShieldCheck } from "lucide-react";
+import { Trash2, Loader2, Search, Dumbbell, ShieldCheck, ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -57,14 +58,21 @@ export default function AdminServices() {
             </p>
           </div>
 
-          <div className="relative w-full sm:w-72">
-            <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por serviço ou modalidade..."
-              className="pl-9"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-72">
+              <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por serviço ou modalidade..."
+                className="pl-9"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <Button asChild variant="outline">
+              <Link to="/admin" className="gap-2">
+                <ArrowLeft className="w-4 h-4" /> Voltar
+              </Link>
+            </Button>
           </div>
         </div>
 
