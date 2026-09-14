@@ -8,9 +8,10 @@ import { listBookingsByProvider } from "@/services/bookings";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDateTime, formatBookingSchedule } from "@/lib/format";
 import type { BookingStatus } from "@/types/api";
-import { Calendar, MessageCircle, Users, AlertCircle, Clock, CheckCircle2, ChevronRight, Sparkles, Dumbbell, Utensils } from "lucide-react";
+import { Calendar, MessageCircle, Users, AlertCircle, Clock, CheckCircle2, ChevronRight, Sparkles, Dumbbell, Utensils, HeartPulse } from "lucide-react";
 import ChatModal from "@/components/ChatModal";
 import { IntelligentPrescriptionWizard } from "@/components/prescription/IntelligentPrescriptionWizard";
+import { StudentHealthReportModal } from "@/components/health/StudentHealthReportModal";
 import { isNutritionist, isPersonalTrainer } from "@/utils/professionalRoles";
 
 const filters: { value: BookingStatus | ""; label: string }[] = [
@@ -35,6 +36,8 @@ export default function AgendaProfissional() {
   const [isPrescriptionWizardOpen, setIsPrescriptionWizardOpen] = useState(false);
   const [selectedStudentForPrescription, setSelectedStudentForPrescription] = useState<{ id: string; name: string } | undefined>(undefined);
   const [prescriptionMode, setPrescriptionMode] = useState<"WORKOUT" | "DIET">("WORKOUT");
+  const [isHealthReportOpen, setIsHealthReportOpen] = useState(false);
+  const [selectedStudentForHealth, setSelectedStudentForHealth] = useState<{ id: string; name: string; avatarUrl?: string } | undefined>(undefined);
 
   const isProvider = user?.role === "PERSONAL" || user?.role === "ACADEMIA";
   const isNutri = isNutritionist(user);
@@ -267,6 +270,23 @@ export default function AgendaProfissional() {
                       </Button>
                     )}
 
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedStudentForHealth({
+                          id: b.studentId || b.student?.id || "student-1",
+                          name: b.student?.name || "Aluno",
+                          avatarUrl: b.student?.avatarUrl,
+                        });
+                        setIsHealthReportOpen(true);
+                      }}
+                      className="w-full sm:w-auto text-xs font-bold rounded-xl border-rose-500/40 text-rose-400 hover:bg-rose-500/10 gap-1.5"
+                    >
+                      <HeartPulse className="w-3.5 h-3.5 text-rose-400" />
+                      Smartwatch
+                    </Button>
+
                     {(() => {
                       const hasUnreadChat = notifications?.some(n => !n.isRead && n.type === "CHAT" && n.referenceId === b.id);
                       return hasUnreadChat && !readChats.has(b.id) ? (
@@ -310,6 +330,12 @@ export default function AgendaProfissional() {
         onOpenChange={setIsPrescriptionWizardOpen}
         defaultMode={prescriptionMode}
         prefilledStudent={selectedStudentForPrescription}
+      />
+
+      <StudentHealthReportModal
+        open={isHealthReportOpen}
+        onOpenChange={setIsHealthReportOpen}
+        student={selectedStudentForHealth}
       />
 
       <Footer />

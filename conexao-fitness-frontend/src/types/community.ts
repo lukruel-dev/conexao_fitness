@@ -37,7 +37,7 @@ export interface PostComment {
   author?: PostAuthor;
   content: string;
   createdAt: string;
-}
+import type { HealthSnapshot } from './health';
 
 export interface Post {
   id: string;
@@ -48,6 +48,7 @@ export interface Post {
   tags: string[];
   mediaUrls: string[];
   workoutRoutine?: WorkoutRoutine;
+  healthSnapshot?: HealthSnapshot;
   likesCount: number;
   commentsCount: number;
   sharesCount?: number;
@@ -66,6 +67,7 @@ export interface CreatePostDto {
   mediaUrls?: string[];
   sharedPostId?: string;
   workoutRoutine?: WorkoutRoutine;
+  healthSnapshot?: HealthSnapshot;
 }
 
 export interface CreateCommentDto {

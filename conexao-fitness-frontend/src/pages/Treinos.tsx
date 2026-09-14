@@ -19,6 +19,7 @@ import {
   Layers,
   Utensils,
   Award,
+  Watch,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,13 +33,14 @@ import { StreakCard } from "@/components/gamification/StreakCard";
 import { WorkoutHeatmap } from "@/components/gamification/WorkoutHeatmap";
 import { StudentDietPlanView } from "@/components/nutrition/StudentDietPlanView";
 import { IntelligentPrescriptionWizard } from "@/components/prescription/IntelligentPrescriptionWizard";
+import { SmartwatchHealthDashboard } from "@/components/health/SmartwatchHealthDashboard";
 import type { WorkoutRoutine } from "@/types/workouts";
 import { isNutritionist, isPersonalTrainer } from "@/utils/professionalRoles";
 import { toast } from "sonner";
 
 const Treinos: React.FC = () => {
   const { user } = useAuth();
-  const [mainSection, setMainSection] = useState<"workout" | "diet">("workout");
+  const [mainSection, setMainSection] = useState<"workout" | "diet" | "smartwatch">("workout");
   const [activeTab, setActiveTab] = useState<"routines" | "history">("routines");
   const [selectedRoutine, setSelectedRoutine] = useState<WorkoutRoutine | null>(null);
   const [isLiveWorkoutOpen, setIsLiveWorkoutOpen] = useState(false);
@@ -188,32 +190,45 @@ const Treinos: React.FC = () => {
           </div>
         </div>
 
-        {/* Seletor Principal: Treinos vs Plano Alimentar (Dieta) */}
-        <div className="p-1.5 bg-muted/60 border border-border/80 rounded-2xl flex items-center gap-2">
+        {/* Seletor Principal: Treinos vs Plano Alimentar (Dieta) vs Smartwatch */}
+        <div className="p-1.5 bg-muted/60 border border-border/80 rounded-2xl grid grid-cols-1 sm:grid-cols-3 gap-2">
           <button
             type="button"
             onClick={() => setMainSection("workout")}
-            className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+            className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${
               mainSection === "workout"
                 ? "bg-card text-foreground shadow-md border border-border/60"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <Dumbbell className={`w-4 h-4 ${mainSection === "workout" ? "text-primary" : ""}`} />
-            Fichas de Treino ({routines.length})
+            <span>Fichas de Treino ({routines.length})</span>
           </button>
 
           <button
             type="button"
             onClick={() => setMainSection("diet")}
-            className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+            className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${
               mainSection === "diet"
                 ? "bg-card text-foreground shadow-md border border-border/60"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <Utensils className={`w-4 h-4 ${mainSection === "diet" ? "text-emerald-400" : ""}`} />
-            Plano Alimentar (Dieta)
+            <span>Plano Alimentar</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMainSection("smartwatch")}
+            className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+              mainSection === "smartwatch"
+                ? "bg-card text-foreground shadow-md border border-border/60"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Watch className={`w-4 h-4 ${mainSection === "smartwatch" ? "text-indigo-400 animate-pulse" : ""}`} />
+            <span>Smartwatch & Saúde</span>
           </button>
         </div>
 
@@ -493,6 +508,11 @@ const Treinos: React.FC = () => {
             studentId={user?.id}
             onOpenPrescriptionWizard={() => setIsPrescriptionWizardOpen(true)}
           />
+        )}
+
+        {/* SEÇÃO 3: SMARTWATCH & SAÚDE (HEALTH CONNECT & APPLE HEALTH) */}
+        {mainSection === "smartwatch" && (
+          <SmartwatchHealthDashboard />
         )}
       </main>
 

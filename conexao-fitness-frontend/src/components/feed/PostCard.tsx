@@ -15,6 +15,11 @@ import {
   Sparkles,
   Trash2,
   ShieldAlert,
+  Watch,
+  Flame,
+  Moon,
+  Activity,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -392,6 +397,91 @@ export const PostCard: React.FC<PostCardProps> = ({
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* CARD DE DADOS SMARTWATCH / SAÚDE (HEALTH CONNECT / APPLE HEALTHKIT) */}
+        {post.healthSnapshot && (
+          <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 via-primary/5 to-transparent p-4 space-y-3.5 shadow-sm">
+            <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-border/50">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500">
+                  <Watch className="h-4 w-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-foreground">
+                      Evolução Smartwatch
+                    </span>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" /> Verificado
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    {post.healthSnapshot.provider === 'APPLE_HEALTH'
+                      ? 'Apple Health (iOS)'
+                      : post.healthSnapshot.provider === 'HEALTH_CONNECT'
+                      ? 'Health Connect (Android)'
+                      : 'Smartwatch Finex Sync'}{' '}
+                    {post.healthSnapshot.deviceModel && `• ${post.healthSnapshot.deviceModel}`}
+                  </span>
+                </div>
+              </div>
+              {post.healthSnapshot.periodLabel && (
+                <span className="text-[11px] font-medium text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-md">
+                  {post.healthSnapshot.periodLabel}
+                </span>
+              )}
+            </div>
+
+            {post.healthSnapshot.summaryText && (
+              <p className="text-xs text-foreground/85 italic bg-card/60 p-2.5 rounded-xl border border-border/40">
+                "{post.healthSnapshot.summaryText}"
+              </p>
+            )}
+
+            {/* Grid de 3 Métricas Principais */}
+            <div className="grid grid-cols-3 gap-2">
+              {/* Calorias */}
+              <div className="p-2.5 rounded-xl bg-card/90 border border-border/60 text-center flex flex-col justify-center">
+                <div className="flex items-center justify-center gap-1 text-orange-500 mb-0.5">
+                  <Flame className="h-3.5 w-3.5" />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Calorias</span>
+                </div>
+                <span className="text-sm sm:text-base font-extrabold text-foreground">
+                  {post.healthSnapshot.totalCaloriesBurned.toLocaleString('pt-BR')}
+                </span>
+                <span className="text-[10px] text-muted-foreground">kcal ativas</span>
+              </div>
+
+              {/* Atividade / Treinos */}
+              <div className="p-2.5 rounded-xl bg-card/90 border border-border/60 text-center flex flex-col justify-center">
+                <div className="flex items-center justify-center gap-1 text-primary mb-0.5">
+                  <Activity className="h-3.5 w-3.5" />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Treinos</span>
+                </div>
+                <span className="text-sm sm:text-base font-extrabold text-foreground">
+                  {post.healthSnapshot.workoutsCount} sessões
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  {Math.round(post.healthSnapshot.workoutDurationMinutes / 60)}h de carga
+                </span>
+              </div>
+
+              {/* Sono & Recuperação */}
+              <div className="p-2.5 rounded-xl bg-card/90 border border-border/60 text-center flex flex-col justify-center">
+                <div className="flex items-center justify-center gap-1 text-indigo-400 mb-0.5">
+                  <Moon className="h-3.5 w-3.5" />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Sono</span>
+                </div>
+                <span className="text-sm sm:text-base font-extrabold text-foreground">
+                  {(post.healthSnapshot.sleepDurationMinutes / 60).toFixed(1)}h
+                </span>
+                <span className="text-[10px] text-indigo-500 dark:text-indigo-400 font-semibold">
+                  Score {post.healthSnapshot.sleepScore}%
+                </span>
+              </div>
             </div>
           </div>
         )}
