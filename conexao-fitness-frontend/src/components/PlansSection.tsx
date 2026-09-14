@@ -1,6 +1,16 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Sparkles, ShieldCheck, Zap, Lock, CreditCard } from "lucide-react";
+import {
+  Check,
+  Sparkles,
+  ShieldCheck,
+  Zap,
+  Lock,
+  CreditCard,
+  Building2,
+  Dumbbell,
+  UserCheck,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -236,216 +246,357 @@ const PlansSection = () => {
 
   const isCurrentPlan = (planName: string, roleCategory: "STUDENT" | "PERSONAL" | "ACADEMIA") => {
     if (!isAuthenticated || !user) return false;
-    const currentPlanName = (user as any).plan || localStorage.getItem("cf_user_plan") || "Gratuito";
+    const currentPlanName =
+      (user as any).planName ||
+      (user as any).plan ||
+      localStorage.getItem("cf_user_plan") ||
+      "Gratuito";
     if (user.role === roleCategory && currentPlanName.toLowerCase() === planName.toLowerCase()) {
       return true;
     }
     return false;
   };
 
+  const normalizedRole = isAuthenticated && user?.role ? String(user.role).toUpperCase() : null;
+  const isPersonal = normalizedRole === "PERSONAL";
+  const isAcademia = normalizedRole === "ACADEMIA";
+  const isStudent = normalizedRole === "STUDENT";
+  const isAdmin = normalizedRole === "ADMIN";
+
+  const [visitorFilter, setVisitorFilter] = useState<"ALL" | "STUDENT" | "PERSONAL" | "ACADEMIA">("ALL");
+
+  const showStudentSection = isStudent || ((!isAuthenticated || isAdmin) && (visitorFilter === "ALL" || visitorFilter === "STUDENT"));
+  const showPersonalSection = isPersonal || ((!isAuthenticated || isAdmin) && (visitorFilter === "ALL" || visitorFilter === "PERSONAL"));
+  const showAcademiaSection = isAcademia || ((!isAuthenticated || isAdmin) && (visitorFilter === "ALL" || visitorFilter === "ACADEMIA"));
+
   return (
     <section id="planos" className="py-20 md:py-32 bg-muted/30">
       <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-3">
-            <Lock className="w-3.5 h-3.5" /> Pagamento Seguro Stripe
+        {/* Header Personal */}
+        {isPersonal && (
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary text-xs font-bold uppercase tracking-wider mb-3">
+              <Sparkles className="w-3.5 h-3.5" /> Planos para Profissionais
+            </div>
+            <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold mb-4">
+              Escale sua carreira com o <span className="gradient-text">Conexão Fitness</span>
+            </h2>
+            <p className="text-muted-foreground text-base sm:text-lg">
+              Prescreva treinos inteligentes, gerencie alunos, receba pagamentos diretos e aumente sua visibilidade no marketplace.
+            </p>
+            <div className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-card border border-border/80 text-xs text-muted-foreground shadow-sm">
+              <UserCheck className="w-3.5 h-3.5 text-primary" />
+              <span>Conectado como <strong>{user?.name}</strong> • Planos exclusivos para Profissionais</span>
+            </div>
           </div>
-          <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold mb-4">
-            Escolha seu <span className="gradient-text">plano</span>
-          </h2>
-          <p className="text-muted-foreground text-base sm:text-lg">
-            Assinaturas mensais com renovação automática, cancelamento a qualquer momento e ativação instantânea via Stripe.
-          </p>
-        </div>
+        )}
+
+        {/* Header Academia */}
+        {isAcademia && (
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-3">
+              <Building2 className="w-3.5 h-3.5" /> Planos para Academias & Studios
+            </div>
+            <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold mb-4">
+              Modernize a gestão do seu <span className="gradient-text">espaço fitness</span>
+            </h2>
+            <p className="text-muted-foreground text-base sm:text-lg">
+              Controle de catraca digital com QR Code, sistema completo de matrículas e exposição para milhares de alunos da sua cidade.
+            </p>
+            <div className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-card border border-border/80 text-xs text-muted-foreground shadow-sm">
+              <Building2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Conectado como <strong>{user?.name}</strong> • Planos exclusivos para Academias</span>
+            </div>
+          </div>
+        )}
+
+        {/* Header Student */}
+        {isStudent && (
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-400 text-xs font-bold uppercase tracking-wider mb-3">
+              <Dumbbell className="w-3.5 h-3.5" /> Planos para Alunos & Atletas
+            </div>
+            <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold mb-4">
+              Treine com mais <span className="gradient-text">economia e liberdade</span>
+            </h2>
+            <p className="text-muted-foreground text-base sm:text-lg">
+              Acesso facilitado a treinos, agendamento de diárias, descontos exclusivos e acompanhamento com profissionais renomados.
+            </p>
+            <div className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-card border border-border/80 text-xs text-muted-foreground shadow-sm">
+              <Dumbbell className="w-3.5 h-3.5 text-purple-400" />
+              <span>Conectado como <strong>{user?.name}</strong> • Planos exclusivos para Alunos</span>
+            </div>
+          </div>
+        )}
+
+        {/* Header para Visitante ou Admin */}
+        {(!isAuthenticated || isAdmin) && (
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-3">
+              <Lock className="w-3.5 h-3.5" /> Pagamento Seguro Stripe
+            </div>
+            <h2 className="font-display text-2xl sm:text-4xl lg:text-5xl font-bold mb-4">
+              Escolha seu <span className="gradient-text">plano</span>
+            </h2>
+            <p className="text-muted-foreground text-base sm:text-lg">
+              Assinaturas mensais com renovação automática, cancelamento a qualquer momento e ativação instantânea via Stripe.
+            </p>
+
+            {isAdmin && (
+              <div className="mt-3 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold shadow-sm">
+                <ShieldCheck className="w-3.5 h-3.5" /> Modo Administrador: Catálogo completo de planos
+              </div>
+            )}
+
+            {/* Filtros em abas para visitante ou administrador */}
+            <div className="mt-7 flex items-center justify-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setVisitorFilter("ALL")}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                  visitorFilter === "ALL"
+                    ? "bg-primary text-primary-foreground shadow-md"
+                    : "bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
+              >
+                Todos os Planos
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisitorFilter("STUDENT")}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                  visitorFilter === "STUDENT"
+                    ? "bg-purple-600 text-white shadow-md"
+                    : "bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
+              >
+                Para Alunos & Atletas
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisitorFilter("PERSONAL")}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                  visitorFilter === "PERSONAL"
+                    ? "bg-primary text-primary-foreground shadow-md"
+                    : "bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
+              >
+                Para Profissionais
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisitorFilter("ACADEMIA")}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                  visitorFilter === "ACADEMIA"
+                    ? "bg-emerald-600 text-white shadow-md"
+                    : "bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
+              >
+                Para Academias & Studios
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* User Plans */}
-        <div className="mb-20">
-          <h3 className="font-display text-2xl font-bold text-center mb-8 text-foreground flex items-center justify-center gap-2">
-            <span>Para Usuários & Alunos</span>
-          </h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-            {userPlans.map((plan) => {
-              const active = isCurrentPlan(plan.name, "STUDENT");
-              return (
-                <div
-                  key={plan.name}
-                  className={`relative rounded-2xl p-6 transition-all duration-300 flex flex-col justify-between ${
-                    plan.highlight
-                      ? "bg-card border-2 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.3)] scale-105"
-                      : "bg-card border border-border hover:border-purple-500/30"
-                  }`}
-                >
-                  {plan.highlight && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-xs font-semibold text-white">
-                      Mais Popular
-                    </div>
-                  )}
-                  {active && (
-                    <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow">
-                      Seu Plano Atual
-                    </div>
-                  )}
-                  <div>
-                    <div className="text-center mb-6">
-                      <h4 className="font-display font-bold text-lg text-foreground">{plan.name}</h4>
-                      <p className="text-muted-foreground text-sm">{plan.description}</p>
-                      <div className="mt-4">
-                        <span className="text-3xl font-bold text-foreground">{plan.price}</span>
-                        <span className="text-muted-foreground block text-xs mt-1">{plan.period}</span>
-                      </div>
-                    </div>
-                    <ul className="space-y-3 mb-6">
-                      {plan.features.map((feature) => (
-                        <li key={feature} className="flex items-center gap-2 text-sm text-foreground">
-                          <Check className="w-4 h-4 text-purple-500 shrink-0" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <Button
-                    variant={active ? "outline" : plan.highlight ? "default" : "outline"}
-                    onClick={() => handlePlanAction(plan, "STUDENT")}
-                    className={`w-full ${
-                      active
-                        ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
-                        : plan.highlight
-                        ? "bg-purple-600 hover:bg-purple-700 text-white font-bold"
-                        : "font-semibold"
+        {showStudentSection && (
+          <div className="mb-20">
+            {(!isAuthenticated || isAdmin) && (
+              <h3 className="font-display text-2xl font-bold text-center mb-8 text-foreground flex items-center justify-center gap-2">
+                <span>Para Usuários & Alunos</span>
+              </h3>
+            )}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+              {userPlans.map((plan) => {
+                const active = isCurrentPlan(plan.name, "STUDENT");
+                return (
+                  <div
+                    key={plan.name}
+                    className={`relative rounded-2xl p-6 transition-all duration-300 flex flex-col justify-between ${
+                      plan.highlight
+                        ? "bg-card border-2 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.3)] scale-105"
+                        : "bg-card border border-border hover:border-purple-500/30"
                     }`}
                   >
-                    {active ? "Plano Ativo" : plan.cta}
-                  </Button>
-                </div>
-              );
-            })}
+                    {plan.highlight && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-xs font-semibold text-white">
+                        Mais Popular
+                      </div>
+                    )}
+                    {active && (
+                      <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow">
+                        Seu Plano Atual
+                      </div>
+                    )}
+                    <div>
+                      <div className="text-center mb-6">
+                        <h4 className="font-display font-bold text-lg text-foreground">{plan.name}</h4>
+                        <p className="text-muted-foreground text-sm">{plan.description}</p>
+                        <div className="mt-4">
+                          <span className="text-3xl font-bold text-foreground">{plan.price}</span>
+                          <span className="text-muted-foreground block text-xs mt-1">{plan.period}</span>
+                        </div>
+                      </div>
+                      <ul className="space-y-3 mb-6">
+                        {plan.features.map((feature) => (
+                          <li key={feature} className="flex items-center gap-2 text-sm text-foreground">
+                            <Check className="w-4 h-4 text-purple-500 shrink-0" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <Button
+                      variant={active ? "outline" : plan.highlight ? "default" : "outline"}
+                      onClick={() => handlePlanAction(plan, "STUDENT")}
+                      className={`w-full ${
+                        active
+                          ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
+                          : plan.highlight
+                          ? "bg-purple-600 hover:bg-purple-700 text-white font-bold"
+                          : "font-semibold"
+                      }`}
+                    >
+                      {active ? "Plano Ativo" : plan.cta}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Personal Plans */}
-        <div className="mb-20">
-          <h3 className="font-display text-2xl font-bold text-center mb-8 text-foreground flex items-center justify-center gap-2">
-            <span>Para Profissionais (Personal, Nutri, Fisio)</span>
-          </h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-            {personalPlans.map((plan) => {
-              const active = isCurrentPlan(plan.name, "PERSONAL");
-              return (
-                <div
-                  key={plan.name}
-                  className={`relative rounded-2xl p-6 transition-all duration-300 flex flex-col justify-between ${
-                    plan.highlight
-                      ? "bg-card border-2 border-primary shadow-glow-blue scale-105"
-                      : "bg-card border border-border hover:border-primary/30"
-                  }`}
-                >
-                  {plan.highlight && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full gradient-primary text-xs font-semibold text-primary-foreground">
-                      Mais Popular
-                    </div>
-                  )}
-                  {active && (
-                    <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow">
-                      Seu Plano Atual
-                    </div>
-                  )}
-                  <div>
-                    <div className="text-center mb-6">
-                      <h4 className="font-display font-bold text-lg text-foreground">{plan.name}</h4>
-                      <p className="text-muted-foreground text-sm">{plan.description}</p>
-                      <div className="mt-4">
-                        <span className="text-3xl font-bold text-foreground">{plan.price}</span>
-                        <span className="text-muted-foreground block text-xs mt-1">{plan.period}</span>
-                      </div>
-                    </div>
-                    <ul className="space-y-3 mb-6">
-                      {plan.features.map((feature) => (
-                        <li key={feature} className="flex items-center gap-2 text-sm text-foreground">
-                          <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <Button
-                    variant={active ? "outline" : plan.highlight ? "hero" : "outline"}
-                    onClick={() => handlePlanAction(plan, "PERSONAL")}
-                    className={`w-full ${
-                      active
-                        ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
-                        : "font-bold"
+        {showPersonalSection && (
+          <div className="mb-20">
+            {(!isAuthenticated || isAdmin) && (
+              <h3 className="font-display text-2xl font-bold text-center mb-8 text-foreground flex items-center justify-center gap-2">
+                <span>Para Profissionais (Personal, Nutri, Fisio)</span>
+              </h3>
+            )}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+              {personalPlans.map((plan) => {
+                const active = isCurrentPlan(plan.name, "PERSONAL");
+                return (
+                  <div
+                    key={plan.name}
+                    className={`relative rounded-2xl p-6 transition-all duration-300 flex flex-col justify-between ${
+                      plan.highlight
+                        ? "bg-card border-2 border-primary shadow-glow-blue scale-105"
+                        : "bg-card border border-border hover:border-primary/30"
                     }`}
                   >
-                    {active ? "Plano Ativo" : plan.cta}
-                  </Button>
-                </div>
-              );
-            })}
+                    {plan.highlight && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full gradient-primary text-xs font-semibold text-primary-foreground">
+                        Mais Popular
+                      </div>
+                    )}
+                    {active && (
+                      <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow">
+                        Seu Plano Atual
+                      </div>
+                    )}
+                    <div>
+                      <div className="text-center mb-6">
+                        <h4 className="font-display font-bold text-lg text-foreground">{plan.name}</h4>
+                        <p className="text-muted-foreground text-sm">{plan.description}</p>
+                        <div className="mt-4">
+                          <span className="text-3xl font-bold text-foreground">{plan.price}</span>
+                          <span className="text-muted-foreground block text-xs mt-1">{plan.period}</span>
+                        </div>
+                      </div>
+                      <ul className="space-y-3 mb-6">
+                        {plan.features.map((feature) => (
+                          <li key={feature} className="flex items-center gap-2 text-sm text-foreground">
+                            <Check className="w-4 h-4 text-primary shrink-0" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <Button
+                      variant={active ? "outline" : plan.highlight ? "hero" : "outline"}
+                      onClick={() => handlePlanAction(plan, "PERSONAL")}
+                      className={`w-full ${
+                        active
+                          ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
+                          : "font-bold"
+                      }`}
+                    >
+                      {active ? "Plano Ativo" : plan.cta}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Gym Plans */}
-        <div className="mb-12">
-          <h3 className="font-display text-2xl font-bold text-center mb-8 text-foreground flex items-center justify-center gap-2">
-            <span>Para Academias & Studios</span>
-          </h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-            {gymPlans.map((plan) => {
-              const active = isCurrentPlan(plan.name, "ACADEMIA");
-              return (
-                <div
-                  key={plan.name}
-                  className={`relative rounded-2xl p-6 transition-all duration-300 flex flex-col justify-between ${
-                    plan.highlight
-                      ? "bg-card border-2 border-secondary shadow-glow-green scale-105"
-                      : "bg-card border border-border hover:border-secondary/30"
-                  }`}
-                >
-                  {plan.highlight && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full gradient-secondary text-xs font-semibold text-secondary-foreground">
-                      Recomendado
-                    </div>
-                  )}
-                  {active && (
-                    <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow">
-                      Seu Plano Atual
-                    </div>
-                  )}
-                  <div>
-                    <div className="text-center mb-6">
-                      <h4 className="font-display font-bold text-lg text-foreground">{plan.name}</h4>
-                      <p className="text-muted-foreground text-sm">{plan.description}</p>
-                      <div className="mt-4">
-                        <span className="text-3xl font-bold text-foreground">{plan.price}</span>
-                        <span className="text-muted-foreground block text-xs mt-1">{plan.period}</span>
-                      </div>
-                    </div>
-                    <ul className="space-y-3 mb-6">
-                      {plan.features.map((feature) => (
-                        <li key={feature} className="flex items-center gap-2 text-sm text-foreground">
-                          <Check className="w-4 h-4 text-secondary shrink-0" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <Button
-                    variant={active ? "outline" : plan.highlight ? "success" : "outline"}
-                    onClick={() => handlePlanAction(plan, "ACADEMIA")}
-                    className={`w-full ${
-                      active
-                        ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
-                        : "font-bold"
+        {showAcademiaSection && (
+          <div className="mb-12">
+            {(!isAuthenticated || isAdmin) && (
+              <h3 className="font-display text-2xl font-bold text-center mb-8 text-foreground flex items-center justify-center gap-2">
+                <span>Para Academias & Studios</span>
+              </h3>
+            )}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+              {gymPlans.map((plan) => {
+                const active = isCurrentPlan(plan.name, "ACADEMIA");
+                return (
+                  <div
+                    key={plan.name}
+                    className={`relative rounded-2xl p-6 transition-all duration-300 flex flex-col justify-between ${
+                      plan.highlight
+                        ? "bg-card border-2 border-secondary shadow-glow-green scale-105"
+                        : "bg-card border border-border hover:border-secondary/30"
                     }`}
                   >
-                    {active ? "Plano Ativo" : plan.cta}
-                  </Button>
-                </div>
-              );
-            })}
+                    {plan.highlight && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full gradient-secondary text-xs font-semibold text-secondary-foreground">
+                        Recomendado
+                      </div>
+                    )}
+                    {active && (
+                      <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow">
+                        Seu Plano Atual
+                      </div>
+                    )}
+                    <div>
+                      <div className="text-center mb-6">
+                        <h4 className="font-display font-bold text-lg text-foreground">{plan.name}</h4>
+                        <p className="text-muted-foreground text-sm">{plan.description}</p>
+                        <div className="mt-4">
+                          <span className="text-3xl font-bold text-foreground">{plan.price}</span>
+                          <span className="text-muted-foreground block text-xs mt-1">{plan.period}</span>
+                        </div>
+                      </div>
+                      <ul className="space-y-3 mb-6">
+                        {plan.features.map((feature) => (
+                          <li key={feature} className="flex items-center gap-2 text-sm text-foreground">
+                            <Check className="w-4 h-4 text-secondary shrink-0" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <Button
+                      variant={active ? "outline" : plan.highlight ? "success" : "outline"}
+                      onClick={() => handlePlanAction(plan, "ACADEMIA")}
+                      className={`w-full ${
+                        active
+                          ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
+                          : "font-bold"
+                      }`}
+                    >
+                      {active ? "Plano Ativo" : plan.cta}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Stripe Trust Footer */}
         <div className="p-6 rounded-3xl bg-card border border-border/70 max-w-3xl mx-auto text-center space-y-3">
