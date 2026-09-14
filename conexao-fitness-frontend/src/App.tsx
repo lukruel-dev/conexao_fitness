@@ -37,6 +37,7 @@ import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import { PWAInstallBanner } from "@/components/PWAInstallBanner";
 import { OnboardingTourModal } from "@/components/OnboardingTourModal";
 import { AdminImpersonationBanner } from "@/components/AdminImpersonationBanner";
+import { GuestLoginInductionModal } from "@/components/GuestLoginInductionModal";
 
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
@@ -100,6 +101,7 @@ const App = () => (
             <FloatingWhatsApp />
             <PWAInstallBanner />
             <OnboardingTourModal />
+            <GuestLoginInductionModal />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

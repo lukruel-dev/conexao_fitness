@@ -11,6 +11,8 @@ import {
   Tag,
   Loader2,
   Camera,
+  LogIn,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { createPost } from "@/services/posts";
@@ -18,6 +20,7 @@ import { uploadPortfolio } from "@/services/uploads";
 import { compressImage } from "@/lib/imageCompressor";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
 import { WorkoutBuilderModal } from "./WorkoutBuilderModal";
+import { openGuestLoginModal } from "@/components/GuestLoginInductionModal";
 import type { Post, WorkoutRoutine } from "@/types/community";
 
 interface CreatePostCardProps {
@@ -140,6 +143,50 @@ export const CreatePostCard: React.FC<CreatePostCardProps> = ({
       setSubmitting(false);
     }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div
+        onClick={() => openGuestLoginModal("Faça login para compartilhar seus treinos e dúvidas na comunidade!")}
+        className="rounded-2xl border border-primary/30 bg-gradient-to-br from-card via-card to-primary/[0.04] p-4 sm:p-5 shadow-sm transition-all duration-200 hover:border-primary/50 hover:shadow-md mb-6 cursor-pointer group"
+      >
+        <div className="flex gap-3.5 items-center justify-between flex-wrap sm:flex-nowrap">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="h-11 w-11 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-105 transition-transform shrink-0">
+              <MessageSquare className="h-5 w-5" />
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                <span className="truncate">Quer compartilhar um treino ou tirar uma dúvida?</span>
+                <span className="hidden sm:inline-block text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary font-extrabold border border-primary/20 shrink-0">
+                  Exclusivo para membros
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                Faça login ou crie sua conta gratuita para publicar no feed da comunidade.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end mt-2 sm:mt-0">
+            <Button
+              size="sm"
+              variant="hero"
+              className="rounded-xl text-xs font-bold gap-1.5 shadow-sm h-9 px-4 w-full sm:w-auto"
+              onClick={(e) => {
+                e.stopPropagation();
+                openGuestLoginModal("Faça login para publicar no feed da comunidade!");
+              }}
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Entrar para Postar</span>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-2xl border border-primary/20 bg-card p-4 sm:p-5 shadow-sm transition-all duration-200 hover:border-primary/40 mb-6">

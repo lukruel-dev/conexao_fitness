@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { StripeSubscriptionModal } from "./StripeSubscriptionModal";
+import { openGuestLoginModal } from "./GuestLoginInductionModal";
 
 interface PlanItem {
   name: string;
@@ -208,10 +209,7 @@ const PlansSection = () => {
 
   const handlePlanAction = (plan: PlanItem, roleCategory: "STUDENT" | "PERSONAL" | "ACADEMIA") => {
     if (!isAuthenticated) {
-      toast.info("Faça login para assinar um plano", {
-        description: "Redirecionando para a tela de login...",
-      });
-      navigate("/login");
+      openGuestLoginModal(`Faça login ou crie sua conta gratuita para assinar o plano ${plan.name} e desbloquear todos os recursos.`);
       return;
     }
 

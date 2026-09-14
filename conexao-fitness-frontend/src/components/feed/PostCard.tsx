@@ -41,6 +41,7 @@ import { SharePostModal } from "./SharePostModal";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
 import type { Post, PostComment } from "@/types/community";
 import UserPinBadge from "@/components/UserPinBadge";
+import { openGuestLoginModal } from "@/components/GuestLoginInductionModal";
 
 interface PostCardProps {
   post: Post;
@@ -89,6 +90,11 @@ export const PostCard: React.FC<PostCardProps> = ({
   };
 
   const handleToggleLike = async () => {
+    if (!user) {
+      openGuestLoginModal("Faça login para curtir e apoiar as publicações da comunidade!");
+      return;
+    }
+
     setLikeAnimating(true);
     const prevLiked = isLiked;
     const prevCount = likesCount;
@@ -110,6 +116,11 @@ export const PostCard: React.FC<PostCardProps> = ({
   };
 
   const handleToggleFollow = async () => {
+    if (!user) {
+      openGuestLoginModal("Faça login para seguir atletas e profissionais no feed!");
+      return;
+    }
+
     if (followLoading) return;
     setFollowLoading(true);
     const prev = isFollowing;
@@ -128,6 +139,14 @@ export const PostCard: React.FC<PostCardProps> = ({
     } finally {
       setFollowLoading(false);
     }
+  };
+
+  const handleOpenShareModal = () => {
+    if (!user) {
+      openGuestLoginModal("Faça login para compartilhar publicações no seu perfil!");
+      return;
+    }
+    setIsShareModalOpen(true);
   };
 
   const handleToggleComments = async () => {
@@ -494,7 +513,7 @@ export const PostCard: React.FC<PostCardProps> = ({
           {/* Compartilhar / Repostar */}
           <button
             type="button"
-            onClick={() => setIsShareModalOpen(true)}
+            onClick={handleOpenShareModal}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
           >
             <Repeat className="h-4 w-4" />
@@ -505,7 +524,7 @@ export const PostCard: React.FC<PostCardProps> = ({
         {/* Compartilhar Geral */}
         <button
           type="button"
-          onClick={() => setIsShareModalOpen(true)}
+          onClick={handleOpenShareModal}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
         >
           <Share2 className="h-4 w-4" />
@@ -517,26 +536,36 @@ export const PostCard: React.FC<PostCardProps> = ({
       {showComments && (
         <div className="mt-4 pt-4 border-t border-border/60 space-y-3">
           {/* Input para novo comentário */}
-          <form onSubmit={handleAddComment} className="flex gap-2">
-            <Input
-              placeholder="Escreva um comentário ou tire uma dúvida..."
-              value={newCommentText}
-              onChange={(e) => setNewCommentText(e.target.value)}
-              className="h-9 text-xs flex-1 rounded-xl"
-            />
-            <Button
-              type="submit"
-              size="sm"
-              disabled={submittingComment || !newCommentText.trim()}
-              className="h-9 px-3 gap-1 rounded-xl font-bold"
+          {user ? (
+            <form onSubmit={handleAddComment} className="flex gap-2">
+              <Input
+                placeholder="Escreva um comentário ou tire uma dúvida..."
+                value={newCommentText}
+                onChange={(e) => setNewCommentText(e.target.value)}
+                className="h-9 text-xs flex-1 rounded-xl"
+              />
+              <Button
+                type="submit"
+                size="sm"
+                disabled={submittingComment || !newCommentText.trim()}
+                className="h-9 px-3 gap-1 rounded-xl font-bold"
+              >
+                {submittingComment ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Send className="h-3.5 w-3.5" />
+                )}
+              </Button>
+            </form>
+          ) : (
+            <div
+              onClick={() => openGuestLoginModal("Faça login para comentar e participar da discussão!")}
+              className="p-3 bg-muted/40 hover:bg-muted/70 rounded-xl border border-border/50 text-xs text-muted-foreground flex items-center justify-between cursor-pointer transition-colors"
             >
-              {submittingComment ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Send className="h-3.5 w-3.5" />
-              )}
-            </Button>
-          </form>
+              <span>Faça login para participar da conversa e comentar</span>
+              <span className="text-primary font-bold text-xs flex items-center gap-1">Entrar &rarr;</span>
+            </div>
+          )}
 
           {/* Lista de comentários */}
           {commentsLoading ? (
