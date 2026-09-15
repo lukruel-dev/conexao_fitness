@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, X, Volume2, VolumeX, Timer } from 'lucide-react';
+import { Play, Pause, RotateCcw, X, Volume2, VolumeX, Timer, Smartphone, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { soundEffects } from '@/utils/audioAlerts';
 
@@ -17,6 +17,25 @@ export const RestTimer: React.FC<RestTimerProps> = ({
   const [secondsLeft, setSecondsLeft] = useState(initialSeconds);
   const [isActive, setIsActive] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [vibrationEnabled, setVibrationEnabled] = useState(true);
+
+  // Mantém a tela ligada durante o descanso (Screen Wake Lock API)
+  useEffect(() => {
+    let wakeLock: any = null;
+    if (isOpen && typeof navigator !== 'undefined' && 'wakeLock' in navigator) {
+      (navigator as any).wakeLock
+        .request('screen')
+        .then((lock: any) => {
+          wakeLock = lock;
+        })
+        .catch(() => {});
+    }
+    return () => {
+      if (wakeLock) {
+        wakeLock.release().catch(() => {});
+      }
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     setSecondsLeft(initialSeconds);
@@ -29,10 +48,22 @@ export const RestTimer: React.FC<RestTimerProps> = ({
     if (isActive && secondsLeft > 0) {
       interval = setInterval(() => {
         setSecondsLeft((sec) => {
-          if (sec <= 4 && sec > 1 && soundEnabled) {
-            soundEffects.playCountdownBeep(false);
-          } else if (sec === 1 && soundEnabled) {
-            soundEffects.playCountdownBeep(true);
+          // Avisos táteis e sonoros nos segundos finais (3, 2, 1)
+          if (sec <= 4 && sec > 1) {
+            if (soundEnabled) {
+              soundEffects.playCountdownBeep(false);
+            }
+            if (vibrationEnabled && typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+              navigator.vibrate(60);
+            }
+          } else if (sec === 1) {
+            if (soundEnabled) {
+              soundEffects.playCountdownBeep(true);
+            }
+            if (vibrationEnabled && typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+              // Pulso rítmico potente de finalização
+              navigator.vibrate([250, 100, 250, 100, 450]);
+            }
           }
           return sec - 1;
         });
@@ -42,7 +73,7 @@ export const RestTimer: React.FC<RestTimerProps> = ({
     }
 
     return () => clearInterval(interval);
-  }, [isActive, secondsLeft, soundEnabled]);
+  }, [isActive, secondsLeft, soundEnabled, vibrationEnabled]);
 
   if (!isOpen) return null;
 
@@ -86,9 +117,19 @@ export const RestTimer: React.FC<RestTimerProps> = ({
               variant="ghost"
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
               onClick={() => setSoundEnabled(!soundEnabled)}
-              title={soundEnabled ? 'Silenciar' : 'Ativar Som'}
+              title={soundEnabled ? 'Silenciar Áudio' : 'Ativar Áudio'}
             >
               {soundEnabled ? <Volume2 className="w-4 h-4 text-primary" /> : <VolumeX className="w-4 h-4" />}
+            </Button>
+
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              onClick={() => setVibrationEnabled(!vibrationEnabled)}
+              title={vibrationEnabled ? 'Vibração Ativa' : 'Vibração Desativada'}
+            >
+              <Smartphone className={`w-4 h-4 ${vibrationEnabled ? 'text-emerald-400' : 'text-muted-foreground/50'}`} />
             </Button>
 
             <Button

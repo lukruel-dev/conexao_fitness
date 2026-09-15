@@ -34,6 +34,7 @@ import { WorkoutHeatmap } from "@/components/gamification/WorkoutHeatmap";
 import { StudentDietPlanView } from "@/components/nutrition/StudentDietPlanView";
 import { IntelligentPrescriptionWizard } from "@/components/prescription/IntelligentPrescriptionWizard";
 import { SmartwatchHealthDashboard } from "@/components/health/SmartwatchHealthDashboard";
+import { getHealthData, calculateDailyReadiness } from "@/services/healthService";
 import type { WorkoutRoutine } from "@/types/workouts";
 import { isNutritionist, isPersonalTrainer } from "@/utils/professionalRoles";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ import { toast } from "sonner";
 const Treinos: React.FC = () => {
   const { user } = useAuth();
   const [mainSection, setMainSection] = useState<"workout" | "diet" | "smartwatch">("workout");
+  const readiness = calculateDailyReadiness(getHealthData(user?.id || 'current-user'));
   const [activeTab, setActiveTab] = useState<"routines" | "history">("routines");
   const [selectedRoutine, setSelectedRoutine] = useState<WorkoutRoutine | null>(null);
   const [isLiveWorkoutOpen, setIsLiveWorkoutOpen] = useState(false);
@@ -229,6 +231,9 @@ const Treinos: React.FC = () => {
           >
             <Watch className={`w-4 h-4 ${mainSection === "smartwatch" ? "text-indigo-400 animate-pulse" : ""}`} />
             <span>Smartwatch & Saúde</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
+              {readiness.score}%
+            </span>
           </button>
         </div>
 
@@ -244,6 +249,37 @@ const Treinos: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-200">
             {/* Coluna Principal: Fichas ou Histórico */}
             <div className="lg:col-span-2 space-y-4">
+              {/* Card Resumo de Prontidão do Dia (AI Readiness Coach) */}
+              <div
+                onClick={() => setMainSection("smartwatch")}
+                className="p-3.5 rounded-2xl bg-gradient-to-r from-card via-card to-primary/5 border border-border/80 hover:border-primary/40 transition-all cursor-pointer shadow-xs flex items-center justify-between gap-3 group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 group-hover:scale-105 transition-transform">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-black font-display text-foreground">
+                        Prontidão Diária: {readiness.score}% ({readiness.badgeLabel})
+                      </span>
+                      <span className="text-[10px] text-muted-foreground hidden sm:inline">•</span>
+                      <span className="text-[11px] text-primary/90 font-semibold hidden sm:inline">
+                        {readiness.suggestedIntensity}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                      {readiness.advice}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1 text-xs font-bold text-primary shrink-0">
+                  <span className="hidden sm:inline">Ver Métricas</span>
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </div>
+
               {/* Tabs */}
               <div className="flex items-center gap-2 p-1.5 bg-muted/40 border border-border rounded-xl">
                 <button

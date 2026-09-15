@@ -333,3 +333,122 @@ function generateRealisticWeeklyData(
     averageSleepScore,
   };
 }
+
+export type ReadinessLevel = 'OPTIMAL' | 'GOOD' | 'MODERATE' | 'RECOVERY';
+
+export interface DailyReadinessResult {
+  score: number;
+  level: ReadinessLevel;
+  headline: string;
+  badgeLabel: string;
+  advice: string;
+  suggestedIntensity: string;
+  targetHeartRateZone: string;
+  factors: {
+    sleepScore: number;
+    deepSleepMinutes: number;
+    remSleepMinutes: number;
+    totalSleepHours: number;
+    recoveryQuality: 'Excelente' | 'Boa' | 'Moderada' | 'Atenção';
+  };
+}
+
+/**
+ * Calcula o Índice de Prontidão Diária (Daily Readiness) a partir dos dados do relógio
+ */
+export function calculateDailyReadiness(data: HealthDataResult): DailyReadinessResult {
+  const latestSleep = data.sleepSessions[data.sleepSessions.length - 1] || {
+    score: data.averageSleepScore || 80,
+    totalMinutes: data.averageSleepHours * 60 || 450,
+    stages: { deepSleepMinutes: 90, remSleepMinutes: 100, lightSleepMinutes: 240 },
+  };
+
+  const sleepScore = latestSleep.score || 80;
+  const deepMinutes = latestSleep.stages?.deepSleepMinutes || 85;
+  const remMinutes = latestSleep.stages?.remSleepMinutes || 95;
+  const totalHours = Number((latestSleep.totalMinutes / 60).toFixed(1));
+
+  // Cálculo ponderado
+  const deepFactor = Math.min(100, Math.round((deepMinutes / 95) * 100));
+  const remFactor = Math.min(100, Math.round((remMinutes / 95) * 100));
+  const durationFactor = Math.min(100, Math.round((totalHours / 7.5) * 100));
+
+  const weightedScore = Math.round(
+    sleepScore * 0.4 + deepFactor * 0.25 + remFactor * 0.2 + durationFactor * 0.15
+  );
+  const finalScore = Math.max(30, Math.min(99, weightedScore));
+
+  if (finalScore >= 85) {
+    return {
+      score: finalScore,
+      level: 'OPTIMAL',
+      headline: 'Prontidão Máxima de Alta Performance',
+      badgeLabel: 'Prontidão Ótima',
+      advice: 'Seu sistema neuromuscular e cardiovascular estão no ápice da recuperação. Dia perfeito para sobrecarga progressiva, treinos pesados ou bater PR.',
+      suggestedIntensity: 'Alta Intensidade (85% - 100% 1RM / RPE 8-10)',
+      targetHeartRateZone: 'Zonas 3 e 4 (135 - 170 BPM)',
+      factors: {
+        sleepScore,
+        deepSleepMinutes: deepMinutes,
+        remSleepMinutes: remMinutes,
+        totalSleepHours: totalHours,
+        recoveryQuality: 'Excelente',
+      },
+    };
+  }
+
+  if (finalScore >= 70) {
+    return {
+      score: finalScore,
+      level: 'GOOD',
+      headline: 'Boa Recuperação Neuromuscular',
+      badgeLabel: 'Prontidão Boa',
+      advice: 'Organismo bem descansado e pronto para o estímulo diário. Siga o plano de treino com foco em cadência e boa hidratação.',
+      suggestedIntensity: 'Intensidade Moderada a Alta (70% - 85% 1RM / RPE 7-8)',
+      targetHeartRateZone: 'Zonas 2 e 3 (125 - 155 BPM)',
+      factors: {
+        sleepScore,
+        deepSleepMinutes: deepMinutes,
+        remSleepMinutes: remMinutes,
+        totalSleepHours: totalHours,
+        recoveryQuality: 'Boa',
+      },
+    };
+  }
+
+  if (finalScore >= 55) {
+    return {
+      score: finalScore,
+      level: 'MODERATE',
+      headline: 'Prontidão Moderada (Atenção ao Descanso)',
+      badgeLabel: 'Prontidão Moderada',
+      advice: 'Seu sono profundo foi um pouco reduzido nesta noite. Mantenha cargas moderadas e evite falha concêntrica excessiva.',
+      suggestedIntensity: 'Intensidade Moderada (60% - 75% 1RM / RPE 6-7)',
+      targetHeartRateZone: 'Zona 2 (115 - 135 BPM)',
+      factors: {
+        sleepScore,
+        deepSleepMinutes: deepMinutes,
+        remSleepMinutes: remMinutes,
+        totalSleepHours: totalHours,
+        recoveryQuality: 'Moderada',
+      },
+    };
+  }
+
+  return {
+    score: finalScore,
+    level: 'RECOVERY',
+    headline: 'Fadiga Acumulada Detectada',
+    badgeLabel: 'Recuperação Recomendada',
+    advice: 'Indicadores de sono e recuperação baixos. Priorize descanso ativo, mobilidade articular, cardio leve ou um treino regenerativo.',
+    suggestedIntensity: 'Regenerativo / Alongamento (RPE 4-5)',
+    targetHeartRateZone: 'Zonas 1 e 2 (100 - 120 BPM)',
+    factors: {
+      sleepScore,
+      deepSleepMinutes: deepMinutes,
+      remSleepMinutes: remMinutes,
+      totalSleepHours: totalHours,
+      recoveryQuality: 'Atenção',
+    },
+  };
+}

@@ -49,6 +49,7 @@ import {
   updateHealthConsent,
   syncSmartwatchData,
   publishHealthEvolutionToFeed,
+  calculateDailyReadiness,
 } from '@/services/healthService';
 import { sounds } from '@/lib/soundEffects';
 import { toast } from 'sonner';
@@ -60,6 +61,9 @@ export const SmartwatchHealthDashboard: React.FC = () => {
   const [healthData, setHealthData] = useState(() => getHealthData(studentId));
   const [consent, setConsent] = useState(() => getHealthConsent(studentId));
   const [isSyncing, setIsSyncing] = useState(false);
+
+  // Análise de Prontidão Diária do Relógio
+  const readiness = calculateDailyReadiness(healthData);
 
   // Modal de Postar no Feed
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -225,7 +229,83 @@ export const SmartwatchHealthDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Grid de 4 Métricas Principais da Semana */}
+      {/* 2. Card de Prontidão Diária & Recomendações de Treino (Daily Readiness Score) */}
+      <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-card via-card to-primary/10 border border-border/80 shadow-md relative overflow-hidden">
+        <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-primary/15 blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+          <div className="flex items-start sm:items-center gap-5">
+            {/* Score Ring Visual */}
+            <div className="relative shrink-0 flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-br from-primary/20 via-card to-secondary/20 border-2 border-primary/40 shadow-inner">
+              <div className="text-center">
+                <span className="font-display font-black text-2xl sm:text-3xl text-foreground block tracking-tight">
+                  {readiness.score}
+                </span>
+                <span className="text-[10px] text-muted-foreground font-extrabold uppercase">
+                  / 100
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 max-w-xl">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge
+                  className={`text-[10px] font-black uppercase tracking-wider ${
+                    readiness.level === 'OPTIMAL'
+                      ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                      : readiness.level === 'GOOD'
+                      ? 'bg-primary/15 text-primary border-primary/30'
+                      : readiness.level === 'MODERATE'
+                      ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                      : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                  }`}
+                >
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  {readiness.badgeLabel}
+                </Badge>
+                <span className="text-xs text-muted-foreground font-semibold">
+                  Inteligência Biométrica Finex
+                </span>
+              </div>
+
+              <h3 className="text-base sm:text-lg font-display font-black text-foreground">
+                {readiness.headline}
+              </h3>
+
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {readiness.advice}
+              </p>
+            </div>
+          </div>
+
+          {/* Recomendações Práticas de Treino do Dia */}
+          <div className="p-4 rounded-2xl bg-muted/40 border border-border/70 space-y-2 lg:min-w-[280px]">
+            <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <TrendingUp className="w-3.5 h-3.5 text-primary" />
+              Prescrição Sugerida Hoje
+            </span>
+
+            <div className="text-xs font-bold text-foreground">
+              {readiness.suggestedIntensity}
+            </div>
+
+            <div className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+              <HeartPulse className="w-3 h-3 text-rose-500" />
+              <span>Zona Alvo: <strong>{readiness.targetHeartRateZone}</strong></span>
+            </div>
+
+            <div className="pt-1 flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/50">
+              <span>Sono Profundo: {readiness.factors.deepSleepMinutes}m</span>
+              <span>•</span>
+              <span>REM: {readiness.factors.remSleepMinutes}m</span>
+              <span>•</span>
+              <span>Total: {readiness.factors.totalSleepHours}h</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Grid de 4 Métricas Principais da Semana */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Card 1: Gasto Calórico */}
         <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/80 shadow-sm space-y-2">
