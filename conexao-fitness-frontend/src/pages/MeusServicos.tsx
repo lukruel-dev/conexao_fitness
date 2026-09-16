@@ -395,7 +395,7 @@ export default function MeusServicos() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
-      <main className="flex-1 container mx-auto px-4 pt-24 md:pt-28 pb-16 max-w-5xl space-y-8">
+      <main className="flex-1 container mx-auto px-4 pt-28 sm:pt-32 md:pt-36 pb-16 max-w-5xl space-y-8">
         {/* CABEÇALHO */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -830,7 +830,7 @@ export default function MeusServicos() {
                         <SelectTrigger className="rounded-xl">
                           <SelectValue placeholder={isLoadingCatalog ? "Carregando..." : "Selecione o serviço"} />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="z-[200]">
                           {availableCatalog.map((c) => (
                             <SelectItem key={c.id} value={c.id}>
                               {c.name} ({c.durationMinutes} min)

@@ -226,7 +226,7 @@ const Buscar = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="pt-24 md:pt-28 pb-16">
+      <main className="pt-28 sm:pt-32 md:pt-36 pb-16">
         <div className="container mx-auto px-4">
           {/* Header */}
           <div className="mb-6 sm:mb-8">

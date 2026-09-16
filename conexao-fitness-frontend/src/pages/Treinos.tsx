@@ -106,14 +106,14 @@ const Treinos: React.FC = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
-      <main className="flex-1 container max-w-5xl mx-auto px-4 pt-24 md:pt-28 pb-20 space-y-6">
+      <main className="flex-1 container max-w-5xl mx-auto px-4 pt-28 sm:pt-32 md:pt-36 pb-20 space-y-6">
         {/* Header com Navegação */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-2 pt-1">
               <Link
                 to="/buscar"
-                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors py-1 px-1.5 -ml-1.5 rounded-lg hover:bg-muted/50"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Voltar
               </Link>

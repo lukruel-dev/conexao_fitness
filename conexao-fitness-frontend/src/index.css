@@ -214,3 +214,16 @@
 #cf-html5-qr-reader__dashboard {
   display: none !important;
 }
+
+/* Compensação de espaçamento quando a barra de simulação (Modo de Teste) estiver ativa */
+html.has-impersonation main,
+body.has-impersonation main {
+  padding-top: calc(7.5rem + env(safe-area-inset-top, 0px)) !important;
+}
+
+@media (min-width: 768px) {
+  html.has-impersonation main,
+  body.has-impersonation main {
+    padding-top: calc(8.5rem + env(safe-area-inset-top, 0px)) !important;
+  }
+}

@@ -36,7 +36,6 @@ import BottomNav from "@/components/BottomNav";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import { PWAInstallBanner } from "@/components/PWAInstallBanner";
 import { OnboardingTourModal } from "@/components/OnboardingTourModal";
-import { AdminImpersonationBanner } from "@/components/AdminImpersonationBanner";
 import { GuestLoginInductionModal } from "@/components/GuestLoginInductionModal";
 
 import { useEffect } from "react";
@@ -96,7 +95,6 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-            <AdminImpersonationBanner />
             <BottomNav />
             <FloatingWhatsApp />
             <PWAInstallBanner />

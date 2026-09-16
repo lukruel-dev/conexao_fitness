@@ -182,7 +182,7 @@ export default function AgendaProfissional() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <main className="flex-1 pt-24 md:pt-28 pb-16 container mx-auto px-4 max-w-4xl">
+      <main className="flex-1 pt-28 sm:pt-32 md:pt-36 pb-16 container mx-auto px-4 max-w-4xl">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
           <div>
             <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3 pl-1 overflow-visible">

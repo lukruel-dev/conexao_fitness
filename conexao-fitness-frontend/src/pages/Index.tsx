@@ -114,7 +114,7 @@ const Index: React.FC = () => {
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20">
       <Header />
 
-      <main className="flex-1 pt-24 pb-16">
+      <main className="flex-1 pt-28 sm:pt-32 pb-16">
         <div className="container mx-auto px-4 max-w-7xl">
           {/* BANNER BOAS-VINDAS & BUSCA RÁPIDA */}
           <section className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-r from-card via-card/90 to-primary/10 border border-primary/20 p-6 sm:p-8 shadow-sm">
@@ -132,7 +132,7 @@ const Index: React.FC = () => {
               </p>
 
               {/* BARRA DE BUSCA GLOBAL RÁPIDA */}
-              <div className="flex flex-col sm:flex-row gap-2 pt-2 max-w-xl">
+              <div className="flex flex-col sm:flex-row gap-2 pt-2 max-w-xl scroll-mt-32">
                 <div className="relative flex-1">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -140,7 +140,13 @@ const Index: React.FC = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && fetchFeed()}
-                    className="pl-10 h-10 text-xs sm:text-sm rounded-xl bg-background/80 border-border/80"
+                    onFocus={(e) => {
+                      // Garante que o teclado móvel não cubra o campo ao subir
+                      setTimeout(() => {
+                        e.target.scrollIntoView({ behavior: "smooth", block: "center" });
+                      }, 250);
+                    }}
+                    className="pl-10 h-10 text-xs sm:text-sm rounded-xl bg-background/80 border-border/80 scroll-mt-32"
                   />
                   {searchQuery && (
                     <button

@@ -88,6 +88,7 @@ export interface GymEnrollment {
   qrAccessCode: string;
   notes?: string;
   isExpiringSoon?: boolean;
+  isExpired?: boolean;
   daysRemaining?: number;
   qrPayload?: string;
   createdAt: string;

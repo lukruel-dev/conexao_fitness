@@ -48,9 +48,9 @@ export default function MinhasMatriculas() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <main className="flex-1 pt-24 md:pt-28 pb-16 container mx-auto px-4 max-w-4xl">
+      <main className="flex-1 pt-28 sm:pt-32 md:pt-36 pb-16 container mx-auto px-4 max-w-4xl">
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-2 pt-1">
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20">
               Minha Conta
             </span>
@@ -218,6 +218,7 @@ export default function MinhasMatriculas() {
                         setSelectedEnrollment({
                           ...e,
                           student: {
+                            id: user.id,
                             name: user.name,
                             avatarUrl: user.avatarUrl,
                             cpf: user.cpf,

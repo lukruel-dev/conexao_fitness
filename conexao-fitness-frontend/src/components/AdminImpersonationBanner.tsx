@@ -22,9 +22,24 @@ import {
   ArrowRight,
 } from 'lucide-react';
 
-export const AdminImpersonationBanner: React.FC = () => {
+export interface AdminImpersonationBannerProps {
+  isInsideHeader?: boolean;
+}
+
+export const AdminImpersonationBanner: React.FC<AdminImpersonationBannerProps> = ({ isInsideHeader = false }) => {
   const { isImpersonating, impersonatedRole, startImpersonation, stopImpersonation } = useAuth();
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (isImpersonating) {
+      document.documentElement.classList.add('has-impersonation');
+    } else {
+      document.documentElement.classList.remove('has-impersonation');
+    }
+    return () => {
+      document.documentElement.classList.remove('has-impersonation');
+    };
+  }, [isImpersonating]);
 
   if (!isImpersonating || !impersonatedRole) return null;
 
@@ -71,8 +86,12 @@ export const AdminImpersonationBanner: React.FC = () => {
 
   const CurrentIcon = roleMeta.icon;
 
+  const containerClasses = isInsideHeader
+    ? "w-full bg-card/95 backdrop-blur-md border-b border-primary/30 shadow-sm px-3 sm:px-4 py-1.5 sm:py-2 text-xs transition-all animate-fade-in"
+    : "fixed top-0 left-0 right-0 z-[100] bg-card/95 backdrop-blur-md border-b border-primary/30 shadow-lg px-3 sm:px-4 py-1.5 sm:py-2 text-xs transition-all animate-fade-in";
+
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] bg-card/95 backdrop-blur-md border-b border-primary/30 shadow-lg px-3 sm:px-4 py-2 text-xs transition-all animate-fade-in">
+    <div className={containerClasses}>
       <div className="container mx-auto flex flex-wrap items-center justify-between gap-2.5">
         {/* Identificação do Modo de Teste */}
         <div className="flex items-center gap-2">

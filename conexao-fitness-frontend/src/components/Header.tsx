@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AdminImpersonationBanner } from "@/components/AdminImpersonationBanner";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -31,10 +32,12 @@ const Header = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-lg border-b border-border/50 pt-[env(safe-area-inset-top,0px)]">
+      <AdminImpersonationBanner isInsideHeader />
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           <Link to="/" className="flex items-center gap-2 shrink-0">
-            <FinexLogo size="md" />
+            <FinexLogo size="sm" className="sm:hidden" />
+            <FinexLogo size="md" className="hidden sm:inline-flex" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -289,21 +292,23 @@ const Header = () => {
             )}
           </div>
 
-          <div className="md:hidden flex items-center gap-1">
+          <div className="md:hidden flex items-center gap-1 sm:gap-2">
             {isAuthenticated && (
-              <span className="text-sm text-muted-foreground mr-1 font-medium flex items-center gap-1 max-w-[120px] truncate">
-                <span className="truncate">{user?.name?.split(" ")[0] ?? ""}</span>
+              <div className="flex items-center gap-1 pl-2.5 sm:pl-3 border-l border-border/50 ml-2 sm:ml-4">
+                <span className="text-xs sm:text-sm font-semibold text-foreground max-w-[85px] sm:max-w-[120px] truncate">
+                  {user?.name?.split(" ")[0] ?? ""}
+                </span>
                 <UserPinBadge size="xs" />
-              </span>
+              </div>
             )}
             <ThemeToggle />
             {isAuthenticated && <NotificationsBell />}
             <button
-            className="p-2 text-foreground"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Menu"
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              className="p-1.5 sm:p-2 text-foreground hover:bg-muted/60 rounded-xl transition-colors"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Menu"
+            >
+              {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
