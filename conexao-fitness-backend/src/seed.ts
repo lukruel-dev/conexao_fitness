@@ -129,7 +129,11 @@ async function bootstrap() {
     { name: 'Ventosaterapia & Terapia de Alívio de Dores', modality: 'Fisioterapia', durationMinutes: 45, type: ServiceType.SESSAO, description: 'Melhoria da circulação sanguínea local, oxigenação dos tecidos musculares e relaxamento profundo.' },
 
     { name: 'Massagem Desportiva Pré / Pós-Treino', modality: 'Massoterapia', durationMinutes: 60, type: ServiceType.SESSAO, description: 'Massagem profunda para ativação pré-competitiva ou redução de fadiga e ácido lático pós-treino.' },
-    { name: 'Massagem Relaxante & Terapêutica', modality: 'Massoterapia', durationMinutes: 60, type: ServiceType.SESSAO, description: 'Redução de estresse, tensão muscular acumulada nas costas, pescoço e ombros com óleos essenciais.' },
+    { name: 'Massagem Relaxante', modality: 'Massoterapia', durationMinutes: 60, type: ServiceType.SESSAO, description: 'Redução de estresse, ansiedade e tensão muscular através de movimentos suaves e fluidos com óleos essenciais.' },
+    { name: 'Massagem Terapêutica', modality: 'Massoterapia', durationMinutes: 60, type: ServiceType.SESSAO, description: 'Tratamento focado em dores musculares específicas, contraturas, nós de tensão e alívio ortopédico.' },
+    { name: 'Drenagem Linfática', modality: 'Massoterapia', durationMinutes: 50, type: ServiceType.SESSAO, description: 'Estímulo suave do sistema linfático para redução de retenção de líquidos, inchaços e eliminação de toxinas.' },
+    { name: 'Reflexologia', modality: 'Massoterapia', durationMinutes: 45, type: ServiceType.SESSAO, description: 'Aplicação de pressão em pontos reflexos dos pés e mãos para equilíbrio energético e relaxamento sistêmico.' },
+    { name: 'Massagem Humanizada', modality: 'Massoterapia', durationMinutes: 60, type: ServiceType.SESSAO, description: 'Atendimento holístico e empático centrado na escuta, acolhimento e técnicas adaptadas à sensibilidade individual.' },
 
     { name: 'Day Pass (Passe Diário) - Musculação & Vestiário', modality: 'Academia', durationMinutes: 1440, type: ServiceType.DIARIA, description: 'Acesso total durante 1 dia completo aos equipamentos de musculação, ergometria e infraestrutura.' },
     { name: 'Passe Semanal (7 Dias Livre Acesso)', modality: 'Academia', durationMinutes: 10080, type: ServiceType.PLANO_MENSAL, description: 'Acesso ilimitado por 7 dias corridos a todas as áreas da academia.' },

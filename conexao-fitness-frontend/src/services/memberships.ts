@@ -44,14 +44,15 @@ export interface MembershipPlan {
   academiaId: string;
   name: string;
   description?: string;
-  price: string;
+  price: string | number;
   durationDays: number;
-  recurrence: PlanRecurrence;
+  recurrence?: PlanRecurrence;
   modalities?: string[];
   benefits?: string[];
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  activeEnrollmentsCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface GymEnrollment {
@@ -79,7 +80,7 @@ export interface GymEnrollment {
   planId?: string;
   plan?: MembershipPlan;
   planName: string;
-  amountPaid: string;
+  amountPaid: string | number;
   paymentMethod: EnrollmentPaymentMethod;
   paymentStatus: EnrollmentPaymentStatus;
   status: EnrollmentStatus;
