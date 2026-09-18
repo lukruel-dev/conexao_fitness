@@ -41,19 +41,33 @@ import { toast } from "sonner";
 
 const Treinos: React.FC = () => {
   const { user } = useAuth();
-  const [mainSection, setMainSection] = useState<"workout" | "diet" | "smartwatch">("workout");
+  const isProfessional = user?.role === "PERSONAL" || user?.role === "ACADEMIA" || user?.role === "ADMIN";
+  const isNutri = isNutritionist(user);
+  const isPersonal = isPersonalTrainer(user);
+
+  const [mainSection, setMainSection] = useState<"workout" | "diet" | "smartwatch">(
+    isNutri ? "diet" : "workout"
+  );
   const readiness = calculateDailyReadiness(getHealthData(user?.id || 'current-user'));
   const [activeTab, setActiveTab] = useState<"routines" | "history">("routines");
   const [selectedRoutine, setSelectedRoutine] = useState<WorkoutRoutine | null>(null);
   const [isLiveWorkoutOpen, setIsLiveWorkoutOpen] = useState(false);
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [isPrescriptionWizardOpen, setIsPrescriptionWizardOpen] = useState(false);
-  const [prescriptionMode, setPrescriptionMode] = useState<"WORKOUT" | "DIET">("WORKOUT");
+  const [prescriptionMode, setPrescriptionMode] = useState<"WORKOUT" | "DIET">(
+    isNutri ? "DIET" : "WORKOUT"
+  );
   const [editingRoutine, setEditingRoutine] = useState<WorkoutRoutine | null>(null);
 
-  const isProfessional = user?.role === "PERSONAL" || user?.role === "ACADEMIA" || user?.role === "ADMIN";
-  const isNutri = isNutritionist(user);
-  const isPersonal = isPersonalTrainer(user);
+  React.useEffect(() => {
+    if (isNutri) {
+      setMainSection("diet");
+      setPrescriptionMode("DIET");
+    } else {
+      setMainSection("workout");
+      setPrescriptionMode("WORKOUT");
+    }
+  }, [user?.id, user?.professionTitle]);
 
   // Queries
   const { data: routines = [], refetch: refetchRoutines, isLoading: isLoadingRoutines } = useQuery({

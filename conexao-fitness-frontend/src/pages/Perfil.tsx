@@ -48,6 +48,7 @@ import { validateBioContent } from "@/lib/bioValidator";
 import { updateMyBio } from "@/services/users";
 import UserPinBadge from "@/components/UserPinBadge";
 import { BadgesModal } from "@/components/gamification/BadgesModal";
+import { isNutritionist } from "@/utils/professionalRoles";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -612,13 +613,15 @@ const Perfil = () => {
                     )}
                   </div>
 
-                  {/* Detalhes do Documento e CREF */}
+                  {/* Detalhes do Documento e Registro Profissional (CREF / CRN) */}
                   <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60 space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                       <div>
-                        <span className="text-muted-foreground block">Registro Profissional:</span>
+                        <span className="text-muted-foreground block">
+                          {isNutritionist(user) ? "Registro Profissional (CRN):" : "Registro Profissional (CREF):"}
+                        </span>
                         <span className="font-semibold text-foreground text-sm">
-                          {user.cref || "Informado no cadastro"}
+                          {user.crn || user.cref || "Informado no cadastro"}
                         </span>
                       </div>
 

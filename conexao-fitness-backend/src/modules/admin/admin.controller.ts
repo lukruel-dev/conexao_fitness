@@ -85,5 +85,10 @@ export class AdminController {
   findAllSubscriptions() {
     return this.adminService.findAllSubscriptions();
   }
+
+  @Post('impersonate/:role')
+  impersonate(@Param('role') role: string) {
+    return this.adminService.impersonate(role);
+  }
 }
 

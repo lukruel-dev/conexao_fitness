@@ -14,6 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import { formatBRL } from "@/lib/format";
 import type { Service, PersonalProfileData, UpdatePersonalProfileDto } from "@/types/api";
 import { IntelligentPrescriptionWizard } from "@/components/prescription/IntelligentPrescriptionWizard";
+import { isNutritionist } from "@/utils/professionalRoles";
 import {
   Loader2,
   Plus,
@@ -103,26 +104,47 @@ const SUGGESTED_PLAN_BENEFITS = [
   "Planejamento de Metas e Evolução de Cargas",
 ];
 
+// Benefícios sugeridos para planos nutricionais
+const SUGGESTED_NUTRI_PLAN_BENEFITS = [
+  "Plano Alimentar Individualizado no App Finex",
+  "Cálculo e Ajuste Semanal de Macronutrientes (Proteínas/Carbos/Gorduras)",
+  "Lista de Compras Inteligente no App",
+  "Suporte Contínuo para Dúvidas pelo Chat do App Finex",
+  "Avaliação de Composição Corporal & Bioimpedância",
+  "Protocolo de Suplementação Estratégica",
+  "Guia de Substituições Saudáveis de Alimentos",
+  "Planejamento de Calorias para Dias de Treino e Descanso",
+];
+
 export default function MeusServicos() {
   const { user, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
 
+  const isNutri = isNutritionist(user);
   const [activeTab, setActiveTab] = useState<"plans" | "services" | "customization">("plans");
 
   // Diálogo para Adicionar Novo Plano de Treino
   const [isAddPlanOpen, setIsAddPlanOpen] = useState(false);
   const [planName, setPlanName] = useState("");
-  const [planModality, setPlanModality] = useState("Musculação");
+  const [planModality, setPlanModality] = useState(() => isNutri ? "Nutrição" : "Musculação");
   const [planRecurrence, setPlanRecurrence] = useState("MONTHLY");
   const [planFormat, setPlanFormat] = useState("ONLINE");
   const [planPrice, setPlanPrice] = useState("");
   const [planDescription, setPlanDescription] = useState("");
   const [planMaxStudents, setPlanMaxStudents] = useState("20");
-  const [planSelectedBenefits, setPlanSelectedBenefits] = useState<string[]>([
-    "Ficha de Treino Personalizada no App Finex",
-    "Ajustes Semanais de Volume e Carga",
-    "Suporte e Dúvidas pelo Chat do App Finex",
-  ]);
+  const [planSelectedBenefits, setPlanSelectedBenefits] = useState<string[]>(() =>
+    isNutri
+      ? [
+          "Plano Alimentar Individualizado no App Finex",
+          "Cálculo e Ajuste Semanal de Macronutrientes (Proteínas/Carbos/Gorduras)",
+          "Suporte Contínuo para Dúvidas pelo Chat do App Finex",
+        ]
+      : [
+          "Ficha de Treino Personalizada no App Finex",
+          "Ajustes Semanais de Volume e Carga",
+          "Suporte e Dúvidas pelo Chat do App Finex",
+        ]
+  );
   const [customBenefitInput, setCustomBenefitInput] = useState("");
 
   // Diálogo para Adicionar Serviço Avulso do Catálogo
@@ -157,7 +179,100 @@ export default function MeusServicos() {
     queryFn: () => listServices({ providerType: user.role as "PERSONAL" | "ACADEMIA", q: "" }),
   });
 
-  const myOwnServices = allServices.filter((s: Service) => s.providerId === user.id);
+  const fallbackPersonalServices: Service[] = [
+    {
+      id: "demo-service-personal-001",
+      providerId: user.id,
+      providerType: "PERSONAL",
+      name: "Consultoria Premium & Personal VIP (Musculação)",
+      description: "Acompanhamento individual focado em hipertrofia, biomecânica dos exercícios e controle de cargas.",
+      type: "SESSAO",
+      price: 150,
+      durationMinutes: 60,
+      modality: "Musculação",
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "demo-service-personal-002",
+      providerId: user.id,
+      providerType: "PERSONAL",
+      name: "Periodização de Hipertrofia & Biomecânica",
+      description: "Planejamento mensal com divisão A/B/C/D, progressão de sobrecarga e ajustes periódicos.",
+      type: "PLANO_MENSAL",
+      recurrence: "MONTHLY",
+      price: 250,
+      durationMinutes: 60,
+      modality: "Musculação",
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "demo-service-personal-003",
+      providerId: user.id,
+      providerType: "PERSONAL",
+      name: "Avaliação Física Completa & Correção Postural",
+      description: "Medição de dobras cutâneas, bioimpedância, análise de encurtamentos e teste de 1RM.",
+      type: "SESSAO",
+      price: 120,
+      durationMinutes: 45,
+      modality: "Musculação",
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+
+  const fallbackNutriServices: Service[] = [
+    {
+      id: "demo-service-nutri-001",
+      providerId: user.id,
+      providerType: "PERSONAL",
+      name: "Consulta Nutricional Esportiva + Plano Alimentar Individualizado",
+      description: "Anamnese completa, cálculo de taxa metabólica basal, distribuição de macronutrientes e cardápio flexível.",
+      type: "SESSAO",
+      price: 180,
+      durationMinutes: 60,
+      modality: "Nutrição",
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "demo-service-nutri-002",
+      providerId: user.id,
+      providerType: "PERSONAL",
+      name: "Acompanhamento Nutricional Mensal (Revisão & Ajuste de Macros)",
+      description: "Retornos quinzenais, acompanhamento da evolução da composição corporal e adaptações na dieta.",
+      type: "PLANO_MENSAL",
+      recurrence: "MONTHLY",
+      price: 260,
+      durationMinutes: 45,
+      modality: "Nutrição",
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "demo-service-nutri-003",
+      providerId: user.id,
+      providerType: "PERSONAL",
+      name: "Avaliação Nutricional por Bioimpedância Tetrapolar",
+      description: "Análise de percentual de gordura, massa muscular esquelética, taxa de hidratação e gordura visceral.",
+      type: "SESSAO",
+      price: 90,
+      durationMinutes: 30,
+      modality: "Nutrição",
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ];
+
+  const rawOwn = allServices.filter((s: Service) => s.providerId === user.id);
+  const myOwnServices = rawOwn.length > 0 ? rawOwn : (isNutri ? fallbackNutriServices : fallbackPersonalServices);
   const myTrainingPlans = myOwnServices.filter((s: Service) => s.type === "PLANO_MENSAL" || s.recurrence);
   const mySingleServices = myOwnServices.filter((s: Service) => s.type !== "PLANO_MENSAL");
 

@@ -59,4 +59,32 @@ describe('EmailService', () => {
       await expect(service.sendEmail('to@test.com', 'Subject', 'html')).resolves.toBeUndefined();
     });
   });
+
+  describe('sendVerificationCode', () => {
+    it('should format subject and send verification email with OTP code', async () => {
+      mockTransporter.sendMail.mockResolvedValue({ messageId: 'msg123' });
+      await service.sendVerificationCode('atleta@test.com', 'Carlos Silva', '123456');
+
+      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'atleta@test.com',
+          subject: '123456 é o seu código de verificação — Conexão Fitness',
+        }),
+      );
+    });
+  });
+
+  describe('sendPasswordResetEmail', () => {
+    it('should format subject and send reset password email', async () => {
+      mockTransporter.sendMail.mockResolvedValue({ messageId: 'msg456' });
+      await service.sendPasswordResetEmail('atleta@test.com', 'Carlos Silva', '654321');
+
+      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'atleta@test.com',
+          subject: '654321 é seu código de recuperação de senha — Conexão Fitness',
+        }),
+      );
+    });
+  });
 });

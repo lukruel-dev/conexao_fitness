@@ -131,8 +131,11 @@ export interface AuthUser {
   phone?: string | null;
   bio?: string | null;
   planName?: string;
+  isEmailVerified?: boolean;
   documentUrl?: string | null;
   cref?: string | null;
+  crn?: string | null;
+  cityBase?: string | null;
   kycRejectionReason?: string | null;
 }
 
@@ -319,3 +322,24 @@ export interface AuthResponse {
   accessToken: string;
   user: AuthUser;
 }
+
+export interface RegisterPendingVerification {
+  requiresEmailVerification: true;
+  email: string;
+  name?: string;
+  message: string;
+}
+
+export type RegisterResponse = AuthResponse | RegisterPendingVerification;
+
+export interface VerifyEmailDto {
+  email: string;
+  code: string;
+}
+
+export interface ResetPasswordDto {
+  email: string;
+  code: string;
+  newPassword: string;
+}
+

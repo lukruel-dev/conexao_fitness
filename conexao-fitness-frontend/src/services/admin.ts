@@ -118,4 +118,8 @@ export async function bulkDeleteUsers(userIds: string[]) {
   }
 }
 
-
+export async function adminImpersonate(role: string): Promise<{ accessToken: string; user: any }> {
+  return apiRequest<{ accessToken: string; user: any }>(`/admin/impersonate/${role}`, {
+    method: "POST",
+  });
+}

@@ -60,9 +60,47 @@ describe('AuthController', () => {
   });
 
   describe('getProfile', () => {
-    it('should return user from request', () => {
+    it('should return user from request', async () => {
       const req = { user: { id: 'u1' } };
-      expect(controller.getProfile(req)).toEqual({ user: { id: 'u1' } });
+      mockAuthService.getUserProfile = jest.fn().mockResolvedValue({ id: 'u1' });
+      const result = await controller.getProfile(req);
+      expect(result).toEqual({ user: { id: 'u1' } });
+    });
+  });
+
+  describe('verifyEmail', () => {
+    it('should call authService.verifyEmail', async () => {
+      mockAuthService.verifyEmail = jest.fn().mockResolvedValue({ accessToken: 'token' });
+      const result = await controller.verifyEmail({ email: 'test@test.com', code: '123456' });
+      expect(result).toEqual({ accessToken: 'token' });
+      expect(mockAuthService.verifyEmail).toHaveBeenCalledWith({ email: 'test@test.com', code: '123456' });
+    });
+  });
+
+  describe('resendVerificationCode', () => {
+    it('should call authService.resendVerificationCode', async () => {
+      mockAuthService.resendVerificationCode = jest.fn().mockResolvedValue({ success: true });
+      const result = await controller.resendVerificationCode({ email: 'test@test.com' });
+      expect(result).toEqual({ success: true });
+      expect(mockAuthService.resendVerificationCode).toHaveBeenCalledWith({ email: 'test@test.com' });
+    });
+  });
+
+  describe('forgotPassword', () => {
+    it('should call authService.forgotPassword', async () => {
+      mockAuthService.forgotPassword = jest.fn().mockResolvedValue({ success: true });
+      const result = await controller.forgotPassword({ email: 'test@test.com' });
+      expect(result).toEqual({ success: true });
+      expect(mockAuthService.forgotPassword).toHaveBeenCalledWith({ email: 'test@test.com' });
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('should call authService.resetPassword', async () => {
+      mockAuthService.resetPassword = jest.fn().mockResolvedValue({ success: true });
+      const result = await controller.resetPassword({ email: 'test@test.com', code: '123456', newPassword: 'pass' });
+      expect(result).toEqual({ success: true });
+      expect(mockAuthService.resetPassword).toHaveBeenCalledWith({ email: 'test@test.com', code: '123456', newPassword: 'pass' });
     });
   });
 });

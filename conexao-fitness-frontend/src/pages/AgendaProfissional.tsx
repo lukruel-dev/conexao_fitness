@@ -55,32 +55,63 @@ const statusStyles: Record<BookingStatus, string> = {
 
 const PRESET_STUDENTS = [
   {
-    name: "Gabriel Souza (Aluno Demo Teste)",
+    name: "Gabriel Souza (Aluno Demo)",
     service: "Consultoria Premium & Personal VIP",
-    goal: "Hipertrofia e Biomecânica",
+    goal: "Hipertrofia Muscular & Ficha A/B",
     avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
     badge: "Smartwatch Conectado",
   },
   {
     name: "Mariana Lima (Atleta)",
     service: "Periodização de Hipertrofia & Força",
-    goal: "Alta Performance & Definição",
+    goal: "Alta Performance & Biomecânica",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
     badge: "Sono & Fases",
   },
   {
     name: "Rodrigo Alves (Iniciante)",
-    service: "Emagrecimento & Reeducação",
-    goal: "Perda de Gordura & Saúde",
+    service: "Treinamento de Força & Sobrecarga",
+    goal: "Adaptação Neuromuscular & Cargas",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
     badge: "Novo Aluno",
   },
   {
     name: "Larissa Torres (Funcional)",
     service: "Treinamento Funcional e Resistência",
-    goal: "Condicionamento e Postura",
+    goal: "Condicionamento Físico & Core",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
     badge: "Ativa",
+  },
+];
+
+const PRESET_PATIENTS = [
+  {
+    name: "Gabriel Souza (Aluno Conexão)",
+    service: "Plano Alimentar para Ganho de Massa Limpa",
+    goal: "Superávit Calórico (2.800 kcal) & Proteínas",
+    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
+    badge: "Metabolismo Alto",
+  },
+  {
+    name: "Mariana Lima (Atleta)",
+    service: "Definição Muscular & Baixo Carboidrato",
+    goal: "Déficit Calórico (1.650 kcal) & Jejum",
+    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
+    badge: "Bioimpedância Ok",
+  },
+  {
+    name: "Rodrigo Alves (Iniciante)",
+    service: "Reeducação Alimentar & Emagrecimento Consciente",
+    goal: "Equilíbrio de Macronutrientes (1.900 kcal)",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+    badge: "Emagrecimento",
+  },
+  {
+    name: "Larissa Torres (Funcional)",
+    service: "Dieta Anti-inflamatória & Desempenho",
+    goal: "Nutrição Funcional & Micronutrientes (2.100 kcal)",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
+    badge: "Anti-inflamatória",
   },
 ];
 
@@ -186,13 +217,15 @@ export default function AgendaProfissional() {
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
           <div>
             <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-2 flex items-center gap-3 pl-1 overflow-visible">
-              <div className="p-2 sm:p-2.5 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <Users className="w-6 h-6 sm:w-8 sm:h-8" />
+              <div className={`p-2 sm:p-2.5 rounded-2xl ${isNutri ? "bg-emerald-500/10 text-emerald-400" : "bg-primary/10 text-primary"} flex items-center justify-center shrink-0`}>
+                {isNutri ? <Utensils className="w-6 h-6 sm:w-8 sm:h-8" /> : <Users className="w-6 h-6 sm:w-8 sm:h-8" />}
               </div>
-              <span>Meus <span className="gradient-text">Alunos</span></span>
+              <span>Meus <span className={isNutri ? "text-emerald-400" : "gradient-text"}>{isNutri ? "Pacientes" : "Alunos"}</span></span>
             </h1>
             <p className="text-muted-foreground text-sm">
-              Acompanhe os agendamentos recebidos, prescreva treinos e consulte dados de relógio inteligente.
+              {isNutri
+                ? "Acompanhe seus pacientes recebidos, prescreva planos alimentares personalizados, calcule macronutrientes e consulte dados de relógio inteligente."
+                : "Acompanhe os agendamentos recebidos, prescreva treinos e consulte dados de relógio inteligente."}
             </p>
           </div>
 
@@ -201,10 +234,10 @@ export default function AgendaProfissional() {
               onClick={() => setIsAddStudentOpen(true)}
               variant="hero"
               size="sm"
-              className="rounded-2xl gap-2 font-bold shadow-glow text-xs"
+              className={`rounded-2xl gap-2 font-bold shadow-glow text-xs ${isNutri ? "bg-emerald-600 hover:bg-emerald-500 text-white" : ""}`}
             >
               <UserPlus className="w-4 h-4" />
-              Adicionar Aluno (Demo)
+              {isNutri ? "Adicionar Paciente (Demo)" : "Adicionar Aluno (Demo)"}
             </Button>
           </div>
         </div>
@@ -268,19 +301,21 @@ export default function AgendaProfissional() {
           <div className="bg-card border border-border rounded-2xl p-10 sm:p-12 text-center shadow-sm">
             <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
             <p className="text-foreground font-bold mb-1">
-              Nenhum aluno encontrado para este filtro.
+              {isNutri ? "Nenhum paciente encontrado para este filtro." : "Nenhum aluno encontrado para este filtro."}
             </p>
             <p className="text-xs text-muted-foreground mb-4 max-w-md mx-auto">
-              Adicione um aluno para testar a integração profissional/aluno com prescrição inteligente de treinos, dietas e leitura de relógios inteligentes.
+              {isNutri
+                ? "Adicione um paciente para testar a integração profissional com prescrição inteligente de dietas, cálculo de macronutrientes e acompanhamento de saúde."
+                : "Adicione um aluno para testar a integração profissional/aluno com prescrição inteligente de treinos, dietas e leitura de relógios inteligentes."}
             </p>
             <div className="flex items-center justify-center gap-2 flex-wrap">
               <Button
                 onClick={() => setIsAddStudentOpen(true)}
                 size="sm"
                 variant="hero"
-                className="rounded-xl text-xs font-bold gap-2 shadow-glow"
+                className={`rounded-xl text-xs font-bold gap-2 shadow-glow ${isNutri ? "bg-emerald-600 hover:bg-emerald-500 text-white" : ""}`}
               >
-                <UserPlus className="w-4 h-4" /> Adicionar Aluno (Demo)
+                <UserPlus className="w-4 h-4" /> {isNutri ? "Adicionar Paciente (Demo)" : "Adicionar Aluno (Demo)"}
               </Button>
               <Button
                 onClick={handleResetDemo}
@@ -288,7 +323,7 @@ export default function AgendaProfissional() {
                 variant="outline"
                 className="rounded-xl text-xs font-semibold gap-1.5"
               >
-                <RotateCcw className="w-3.5 h-3.5" /> Restaurar Alunos Padrão
+                <RotateCcw className="w-3.5 h-3.5" /> {isNutri ? "Restaurar Pacientes Padrão" : "Restaurar Alunos Padrão"}
               </Button>
             </div>
           </div>
@@ -475,23 +510,25 @@ export default function AgendaProfissional() {
         <DialogContent className="max-w-md rounded-3xl p-5 sm:p-6 bg-card border-border/80 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl font-bold font-display flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                <UserPlus className="w-5 h-5" />
+              <div className={`p-2 rounded-xl ${isNutri ? "bg-emerald-500/10 text-emerald-400" : "bg-primary/10 text-primary"}`}>
+                {isNutri ? <Utensils className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
               </div>
-              <span>Adicionar Aluno (Demo)</span>
+              <span>{isNutri ? "Adicionar Paciente (Demo)" : "Adicionar Aluno (Demo)"}</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Simule a contratação de um aluno para testar a integração profissional/aluno com prescrição inteligente de treinos, dietas, chat e relatórios de relógios inteligentes (smartwatch).
+              {isNutri
+                ? "Simule a consulta de um paciente para testar a prescrição inteligente de planos alimentares, cálculo de macronutrientes e chat integrado."
+                : "Simule a contratação de um aluno para testar a integração profissional/aluno com prescrição inteligente de treinos, dietas, chat e relatórios de relógios inteligentes (smartwatch)."}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             <div>
               <Label className="text-xs font-bold mb-2.5 block text-foreground">
-                Escolha um Aluno Pré-configurado:
+                {isNutri ? "Escolha um Paciente Pré-configurado:" : "Escolha um Aluno Pré-configurado:"}
               </Label>
               <div className="grid grid-cols-1 gap-2">
-                {PRESET_STUDENTS.map((preset, idx) => (
+                {(isNutri ? PRESET_PATIENTS : PRESET_STUDENTS).map((preset, idx) => (
                   <button
                     key={idx}
                     type="button"
@@ -528,17 +565,19 @@ export default function AgendaProfissional() {
               </div>
               <div className="relative flex justify-center text-[10px] uppercase">
                 <span className="bg-card px-2 text-muted-foreground font-semibold">
-                  ou crie um aluno personalizado
+                  {isNutri ? "ou cadastre um paciente personalizado" : "ou crie um aluno personalizado"}
                 </span>
               </div>
             </div>
 
             <div className="space-y-3">
               <div>
-                <Label htmlFor="student-name" className="text-xs font-medium">Nome do Aluno</Label>
+                <Label htmlFor="student-name" className="text-xs font-medium">
+                  {isNutri ? "Nome do Paciente" : "Nome do Aluno"}
+                </Label>
                 <Input
                   id="student-name"
-                  placeholder="Ex: Carlos Eduardo"
+                  placeholder={isNutri ? "Ex: Mariana Lima" : "Ex: Carlos Eduardo"}
                   value={newStudentName}
                   onChange={(e) => setNewStudentName(e.target.value)}
                   className="rounded-xl h-9 text-xs mt-1"
@@ -546,10 +585,12 @@ export default function AgendaProfissional() {
               </div>
 
               <div>
-                <Label htmlFor="student-service" className="text-xs font-medium">Serviço Contratado</Label>
+                <Label htmlFor="student-service" className="text-xs font-medium">
+                  {isNutri ? "Plano Alimentar / Consulta" : "Serviço Contratado"}
+                </Label>
                 <Input
                   id="student-service"
-                  placeholder="Ex: Consultoria de Musculação VIP"
+                  placeholder={isNutri ? "Ex: Consulta Nutricional Esportiva (2.400 kcal)" : "Ex: Consultoria de Musculação VIP"}
                   value={newStudentService}
                   onChange={(e) => setNewStudentService(e.target.value)}
                   className="rounded-xl h-9 text-xs mt-1"
@@ -559,10 +600,10 @@ export default function AgendaProfissional() {
               <Button
                 onClick={() => handleAddStudent()}
                 disabled={!newStudentName.trim()}
-                className="w-full rounded-2xl text-xs font-bold h-10 gap-2 shadow-glow"
+                className={`w-full rounded-2xl text-xs font-bold h-10 gap-2 shadow-glow ${isNutri ? "bg-emerald-600 hover:bg-emerald-500 text-white" : ""}`}
                 variant="hero"
               >
-                <Check className="w-4 h-4" /> Confirmar e Adicionar Aluno
+                <Check className="w-4 h-4" /> {isNutri ? "Confirmar e Adicionar Paciente" : "Confirmar e Adicionar Aluno"}
               </Button>
             </div>
           </div>

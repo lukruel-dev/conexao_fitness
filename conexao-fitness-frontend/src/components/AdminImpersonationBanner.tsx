@@ -20,6 +20,7 @@ import {
   Wallet,
   Sparkles,
   ArrowRight,
+  Utensils,
 } from 'lucide-react';
 
 export interface AdminImpersonationBannerProps {
@@ -50,36 +51,50 @@ export const AdminImpersonationBanner: React.FC<AdminImpersonationBannerProps> =
 
   const roleMeta = {
     ACADEMIA: {
-      label: 'Academia Demo',
+      label: 'Academia Prime Demo',
       sublabel: 'Gestão, Catraca e Planos',
       icon: Building2,
       color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
       links: [
         { label: 'Catraca Digital', to: '/gestao-academia', icon: QrCode },
-        { label: 'Planos & Alunos', to: '/gestao-academia', icon: Calendar },
+        { label: 'Alunos & Planos', to: '/gestao-academia', icon: Calendar },
         { label: 'Carteira Academia', to: '/carteira', icon: Wallet },
       ],
     },
     PERSONAL: {
-      label: 'Profissional Demo',
-      sublabel: 'Agenda, Serviços e Alunos',
+      label: 'Lucas Silva (Personal CREF)',
+      sublabel: 'Prescrição de Treinos & Agenda',
       icon: Dumbbell,
       color: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
       links: [
         { label: 'Agenda & Alunos', to: '/agenda-profissional', icon: Calendar },
+        { label: 'Fichas de Treino', to: '/treinos', icon: Dumbbell },
         { label: 'Meus Serviços', to: '/meus-servicos', icon: Sparkles },
         { label: 'Carteira Profissional', to: '/carteira', icon: Wallet },
       ],
     },
+    NUTRICIONISTA: {
+      label: 'Dra. Camila (Nutri CRN)',
+      sublabel: 'Dietas, Macros e Consultas',
+      icon: Utensils,
+      color: 'bg-teal-500/15 text-teal-400 border-teal-500/30',
+      links: [
+        { label: 'Agenda & Consultas', to: '/agenda-profissional', icon: Calendar },
+        { label: 'Planos Alimentares', to: '/treinos', icon: Utensils },
+        { label: 'Meus Serviços', to: '/meus-servicos', icon: Sparkles },
+        { label: 'Carteira Nutri', to: '/carteira', icon: Wallet },
+      ],
+    },
     STUDENT: {
-      label: 'Aluno Demo',
-      sublabel: 'Passe QR Code e Carteira',
+      label: 'Gabriel Souza (Aluno Demo)',
+      sublabel: 'Passe QR, Treinos e Dieta',
       icon: User,
       color: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
       links: [
         { label: 'Passe QR Catraca', to: '/minhas-matriculas', icon: QrCode },
+        { label: 'Treinos & Smartwatch', to: '/treinos', icon: Dumbbell },
+        { label: 'Plano Alimentar', to: '/treinos', icon: Utensils },
         { label: 'Carteira Finex', to: '/carteira', icon: Wallet },
-        { label: 'Meus Treinos', to: '/treinos', icon: Dumbbell },
       ],
     },
   }[impersonatedRole];
@@ -135,7 +150,7 @@ export const AdminImpersonationBanner: React.FC<AdminImpersonationBannerProps> =
                 <ChevronDown className="w-3.5 h-3.5 opacity-60" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 p-1.5 rounded-2xl shadow-xl">
+            <DropdownMenuContent align="end" className="w-64 p-1.5 rounded-2xl shadow-xl">
               <DropdownMenuItem
                 onClick={() => {
                   startImpersonation('ACADEMIA');
@@ -145,7 +160,7 @@ export const AdminImpersonationBanner: React.FC<AdminImpersonationBannerProps> =
               >
                 <Building2 className="w-4 h-4 text-emerald-500" />
                 <div>
-                  <span className="font-bold block">Academia Demo</span>
+                  <span className="font-bold block">Academia Prime Demo</span>
                   <span className="text-[10px] text-muted-foreground block">Catraca, planos e balcão</span>
                 </div>
               </DropdownMenuItem>
@@ -159,8 +174,22 @@ export const AdminImpersonationBanner: React.FC<AdminImpersonationBannerProps> =
               >
                 <Dumbbell className="w-4 h-4 text-purple-500" />
                 <div>
-                  <span className="font-bold block">Profissional Demo</span>
-                  <span className="text-[10px] text-muted-foreground block">Agenda, serviços e alunos</span>
+                  <span className="font-bold block">Personal Trainer (Lucas - CREF)</span>
+                  <span className="text-[10px] text-muted-foreground block">Prescrição de treinos e agenda</span>
+                </div>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => {
+                  startImpersonation('NUTRICIONISTA');
+                  navigate('/agenda-profissional');
+                }}
+                className="rounded-xl cursor-pointer text-xs py-2 gap-2"
+              >
+                <Utensils className="w-4 h-4 text-teal-500" />
+                <div>
+                  <span className="font-bold block">Nutricionista (Dra. Camila - CRN)</span>
+                  <span className="text-[10px] text-muted-foreground block">Prescrição de dietas e consultas</span>
                 </div>
               </DropdownMenuItem>
 
@@ -173,8 +202,8 @@ export const AdminImpersonationBanner: React.FC<AdminImpersonationBannerProps> =
               >
                 <User className="w-4 h-4 text-blue-500" />
                 <div>
-                  <span className="font-bold block">Aluno Demo</span>
-                  <span className="text-[10px] text-muted-foreground block">QR Code e carteira Finex</span>
+                  <span className="font-bold block">Aluno (Gabriel Souza)</span>
+                  <span className="text-[10px] text-muted-foreground block">Passe QR, treinos, dieta e carteira</span>
                 </div>
               </DropdownMenuItem>
             </DropdownMenuContent>

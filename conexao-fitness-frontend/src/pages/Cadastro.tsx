@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import PasswordInput from "@/components/PasswordInput";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import type { UserRole } from "@/types/api";
+import type { UserRole, AuthUser } from "@/types/api";
+import EmailVerificationModal from "@/components/EmailVerificationModal";
 
 import { ArrowLeft, User, Dumbbell, Building2, Check, X, ShieldCheck, Sparkles, CheckCircle2, Camera, FileCheck, UploadCloud, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -60,6 +61,25 @@ const Cadastro = () => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState("");
+
+  const handleVerificationSuccess = (verifiedUser: AuthUser) => {
+    setIsVerificationModalOpen(false);
+    const searchParams = new URLSearchParams(location.search);
+    const redirectUrl = searchParams.get("redirect");
+
+    toast.success("Conta ativada com sucesso!");
+    if (redirectUrl) {
+      navigate(redirectUrl);
+    } else if (verifiedUser?.role === "ADMIN") {
+      navigate("/admin");
+    } else if (verifiedUser?.role === "PERSONAL" || verifiedUser?.role === "ACADEMIA") {
+      navigate("/agenda-profissional");
+    } else {
+      navigate("/buscar");
+    }
+  };
 
   const handleAvatarChange = (file: File | null) => {
     setAvatarFile(file);
@@ -352,7 +372,7 @@ const Cadastro = () => {
         }
       } else {
         // Cadastro tradicional com senha
-        newUser = await register({ 
+        const res = await register({ 
           name, 
           email, 
           password, 
@@ -367,6 +387,17 @@ const Cadastro = () => {
           professionalRegistrationId: role === "PERSONAL" ? professionalRegistrationId : undefined,
           professionalDocumentUrl
         });
+
+        if ("requiresEmailVerification" in res && res.requiresEmailVerification) {
+          setIsUploading(false);
+          setPendingVerificationEmail(res.email || email);
+          setIsVerificationModalOpen(true);
+          return;
+        }
+
+        if ("accessToken" in res && res.accessToken) {
+          newUser = res.user;
+        }
       }
 
       setIsUploading(false);
@@ -915,6 +946,18 @@ const Cadastro = () => {
         onClose={() => setOauthProvider(null)}
         provider={oauthProvider}
         onSuccess={handleOAuthSelected}
+      />
+
+      <EmailVerificationModal
+        isOpen={isVerificationModalOpen}
+        email={pendingVerificationEmail || email}
+        onSuccess={handleVerificationSuccess}
+        onClose={() => setIsVerificationModalOpen(false)}
+        onChangeEmail={() => {
+          setIsVerificationModalOpen(false);
+          const emailInput = document.getElementById("email");
+          emailInput?.focus();
+        }}
       />
     </div>
   );

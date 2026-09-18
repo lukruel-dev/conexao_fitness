@@ -51,6 +51,7 @@ export function getDemoBookings(): any[] {
   } catch {}
 
   const defaultDemoBookings: any[] = [
+    // 1. Agendamentos do Personal Trainer Lucas Silva (demo-personal-id-002)
     {
       id: "demo-booking-gabriel-001",
       providerId: "demo-personal-id-002",
@@ -67,10 +68,10 @@ export function getDemoBookings(): any[] {
       },
       student: {
         id: "demo-student-id-003",
-        name: "Gabriel Souza (Aluno Demo Teste)",
+        name: "Gabriel Souza (Aluno Conexão)",
         email: "aluno.demo@conexao.com",
         avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
-        phone: "(11) 98765-4321",
+        phone: "(11) 99333-5566",
       },
       slot: {
         id: "demo-slot-001",
@@ -94,7 +95,7 @@ export function getDemoBookings(): any[] {
       },
       student: {
         id: "demo-student-mariana",
-        name: "Mariana Lima (Atleta Demo)",
+        name: "Mariana Lima (Atleta)",
         email: "mariana.atleta@conexao.com",
         avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
         phone: "(11) 97123-8899",
@@ -103,6 +104,143 @@ export function getDemoBookings(): any[] {
         id: "demo-slot-002",
         startsAt: new Date(Date.now() + 28 * 3600000).toISOString(),
         endsAt: new Date(Date.now() + 29 * 3600000).toISOString(),
+      },
+    },
+    {
+      id: "demo-booking-rodrigo-003",
+      providerId: "demo-personal-id-002",
+      studentId: "demo-student-rodrigo",
+      status: "CONFIRMED",
+      createdAt: new Date(Date.now() - 1 * 86400000).toISOString(),
+      updatedAt: new Date().toISOString(),
+      service: {
+        id: "demo-service-003",
+        name: "Treinamento de Força & Sobrecarga",
+        type: "PERSONAL",
+        price: 150,
+        durationMinutes: 60,
+      },
+      student: {
+        id: "demo-student-rodrigo",
+        name: "Rodrigo Alves (Iniciante)",
+        email: "rodrigo.alves@conexao.com",
+        avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+        phone: "(11) 98822-3344",
+      },
+      slot: {
+        id: "demo-slot-003",
+        startsAt: new Date(Date.now() + 52 * 3600000).toISOString(),
+        endsAt: new Date(Date.now() + 53 * 3600000).toISOString(),
+      },
+    },
+
+    // 2. Agendamentos da Nutricionista Dra. Camila Santos (demo-nutri-id-004)
+    {
+      id: "demo-booking-nutri-gabriel-004",
+      providerId: "demo-nutri-id-004",
+      studentId: "demo-student-id-003",
+      status: "CONFIRMED",
+      createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+      updatedAt: new Date().toISOString(),
+      service: {
+        id: "demo-service-nutri-001",
+        name: "Consulta Nutricional Esportiva + Bioimpedância",
+        type: "PERSONAL",
+        price: 280,
+        durationMinutes: 60,
+      },
+      student: {
+        id: "demo-student-id-003",
+        name: "Gabriel Souza (Aluno Conexão)",
+        email: "aluno.demo@conexao.com",
+        avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
+        phone: "(11) 99333-5566",
+      },
+      slot: {
+        id: "demo-slot-nutri-001",
+        startsAt: new Date(Date.now() + 8 * 3600000).toISOString(),
+        endsAt: new Date(Date.now() + 9 * 3600000).toISOString(),
+      },
+    },
+    {
+      id: "demo-booking-nutri-larissa-005",
+      providerId: "demo-nutri-id-004",
+      studentId: "demo-student-larissa",
+      status: "CONFIRMED",
+      createdAt: new Date(Date.now() - 4 * 86400000).toISOString(),
+      updatedAt: new Date().toISOString(),
+      service: {
+        id: "demo-service-nutri-002",
+        name: "Acompanhamento Nutricional & Recomposição",
+        type: "PERSONAL",
+        price: 220,
+        durationMinutes: 45,
+      },
+      student: {
+        id: "demo-student-larissa",
+        name: "Larissa Torres (Funcional)",
+        email: "larissa.torres@conexao.com",
+        avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
+        phone: "(11) 97711-2233",
+      },
+      slot: {
+        id: "demo-slot-nutri-002",
+        startsAt: new Date(Date.now() + 32 * 3600000).toISOString(),
+        endsAt: new Date(Date.now() + 33 * 3600000).toISOString(),
+      },
+    },
+    {
+      id: "demo-booking-nutri-mariana-006",
+      providerId: "demo-nutri-id-004",
+      studentId: "demo-student-mariana",
+      status: "CONFIRMED",
+      createdAt: new Date(Date.now() - 6 * 86400000).toISOString(),
+      updatedAt: new Date().toISOString(),
+      service: {
+        id: "demo-service-nutri-003",
+        name: "Plano Alimentar para Definição & Baixo Carboidrato (1.650 kcal)",
+        type: "PERSONAL",
+        price: 260,
+        durationMinutes: 60,
+      },
+      student: {
+        id: "demo-student-mariana",
+        name: "Mariana Lima (Atleta)",
+        email: "mariana.atleta@conexao.com",
+        avatarUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
+        phone: "(11) 97123-8899",
+      },
+      slot: {
+        id: "demo-slot-nutri-003",
+        startsAt: new Date(Date.now() + 50 * 3600000).toISOString(),
+        endsAt: new Date(Date.now() + 51 * 3600000).toISOString(),
+      },
+    },
+    {
+      id: "demo-booking-nutri-rodrigo-007",
+      providerId: "demo-nutri-id-004",
+      studentId: "demo-student-rodrigo",
+      status: "CONFIRMED",
+      createdAt: new Date(Date.now() - 1 * 86400000).toISOString(),
+      updatedAt: new Date().toISOString(),
+      service: {
+        id: "demo-service-nutri-004",
+        name: "Reeducação Alimentar & Emagrecimento Consciente (1.900 kcal)",
+        type: "PERSONAL",
+        price: 200,
+        durationMinutes: 45,
+      },
+      student: {
+        id: "demo-student-rodrigo",
+        name: "Rodrigo Alves (Iniciante)",
+        email: "rodrigo.alves@conexao.com",
+        avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+        phone: "(11) 98822-3344",
+      },
+      slot: {
+        id: "demo-slot-nutri-004",
+        startsAt: new Date(Date.now() + 72 * 3600000).toISOString(),
+        endsAt: new Date(Date.now() + 73 * 3600000).toISOString(),
       },
     },
   ];
@@ -121,21 +259,31 @@ export function addDemoBooking(customStudent: {
   phone?: string;
   serviceName?: string;
   goal?: string;
+  providerId?: string;
 }): any {
   const current = getDemoBookings();
   const studentId = `demo-student-${Date.now()}`;
+  const impersonatedRole = localStorage.getItem("cf_impersonation_role");
+  const effectiveProviderId =
+    customStudent.providerId ||
+    (impersonatedRole === "NUTRICIONISTA" ? "demo-nutri-id-004" : "demo-personal-id-002");
+
   const newBooking = {
     id: `demo-booking-${Date.now()}`,
-    providerId: "demo-personal-id-002",
+    providerId: effectiveProviderId,
     studentId,
     status: "CONFIRMED" as const,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     service: {
       id: `service-${Date.now()}`,
-      name: customStudent.serviceName || "Treinamento Personalizado & Consultoria VIP",
+      name:
+        customStudent.serviceName ||
+        (impersonatedRole === "NUTRICIONISTA"
+          ? "Consulta Nutricional Esportiva & Plano Alimentar"
+          : "Treinamento Personalizado & Consultoria VIP"),
       type: "PERSONAL",
-      price: 200,
+      price: impersonatedRole === "NUTRICIONISTA" ? 220 : 200,
       durationMinutes: 60,
     },
     student: {
@@ -207,19 +355,26 @@ export async function listBookingsByProvider(
     localStorage.getItem("cf_impersonation_active") === "true";
 
   if (isDemo) {
-    const demoList = getDemoBookings();
+    let demoList = getDemoBookings();
+    if (providerId) {
+      const filtered = demoList.filter((b) => b.providerId === providerId);
+      if (filtered.length > 0) {
+        demoList = filtered;
+      }
+    }
     return status ? demoList.filter((b) => b.status === status) : demoList;
   }
 
   try {
     const realBookings = await apiRequest<Booking[]>(`/bookings/providers/${providerId}`, { query: { status } });
     if (!realBookings || realBookings.length === 0) {
-      return getDemoBookings();
+      const demoList = getDemoBookings().filter((b) => b.providerId === providerId);
+      return status ? demoList.filter((b) => b.status === status) : demoList;
     }
     return realBookings;
   } catch (err) {
     console.warn("[Bookings] Fallback to demo bookings for provider:", err);
-    const demoList = getDemoBookings();
+    const demoList = getDemoBookings().filter((b) => b.providerId === providerId);
     return status ? demoList.filter((b) => b.status === status) : demoList;
   }
 }

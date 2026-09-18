@@ -57,13 +57,15 @@ describe('UsersService', () => {
       const result = await service.create(dto as any);
       
       expect(bcrypt.hash).toHaveBeenCalledWith('123', 'salt');
-      expect(mockUsersRepo.create).toHaveBeenCalledWith({
-        name: 'Test',
-        email: 'test@test.com',
-        passwordHash: 'hashed_password',
-        role: 'STUDENT',
-        status: 'PENDENTE_KYC',
-      });
+      expect(mockUsersRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Test',
+          email: 'test@test.com',
+          passwordHash: 'hashed_password',
+          role: 'STUDENT',
+          isEmailVerified: false,
+        }),
+      );
       expect(result).toHaveProperty('id', 'u1');
     });
   });

@@ -35,6 +35,21 @@ export class User {
   @Column()
   passwordHash: string;
 
+  @Column({ type: 'boolean', default: false })
+  isEmailVerified: boolean;
+
+  @Column({ nullable: true })
+  emailVerificationCode?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  emailVerificationExpiresAt?: Date;
+
+  @Column({ nullable: true })
+  passwordResetToken?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  passwordResetExpiresAt?: Date;
+
   @Column({ type: 'text', nullable: true })
   avatarUrl?: string;
 

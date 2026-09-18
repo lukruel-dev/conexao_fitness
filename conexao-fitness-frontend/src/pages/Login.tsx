@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import FinexLogo from "@/components/FinexLogo";
 import OAuthModal, { OAuthUserData } from "@/components/OAuthModal";
+import EmailVerificationModal from "@/components/EmailVerificationModal";
+import type { AuthUser } from "@/types/api";
 
 import { ArrowLeft } from "lucide-react";
 
@@ -21,6 +23,26 @@ const Login = () => {
   });
   const [password, setPassword] = useState("");
   const [oauthProvider, setOauthProvider] = useState<"google" | "apple" | null>(null);
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
+
+  const handleVerificationSuccess = (verifiedUser: AuthUser) => {
+    setIsVerificationModalOpen(false);
+    toast.success(`Bem-vindo, ${verifiedUser.name.split(" ")[0]}!`);
+
+    const searchParams = new URLSearchParams(location.search);
+    const redirectUrl = searchParams.get("redirect");
+
+    if (redirectUrl) {
+      navigate(redirectUrl);
+    } else if (verifiedUser?.role === "ADMIN") {
+      navigate("/perfil");
+    } else if (verifiedUser?.role === "PERSONAL" || verifiedUser?.role === "ACADEMIA") {
+      navigate("/agenda-profissional");
+    } else {
+      navigate("/buscar");
+    }
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +62,20 @@ const Login = () => {
       } else {
         navigate("/buscar");
       }
-    } catch (err) {
+    } catch (err: any) {
+      const isUnverified =
+        err?.body?.code === "EMAIL_NOT_VERIFIED" ||
+        err?.message?.includes("não foi verificado") ||
+        err?.message?.includes("EMAIL_NOT_VERIFIED");
+
+      if (isUnverified) {
+        setPendingEmail(err?.body?.email || email);
+        setIsVerificationModalOpen(true);
+        toast.info("Confirme seu e-mail", {
+          description: "Enviamos um código de verificação para sua caixa de entrada.",
+        });
+        return;
+      }
       toast.error("Erro ao entrar", { description: (err as Error).message });
     }
   };
@@ -235,6 +270,13 @@ const Login = () => {
         onClose={() => setOauthProvider(null)}
         provider={oauthProvider}
         onSuccess={handleOAuthSuccess}
+      />
+
+      <EmailVerificationModal
+        isOpen={isVerificationModalOpen}
+        email={pendingEmail || email}
+        onSuccess={handleVerificationSuccess}
+        onClose={() => setIsVerificationModalOpen(false)}
       />
     </div>
   );

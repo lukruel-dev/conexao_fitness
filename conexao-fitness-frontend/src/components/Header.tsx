@@ -1,6 +1,6 @@
 import FinexLogo from "@/components/FinexLogo";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, X, Building2, Dumbbell, User, Eye, ChevronDown, ShieldCheck } from "lucide-react";
+import { LogOut, Menu, X, Building2, Dumbbell, User, Eye, ChevronDown, ShieldCheck, Utensils } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AdminImpersonationBanner } from "@/components/AdminImpersonationBanner";
 
+import { isNutritionist } from "@/utils/professionalRoles";
+
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isAuthenticated, logout, startImpersonation } = useAuth();
@@ -24,6 +26,7 @@ const Header = () => {
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   const isProvider = isAuthenticated && (user?.role === "PERSONAL" || user?.role === "ACADEMIA");
+  const studentOrPatientLabel = isNutritionist(user) ? "Meus pacientes" : "Meus alunos";
 
   const handleLogout = () => {
     logout();
@@ -70,7 +73,7 @@ const Header = () => {
                       <ChevronDown className="w-3 h-3 opacity-60" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-56 p-1.5 rounded-2xl shadow-xl">
+                  <DropdownMenuContent align="start" className="w-64 p-1.5 rounded-2xl shadow-xl">
                     <DropdownMenuItem
                       onClick={() => {
                         startImpersonation('ACADEMIA');
@@ -80,7 +83,7 @@ const Header = () => {
                     >
                       <Building2 className="w-4 h-4 text-emerald-500" />
                       <div>
-                        <span className="font-bold block">Academia Demo</span>
+                        <span className="font-bold block">Academia Prime Demo</span>
                         <span className="text-[10px] text-muted-foreground block">Catraca, planos e balcão</span>
                       </div>
                     </DropdownMenuItem>
@@ -94,8 +97,22 @@ const Header = () => {
                     >
                       <Dumbbell className="w-4 h-4 text-purple-500" />
                       <div>
-                        <span className="font-bold block">Profissional Demo</span>
-                        <span className="text-[10px] text-muted-foreground block">Agenda, serviços e alunos</span>
+                        <span className="font-bold block">Personal Trainer (Lucas - CREF)</span>
+                        <span className="text-[10px] text-muted-foreground block">Prescrição de treinos e agenda</span>
+                      </div>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => {
+                        startImpersonation('NUTRICIONISTA');
+                        navigate('/agenda-profissional');
+                      }}
+                      className="rounded-xl cursor-pointer text-xs py-2 gap-2"
+                    >
+                      <Utensils className="w-4 h-4 text-teal-500" />
+                      <div>
+                        <span className="font-bold block">Nutricionista (Dra. Camila - CRN)</span>
+                        <span className="text-[10px] text-muted-foreground block">Prescrição de dietas e consultas</span>
                       </div>
                     </DropdownMenuItem>
 
@@ -108,8 +125,8 @@ const Header = () => {
                     >
                       <User className="w-4 h-4 text-blue-500" />
                       <div>
-                        <span className="font-bold block">Aluno Demo</span>
-                        <span className="text-[10px] text-muted-foreground block">QR Code e carteira Finex</span>
+                        <span className="font-bold block">Aluno (Gabriel Souza)</span>
+                        <span className="text-[10px] text-muted-foreground block">Passe QR, treinos, dieta e carteira</span>
                       </div>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -157,7 +174,7 @@ const Header = () => {
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  Meus alunos
+                  {studentOrPatientLabel}
                 </Link>
                 <Link
                   to="/meus-servicos"
@@ -343,7 +360,7 @@ const Header = () => {
                     }}
                     className="text-left py-2 text-sm font-medium text-emerald-400 hover:text-emerald-300 flex items-center gap-2"
                   >
-                    <Building2 className="w-4 h-4" /> Olhar como Academia Demo
+                    <Building2 className="w-4 h-4" /> Academia Prime Demo
                   </button>
                   <button
                     onClick={() => {
@@ -353,7 +370,17 @@ const Header = () => {
                     }}
                     className="text-left py-2 text-sm font-medium text-purple-400 hover:text-purple-300 flex items-center gap-2"
                   >
-                    <Dumbbell className="w-4 h-4" /> Olhar como Profissional Demo
+                    <Dumbbell className="w-4 h-4" /> Personal Trainer (Lucas - CREF)
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      startImpersonation('NUTRICIONISTA');
+                      navigate('/agenda-profissional');
+                    }}
+                    className="text-left py-2 text-sm font-medium text-teal-400 hover:text-teal-300 flex items-center gap-2"
+                  >
+                    <Utensils className="w-4 h-4" /> Nutricionista (Dra. Camila - CRN)
                   </button>
                   <button
                     onClick={() => {
@@ -363,7 +390,7 @@ const Header = () => {
                     }}
                     className="text-left py-2 text-sm font-medium text-blue-400 hover:text-blue-300 flex items-center gap-2"
                   >
-                    <User className="w-4 h-4" /> Olhar como Aluno Demo
+                    <User className="w-4 h-4" /> Aluno (Gabriel Souza)
                   </button>
                 </>
               ) : isProvider ? (
@@ -396,7 +423,7 @@ const Header = () => {
                     onClick={() => setIsMenuOpen(false)}
                     className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
                   >
-                    Meus alunos
+                    {studentOrPatientLabel}
                   </Link>
                   <Link
                     to="/meus-servicos"

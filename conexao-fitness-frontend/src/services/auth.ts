@@ -1,6 +1,14 @@
 import { apiRequest } from "@/lib/apiClient";
 import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from "@/lib/apiConfig";
-import type { AuthResponse, AuthUser, LoginDto, RegisterDto } from "@/types/api";
+import type {
+  AuthResponse,
+  AuthUser,
+  LoginDto,
+  RegisterDto,
+  RegisterResponse,
+  VerifyEmailDto,
+  ResetPasswordDto,
+} from "@/types/api";
 
 export function persistSession(res: AuthResponse) {
   localStorage.setItem(AUTH_TOKEN_KEY, res.accessToken);
@@ -28,10 +36,41 @@ export async function login(dto: LoginDto): Promise<AuthResponse> {
   return res;
 }
 
-export async function register(dto: RegisterDto): Promise<AuthResponse> {
-  const res = await apiRequest<AuthResponse>("/auth/register", { method: "POST", body: dto });
-  persistSession(res);
+export async function register(dto: RegisterDto): Promise<RegisterResponse> {
+  const res = await apiRequest<RegisterResponse>("/auth/register", { method: "POST", body: dto });
+  if ("accessToken" in res && res.accessToken) {
+    persistSession(res);
+  }
   return res;
+}
+
+export async function verifyEmail(dto: VerifyEmailDto): Promise<AuthResponse> {
+  const res = await apiRequest<AuthResponse>("/auth/verify-email", { method: "POST", body: dto });
+  if (res && res.accessToken) {
+    persistSession(res);
+  }
+  return res;
+}
+
+export async function resendVerificationCode(email: string): Promise<{ success: boolean; message: string }> {
+  return apiRequest<{ success: boolean; message: string }>("/auth/resend-verification-code", {
+    method: "POST",
+    body: { email },
+  });
+}
+
+export async function forgotPassword(email: string): Promise<{ success: boolean; message: string }> {
+  return apiRequest<{ success: boolean; message: string }>("/auth/forgot-password", {
+    method: "POST",
+    body: { email },
+  });
+}
+
+export async function resetPassword(dto: ResetPasswordDto): Promise<{ success: boolean; message: string }> {
+  return apiRequest<{ success: boolean; message: string }>("/auth/reset-password", {
+    method: "POST",
+    body: dto,
+  });
 }
 
 export async function oauthLogin(dto: import("@/types/api").OAuthDto): Promise<AuthResponse | import("@/types/api").OAuthPendingResponse> {

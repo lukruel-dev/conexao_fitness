@@ -130,6 +130,7 @@ export class UsersService implements OnApplicationBootstrap {
       passwordHash: hashedPassword,
       role: dto.role,
       status: (dto.role === 'STUDENT' || dto.role === 'ADMIN') ? 'ATIVO' : 'PENDENTE_KYC',
+      isEmailVerified: dto.role === 'ADMIN',
       cpf: dto.cpf || dto.cnpj,
       phone: dto.phone,
       avatarUrl: dto.avatarUrl,

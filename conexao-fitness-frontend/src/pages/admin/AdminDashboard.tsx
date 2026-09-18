@@ -12,6 +12,7 @@ import {
   User,
   Eye,
   CheckCircle2,
+  Utensils,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -151,32 +152,32 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {/* Card 1: ACADEMIA */}
-            <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/[0.03] hover:bg-emerald-500/[0.06] transition-all p-6 flex flex-col justify-between shadow-sm hover:shadow-md">
-              <div className="space-y-4">
+            <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/[0.03] hover:bg-emerald-500/[0.06] transition-all p-5 flex flex-col justify-between shadow-sm hover:shadow-md">
+              <div className="space-y-3.5">
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
-                    <Building2 className="w-6 h-6" />
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
+                    <Building2 className="w-5 h-5" />
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
-                    Academia Demo
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                    Academia Prime
                   </span>
                 </div>
 
                 <div>
-                  <h3 className="font-display font-bold text-lg text-foreground">
+                  <h3 className="font-display font-bold text-base text-foreground">
                     Olhar como Academia
                   </h3>
                   <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                    Acesse a gestão da academia com catraca digital, validador de QR Code, cadastro de planos de matrícula e atendimento no balcão.
+                    Gestão da academia com catraca digital, validador de QR Code, cadastro de planos e atendimento no balcão.
                   </p>
                 </div>
 
                 <div className="space-y-1.5 pt-2 border-t border-border/50 text-xs text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <span>Catraca Digital & Leitor Óptico QR</span>
+                    <span>Catraca & Validador de QR Code</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
@@ -184,18 +185,18 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <span>Matrícula Manual com envio por WhatsApp</span>
+                    <span>Matrícula Manual c/ WhatsApp</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <span>Histórico de Passagens com Fotos</span>
+                    <span>Histórico de Passagens c/ Fotos</span>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-6">
+              <div className="pt-5">
                 <Button
-                  className="w-full rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white gap-2 shadow-sm"
+                  className="w-full rounded-2xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white gap-2 shadow-sm text-xs h-10"
                   onClick={() => {
                     startImpersonation('ACADEMIA');
                     navigate('/gestao-academia');
@@ -206,104 +207,158 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Card 2: PERSONAL */}
-            <div className="rounded-3xl border border-purple-500/30 bg-purple-500/[0.03] hover:bg-purple-500/[0.06] transition-all p-6 flex flex-col justify-between shadow-sm hover:shadow-md">
-              <div className="space-y-4">
+            {/* Card 2: PERSONAL TRAINER */}
+            <div className="rounded-3xl border border-purple-500/30 bg-purple-500/[0.03] hover:bg-purple-500/[0.06] transition-all p-5 flex flex-col justify-between shadow-sm hover:shadow-md">
+              <div className="space-y-3.5">
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold">
-                    <Dumbbell className="w-6 h-6" />
+                  <div className="w-11 h-11 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold">
+                    <Dumbbell className="w-5 h-5" />
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-500/15 text-purple-500 border border-purple-500/30">
-                    Profissional Demo
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-500/15 text-purple-400 border border-purple-500/30">
+                    CREF 045812-G
                   </span>
                 </div>
 
                 <div>
-                  <h3 className="font-display font-bold text-lg text-foreground">
-                    Olhar como Profissional
+                  <h3 className="font-display font-bold text-base text-foreground">
+                    Lucas Silva (Personal)
                   </h3>
                   <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                    Experimente a rotina do Personal Trainer ou Nutricionista: agenda de aulas, serviços, alunos vinculados e carteira financeira.
+                    Rotina real do Personal Trainer: prescrição de treinos, agenda de aulas, alunos e carteira de recebimentos.
                   </p>
                 </div>
 
                 <div className="space-y-1.5 pt-2 border-t border-border/50 text-xs text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                    <span>Agenda Profissional & Aulas</span>
+                    <span>Prescrição Inteligente de Treinos</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                    <span>Cadastro de Serviços & Consultorias</span>
+                    <span>Agenda de Aulas & Horários</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                    <span>Gestão e Acompanhamento de Alunos</span>
+                    <span>Acompanhamento de Alunos</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-purple-500 shrink-0" />
-                    <span>Carteira de Recebimentos & Saque</span>
+                    <span>Carteira de Recebimentos</span>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-6">
+              <div className="pt-5">
                 <Button
-                  className="w-full rounded-2xl font-bold bg-purple-600 hover:bg-purple-500 text-white gap-2 shadow-sm"
+                  className="w-full rounded-2xl font-bold bg-purple-600 hover:bg-purple-500 text-white gap-2 shadow-sm text-xs h-10"
                   onClick={() => {
                     startImpersonation('PERSONAL');
                     navigate('/agenda-profissional');
                   }}
                 >
-                  <Eye className="w-4 h-4" /> Entrar como Profissional
+                  <Eye className="w-4 h-4" /> Entrar como Personal
                 </Button>
               </div>
             </div>
 
-            {/* Card 3: STUDENT */}
-            <div className="rounded-3xl border border-blue-500/30 bg-blue-500/[0.03] hover:bg-blue-500/[0.06] transition-all p-6 flex flex-col justify-between shadow-sm hover:shadow-md">
-              <div className="space-y-4">
+            {/* Card 3: NUTRICIONISTA */}
+            <div className="rounded-3xl border border-teal-500/30 bg-teal-500/[0.03] hover:bg-teal-500/[0.06] transition-all p-5 flex flex-col justify-between shadow-sm hover:shadow-md">
+              <div className="space-y-3.5">
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
-                    <User className="w-6 h-6" />
+                  <div className="w-11 h-11 rounded-2xl bg-teal-500/10 text-teal-400 flex items-center justify-center font-bold">
+                    <Utensils className="w-5 h-5" />
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-500/15 text-blue-500 border border-blue-500/30">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-teal-500/15 text-teal-400 border border-teal-500/30">
+                    CRN-3 48190-D
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="font-display font-bold text-base text-foreground">
+                    Dra. Camila (Nutricionista)
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    Rotina da Nutricionista Esportiva: prescrição de planos alimentares, cálculo de macros, bioimpedância e consultas.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 pt-2 border-t border-border/50 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                    <span>Prescrição de Dietas & Macros</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                    <span>Agenda de Consultas Nutricionais</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                    <span>Avaliação & Bioimpedância</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                    <span>Carteira de Consultas</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-5">
+                <Button
+                  className="w-full rounded-2xl font-bold bg-teal-600 hover:bg-teal-500 text-white gap-2 shadow-sm text-xs h-10"
+                  onClick={() => {
+                    startImpersonation('NUTRICIONISTA');
+                    navigate('/agenda-profissional');
+                  }}
+                >
+                  <Eye className="w-4 h-4" /> Entrar como Nutri
+                </Button>
+              </div>
+            </div>
+
+            {/* Card 4: STUDENT */}
+            <div className="rounded-3xl border border-blue-500/30 bg-blue-500/[0.03] hover:bg-blue-500/[0.06] transition-all p-5 flex flex-col justify-between shadow-sm hover:shadow-md">
+              <div className="space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="w-11 h-11 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-500/15 text-blue-500 border border-blue-500/30">
                     Aluno Demo
                   </span>
                 </div>
 
                 <div>
-                  <h3 className="font-display font-bold text-lg text-foreground">
-                    Olhar como Aluno
+                  <h3 className="font-display font-bold text-base text-foreground">
+                    Gabriel Souza (Aluno)
                   </h3>
                   <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                    Vivencie a experiência completa do aluno: passe digital dinâmico com QR Code para catraca, carteira Finex com saldo e treinos.
+                    Experiência completa do aluno: passe QR na catraca, treinos A/B, plano alimentar, smartwatch e carteira.
                   </p>
                 </div>
 
                 <div className="space-y-1.5 pt-2 border-t border-border/50 text-xs text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                    <span>Passe Digital com QR Code Dinâmico</span>
+                    <span>Passe Digital c/ QR Dinâmico</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                    <span>Carteira Finex (Saldo de R$ 180,00)</span>
+                    <span>Treinos A/B & Telemetria Relógio</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                    <span>Meus Treinos & Agendamentos</span>
+                    <span>Plano Alimentar da Nutricionista</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                    <span>Busca & Contratação de Planos</span>
+                    <span>Carteira Finex (Saldo R$ 180)</span>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-6">
+              <div className="pt-5">
                 <Button
-                  className="w-full rounded-2xl font-bold bg-blue-600 hover:bg-blue-500 text-white gap-2 shadow-sm"
+                  className="w-full rounded-2xl font-bold bg-blue-600 hover:bg-blue-500 text-white gap-2 shadow-sm text-xs h-10"
                   onClick={() => {
                     startImpersonation('STUDENT');
                     navigate('/minhas-matriculas');
