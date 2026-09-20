@@ -687,9 +687,10 @@ export default function GestaoAcademia() {
     const gymName = user?.name || 'Academia';
 
     // Link direto para cadastro com preenchimento automático
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://finex.net.br';
     const registerUrl = studentEmail
-      ? `https://conexao-fitness-web.onrender.com/cadastro?email=${encodeURIComponent(studentEmail)}&name=${encodeURIComponent(studentName)}&redirect=/minhas-matriculas`
-      : 'https://conexao-fitness-web.onrender.com/cadastro?redirect=/minhas-matriculas';
+      ? `${baseUrl}/cadastro?email=${encodeURIComponent(studentEmail)}&name=${encodeURIComponent(studentName)}&redirect=/minhas-matriculas`
+      : `${baseUrl}/cadastro?redirect=/minhas-matriculas`;
 
     const message = `Olá, *${studentName}*! 👋 Tudo bem?
 Sua matrícula na academia *${gymName}* foi confirmada com sucesso! 🏋️‍♂️✨

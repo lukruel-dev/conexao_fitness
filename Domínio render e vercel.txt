@@ -1,0 +1,40 @@
+Ótimo. Uma dúvida, posso hospedar aquele domínio adquirido na HostGator na render ou vercel?
+12:27 AM
+Sim, com certeza! Na verdade, essa é a melhor prática e o padrão de mercado.
+
+Existe uma diferença fundamental entre onde você comprou o nome e onde o sistema realmente roda:
+
+[ HostGator ]                           [ Render ou Vercel ]
+ Registrador do Domínio                     Hospedagem da Aplicação
+ (Dono do nome "finex.net.br")      ----->  (Onde o código e o site rodam)
+           │                                           ▲
+           └──────── Apontamento de DNS (CNAME/A) ─────┘
+Você não precisa pagar plano de hospedagem na HostGator; você só precisa do registro do domínio lá. Na HostGator, você apenas configura a "Zona de DNS" para apontar para a Render ou para a Vercel.
+
+Qual escolher para o Conexão Fitness: Render ou Vercel?
+Como o seu projeto possui Frontend (React/Vite) e Backend (NestJS com Docker), você tem duas excelentes opções:
+
+Opção 1: Tudo no Render (Mais Simples de Gerenciar)
+O seu projeto já possui o arquivo 
+
+render.yaml
+ configurado para subir tanto o frontend quanto o backend.
+
+Frontend: você aponta finex.net.br e www.finex.net.br para o serviço do Render.
+Backend (API): você aponta api.finex.net.br para o serviço backend no Render.
+Vantagem: Gerencia tudo (frontend e backend) em um único painel e uma única conta.
+
+Opção 2: Frontend na Vercel + Backend no Render (Máxima Performance)
+Frontend na Vercel: A Vercel possui servidores de borda (Edge CDN) no Brasil (São Paulo), o que faz o carregamento do aplicativo web no celular abrir de forma quase instantânea.
+Backend no Render: O Render hospeda o servidor NestJS (Docker) que se conecta ao Supabase.
+Vantagem: A experiência visual de navegação do usuário fica ultrarrápida.
+Como fazer o apontamento na HostGator (em 3 passos):
+Independentemente de escolher Render ou Vercel, o procedimento é o mesmo:
+
+No Render ou Vercel:
+Adicione o domínio finex.net.br e www.finex.net.br na aba Domains das configurações.
+O painel exibirá exatamente os registros de DNS necessários (um registro A com um IP e um CNAME).
+Na HostGator:
+Acesse o portal da HostGator > Domínios > Zona de DNS (ou cPanel).
+Insira o registro A apontando para o IP indicado, e o CNAME (www) apontando para o endereço fornecido.
+Pronto! Em poucos minutos o domínio passa a abrir a sua aplicação com certificado SSL (HTTPS) ativado gratuitamente.

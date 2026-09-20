@@ -1,8 +1,7 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "https://conexao-fitness.onrender.com";
+import { API_BASE_URL } from "@/lib/apiConfig";
 
 export default defineTool({
   name: "search_services",
