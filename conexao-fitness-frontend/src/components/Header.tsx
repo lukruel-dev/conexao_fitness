@@ -1,7 +1,7 @@
 import FinexLogo from "@/components/FinexLogo";
 import { Button } from "@/components/ui/button";
 import { LogOut, Menu, X, Building2, Dumbbell, User, Eye, ChevronDown, ShieldCheck, Utensils } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import NotificationsBell from "@/components/NotificationsBell";
@@ -22,6 +22,33 @@ const Header = () => {
   const { user, isAuthenticated, logout, startImpersonation } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+
+    const updateHeight = () => {
+      const rect = el.getBoundingClientRect();
+      if (rect.height > 0) {
+        document.documentElement.style.setProperty('--app-header-height', `${Math.round(rect.height)}px`);
+      }
+    };
+
+    updateHeight();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateHeight();
+    });
+
+    resizeObserver.observe(el);
+    window.addEventListener('resize', updateHeight);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateHeight);
+    };
+  }, [user, isMenuOpen, location.pathname]);
 
   const isAdminRoute = location.pathname.startsWith('/admin');
 
@@ -34,7 +61,7 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-lg border-b border-border/50 pt-[env(safe-area-inset-top,0px)]">
+    <header ref={headerRef} className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-lg border-b border-border/50 pt-[env(safe-area-inset-top,0px)]">
       <AdminImpersonationBanner isInsideHeader />
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">

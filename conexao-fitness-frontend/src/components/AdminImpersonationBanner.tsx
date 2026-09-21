@@ -102,23 +102,23 @@ export const AdminImpersonationBanner: React.FC<AdminImpersonationBannerProps> =
   const CurrentIcon = roleMeta.icon;
 
   const containerClasses = isInsideHeader
-    ? "w-full bg-card/95 backdrop-blur-md border-b border-primary/30 shadow-sm px-3 sm:px-4 py-1.5 sm:py-2 text-xs transition-all animate-fade-in"
-    : "fixed top-0 left-0 right-0 z-[100] bg-card/95 backdrop-blur-md border-b border-primary/30 shadow-lg px-3 sm:px-4 py-1.5 sm:py-2 text-xs transition-all animate-fade-in";
+    ? "w-full bg-card/95 backdrop-blur-md border-b border-primary/30 shadow-sm px-2.5 sm:px-4 py-1 sm:py-1.5 text-xs transition-all animate-fade-in"
+    : "fixed top-0 left-0 right-0 z-[100] bg-card/95 backdrop-blur-md border-b border-primary/30 shadow-lg px-2.5 sm:px-4 py-1 sm:py-1.5 text-xs transition-all animate-fade-in";
 
   return (
     <div className={containerClasses}>
-      <div className="container mx-auto flex flex-wrap items-center justify-between gap-2.5">
+      <div className="container mx-auto flex flex-wrap items-center justify-between gap-1.5 sm:gap-2.5">
         {/* Identificação do Modo de Teste */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border bg-primary/10 border-primary/30 font-bold text-primary">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full border bg-primary/10 border-primary/30 font-bold text-primary text-[10px] sm:text-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             <span>MODO DE TESTE</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground hidden sm:inline">Visualizando como:</span>
-            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border font-bold ${roleMeta.color}`}>
-              <CurrentIcon className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-muted-foreground hidden sm:inline text-xs">Visualizando como:</span>
+            <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xl border font-bold text-[11px] sm:text-xs ${roleMeta.color}`}>
+              <CurrentIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span>{roleMeta.label}</span>
             </div>
           </div>
@@ -142,12 +142,12 @@ export const AdminImpersonationBanner: React.FC<AdminImpersonationBannerProps> =
         </div>
 
         {/* Controles: Trocar Perfil de Teste & Voltar ao Admin */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 rounded-xl text-xs font-semibold gap-1 px-2.5 border-border/80">
+              <Button variant="outline" size="sm" className="h-7 sm:h-8 rounded-xl text-[11px] sm:text-xs font-semibold gap-1 px-2 sm:px-2.5 border-border/80">
                 <span>Alternar Perfil</span>
-                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                <ChevronDown className="w-3 h-3 opacity-60" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 p-1.5 rounded-2xl shadow-xl">

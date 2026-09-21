@@ -215,15 +215,20 @@
   display: none !important;
 }
 
+:root {
+  --app-header-height: 4.5rem;
+}
+
 /* Compensação de espaçamento quando a barra de simulação (Modo de Teste) estiver ativa */
 html.has-impersonation main,
 body.has-impersonation main {
-  padding-top: calc(7.5rem + env(safe-area-inset-top, 0px)) !important;
+  padding-top: calc(var(--app-header-height, 12rem) + 1.25rem) !important;
 }
 
 @media (min-width: 768px) {
   html.has-impersonation main,
   body.has-impersonation main {
-    padding-top: calc(8.5rem + env(safe-area-inset-top, 0px)) !important;
+    padding-top: calc(var(--app-header-height, 6rem) + 1.5rem) !important;
   }
 }
+

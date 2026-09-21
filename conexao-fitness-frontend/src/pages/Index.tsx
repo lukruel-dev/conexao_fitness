@@ -140,13 +140,7 @@ const Index: React.FC = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && fetchFeed()}
-                    onFocus={(e) => {
-                      // Garante que o teclado móvel não cubra o campo ao subir
-                      setTimeout(() => {
-                        e.target.scrollIntoView({ behavior: "smooth", block: "center" });
-                      }, 250);
-                    }}
-                    className="pl-10 h-10 text-xs sm:text-sm rounded-xl bg-background/80 border-border/80 scroll-mt-32"
+                    className="pl-10 h-10 text-xs sm:text-sm rounded-xl bg-background/80 border-border/80"
                   />
                   {searchQuery && (
                     <button
