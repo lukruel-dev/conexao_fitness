@@ -634,40 +634,66 @@ export class WalletService {
 
   async hirePlan(studentId: string, dto: {
     providerId: string;
-    serviceId?: string;
+    serviceId: string;
     planName: string;
     amount: number;
     paymentMethod?: string;
+    installments?: number;
   }) {
     const amount = Number(dto.amount);
     if (isNaN(amount) || amount <= 0) {
       throw new BadRequestException('Valor do plano inválido');
     }
 
-    const studentBalance = await this.getMyBalance(studentId);
-    if (studentBalance.current_balance < amount) {
-      throw new BadRequestException(
-        `Saldo insuficiente na carteira. Disponível: R$ ${studentBalance.current_balance.toFixed(2)} - Necessário: R$ ${amount.toFixed(2)}`
-      );
+    const installments = dto.installments && dto.installments > 1 ? dto.installments : 1;
+    const installmentText = installments > 1
+      ? ` (${installments}x de R$ ${(amount / installments).toFixed(2)})`
+      : '';
+
+    const isWallet = !dto.paymentMethod || dto.paymentMethod === 'WALLET' || dto.paymentMethod === 'FINEX_WALLET';
+
+    let newStudentBalance = 0;
+
+    if (isWallet) {
+      const studentBalance = await this.getMyBalance(studentId);
+      if (studentBalance.current_balance < amount) {
+        throw new BadRequestException(
+          `Saldo insuficiente na carteira. Disponível: R$ ${studentBalance.current_balance.toFixed(2)} - Necessário: R$ ${amount.toFixed(2)}`
+        );
+      }
+
+      // 1. Debita do saldo do aluno
+      newStudentBalance = await this.deductBalance(studentId, amount);
+
+      // 2. Credita no saldo do profissional
+      await this.addBalance(dto.providerId, amount, { type: 'AVAILABLE' });
+
+      // 3. Registra débito no extrato do aluno
+      await this.recordTransaction({
+        userId: studentId,
+        type: 'DEBIT',
+        amount: amount,
+        description: `Contratação de Plano: ${dto.planName}${installmentText}`,
+        targetUserId: dto.providerId,
+        referenceType: 'PLAN',
+        referenceId: dto.serviceId,
+        paymentMethod: 'FINEX_WALLET',
+      });
+    } else {
+      // Pagamento com Cartão de Crédito ou PIX
+      await this.addBalance(dto.providerId, amount, { type: 'AVAILABLE' });
+
+      await this.recordTransaction({
+        userId: studentId,
+        type: 'DEBIT',
+        amount: amount,
+        description: `Contratação de Plano: ${dto.planName}${installmentText}`,
+        targetUserId: dto.providerId,
+        referenceType: 'PLAN',
+        referenceId: dto.serviceId,
+        paymentMethod: dto.paymentMethod === 'STRIPE' ? 'CREDIT_CARD' : dto.paymentMethod,
+      });
     }
-
-    // 1. Debita do saldo do aluno
-    const newStudentBalance = await this.deductBalance(studentId, amount);
-
-    // 2. Credita no saldo do profissional
-    await this.addBalance(dto.providerId, amount, { type: 'AVAILABLE' });
-
-    // 3. Registra débito no extrato do aluno
-    await this.recordTransaction({
-      userId: studentId,
-      type: 'DEBIT',
-      amount: amount,
-      description: `Contratação de Plano: ${dto.planName}`,
-      targetUserId: dto.providerId,
-      referenceType: 'PLAN',
-      referenceId: dto.serviceId,
-      paymentMethod: 'FINEX_WALLET',
-    });
 
     // 4. Registra crédito no extrato do profissional com dados do aluno
     const student = await this.userRepo.findOne({ where: { id: studentId } });
@@ -675,19 +701,20 @@ export class WalletService {
       userId: dto.providerId,
       type: 'CREDIT',
       amount: amount,
-      description: `Novo Aluno - Plano Contratado: ${dto.planName}`,
+      description: `Novo Aluno - Plano Contratado: ${dto.planName}${installmentText}`,
       sourceUserId: studentId,
       sourceUserName: student?.name,
       sourceUserAvatar: student?.avatarUrl,
       referenceType: 'PLAN',
       referenceId: dto.serviceId,
-      paymentMethod: 'FINEX_WALLET',
+      paymentMethod: isWallet ? 'FINEX_WALLET' : (dto.paymentMethod === 'STRIPE' ? 'CREDIT_CARD' : dto.paymentMethod),
     });
 
     return {
       success: true,
-      message: 'Plano contratado com sucesso!',
+      message: `Plano contratado com sucesso!${installmentText}`,
       new_balance: newStudentBalance,
+      installments,
     };
   }
 }

@@ -515,3 +515,38 @@ export async function simulateTopupSuccess(paymentIntentId: string): Promise<Sim
     method: "POST",
   });
 }
+
+export interface HirePlanDto {
+  providerId: string;
+  serviceId: string;
+  planName: string;
+  amount: number;
+  paymentMethod?: string;
+  installments?: number;
+}
+
+export async function hirePlanWithWallet(dto: HirePlanDto): Promise<any> {
+  try {
+    const res = await apiRequest<any>("/wallet/hire-plan", {
+      method: "POST",
+      body: dto,
+    });
+    if (res?.new_balance !== undefined) {
+      saveLocalWallet({ current_balance: res.new_balance });
+    }
+    return res;
+  } catch (err: any) {
+    const current = getLocalWallet();
+    const isWallet = !dto.paymentMethod || dto.paymentMethod === 'WALLET' || dto.paymentMethod === 'FINEX_WALLET';
+    if (isWallet) {
+      if (current.current_balance < dto.amount) {
+        throw new Error(`Saldo insuficiente na carteira. Disponível: R$ ${current.current_balance.toFixed(2)} - Necessário: R$ ${dto.amount.toFixed(2)}`);
+      }
+      const newBalance = Math.max(0, current.current_balance - dto.amount);
+      saveLocalWallet({ current_balance: newBalance });
+      return { success: true, new_balance: newBalance };
+    }
+    return { success: true, message: 'Plano contratado com sucesso!' };
+  }
+}
+

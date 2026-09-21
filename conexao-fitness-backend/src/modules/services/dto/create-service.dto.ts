@@ -58,4 +58,12 @@ export class CreateServiceDto {
   @IsOptional()
   @IsNumber()
   maxStudents?: number;
+
+  @IsOptional()
+  @IsNumber()
+  maxInstallments?: number;
+
+  @IsOptional()
+  @IsNumber()
+  durationMonths?: number;
 }

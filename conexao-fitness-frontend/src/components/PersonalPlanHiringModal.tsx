@@ -72,6 +72,48 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
   const hasEnoughBalance = currentBalance >= planPriceNum;
   const missingBalance = Math.max(0, planPriceNum - currentBalance);
 
+  // Calcula o número máximo de parcelas permitido para o plano
+  const maxInstallments =
+    plan?.maxInstallments ||
+    (plan?.recurrence === 'ANNUAL'
+      ? 12
+      : plan?.recurrence === 'SEMIANNUAL'
+      ? 6
+      : plan?.recurrence === 'QUARTERLY'
+      ? 3
+      : planPriceNum >= 1000
+      ? 12
+      : planPriceNum >= 300
+      ? 3
+      : 1);
+
+  const [selectedInstallments, setSelectedInstallments] = useState<number>(() => {
+    return maxInstallments > 1 ? maxInstallments : 1;
+  });
+
+  // Atualiza as parcelas selecionadas caso o plano mude
+  React.useEffect(() => {
+    if (maxInstallments > 1) {
+      setSelectedInstallments(maxInstallments);
+    } else {
+      setSelectedInstallments(1);
+    }
+  }, [maxInstallments]);
+
+  // Opções de parcelamento para exibição no Cartão de Crédito
+  const installmentOptions = Array.from({ length: maxInstallments }, (_, i) => {
+    const count = i + 1;
+    const installmentAmount = planPriceNum / count;
+    return {
+      count,
+      amount: installmentAmount,
+      label:
+        count === 1
+          ? `1x de ${formatBRL(planPriceNum)} (à vista)`
+          : `${count}x de ${formatBRL(installmentAmount)} sem juros`,
+    };
+  });
+
   const hireMutation = useMutation({
     mutationFn: async () => {
       return hirePlanWithWallet({
@@ -80,6 +122,7 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
         planName: plan!.name,
         amount: planPriceNum,
         paymentMethod,
+        installments: paymentMethod === 'STRIPE' ? selectedInstallments : 1,
       });
     },
     onSuccess: () => {
@@ -100,6 +143,8 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
           professionalName: professional.name,
           professionalAvatar: professional.avatarUrl,
           price: planPriceNum,
+          installments: paymentMethod === 'STRIPE' ? selectedInstallments : 1,
+          paymentMethod,
           modality: plan!.modality,
           hiredAt: new Date().toISOString(),
           status: 'ACTIVE',
@@ -126,11 +171,11 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
 
   const recurrenceLabel =
     plan.recurrence === 'ANNUAL'
-      ? 'ao ano'
+      ? 'ao ano (12 meses)'
       : plan.recurrence === 'SEMIANNUAL'
-      ? 'ao semestre'
+      ? 'ao semestre (6 meses)'
       : plan.recurrence === 'QUARTERLY'
-      ? 'ao trimestre'
+      ? 'ao trimestre (3 meses)'
       : 'ao mês';
 
   const handleConfirmHiring = () => {
@@ -212,6 +257,16 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
                   </span>
                 </div>
               </div>
+
+              {/* Destaque de parcelamento sem juros */}
+              {maxInstallments > 1 && (
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-500 bg-emerald-500/10 px-3 py-2 rounded-xl border border-emerald-500/20">
+                  <CreditCard className="w-4 h-4 shrink-0" />
+                  <span>
+                    Ou em até <strong>{maxInstallments}x de {formatBRL(planPriceNum / maxInstallments)}</strong> sem juros no cartão
+                  </span>
+                </div>
+              )}
 
               {plan.description && (
                 <p className="text-xs text-foreground/85 leading-relaxed border-t border-border/40 pt-2">
@@ -296,29 +351,64 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
                   )}
                 </div>
 
-                {/* Opção 2: Cartão de Crédito Instantâneo */}
+                {/* Opção 2: Cartão de Crédito Instantâneo com Parcelamento */}
                 <div
-                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer space-y-3 ${
                     paymentMethod === 'STRIPE'
                       ? 'border-primary bg-primary/5 ring-1 ring-primary/40'
                       : 'border-border/70 hover:bg-muted/30'
                   }`}
                   onClick={() => setPaymentMethod('STRIPE')}
                 >
-                  <div className="flex items-center gap-3">
-                    <RadioGroupItem value="STRIPE" id="hire-pay-stripe" />
-                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <CreditCard className="w-4 h-4" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <RadioGroupItem value="STRIPE" id="hire-pay-stripe" />
+                      <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <CreditCard className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <Label htmlFor="hire-pay-stripe" className="font-bold text-sm cursor-pointer block">
+                          Cartão de Crédito
+                        </Label>
+                        <span className="text-[11px] text-muted-foreground">
+                          {maxInstallments > 1
+                            ? `Parcele em até ${maxInstallments}x sem juros`
+                            : 'Aprovação imediata & liberação da ficha de treino'}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="hire-pay-stripe" className="font-bold text-sm cursor-pointer block">
-                        Cartão de Crédito
-                      </Label>
-                      <span className="text-[11px] text-muted-foreground">
-                        Aprovação imediata & liberação da ficha de treino
+                    {maxInstallments > 1 && (
+                      <span className="text-[10px] font-extrabold bg-emerald-500/15 text-emerald-500 px-2 py-0.5 rounded-md shrink-0">
+                        Até {maxInstallments}x
                       </span>
-                    </div>
+                    )}
                   </div>
+
+                  {/* Seletor de Parcelas */}
+                  {paymentMethod === 'STRIPE' && maxInstallments > 1 && (
+                    <div
+                      className="pt-2 border-t border-border/50 space-y-1.5"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-bold text-foreground">
+                          Selecione o número de parcelas:
+                        </span>
+                        <span className="text-emerald-500 font-semibold">Sem juros</span>
+                      </div>
+                      <select
+                        value={selectedInstallments}
+                        onChange={(e) => setSelectedInstallments(Number(e.target.value))}
+                        className="w-full h-10 px-3 text-xs rounded-xl bg-background border border-border font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                      >
+                        {installmentOptions.map((opt) => (
+                          <option key={opt.count} value={opt.count}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
 
                 {/* Opção 3: PIX Instantâneo */}
@@ -368,6 +458,10 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
                 {hireMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" /> Processando Contratação...
+                  </>
+                ) : paymentMethod === 'STRIPE' && selectedInstallments > 1 ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" /> Confirmar & Contratar ({selectedInstallments}x de {formatBRL(planPriceNum / selectedInstallments)})
                   </>
                 ) : (
                   <>
@@ -481,8 +575,24 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
             </DialogDescription>
           </div>
 
-          <div className="p-4 rounded-2xl bg-muted/40 border border-border/60 text-left space-y-2 text-xs">
-            <p className="font-bold text-foreground flex items-center gap-1.5">
+          <div className="p-4 rounded-2xl bg-muted/40 border border-border/60 text-left space-y-2.5 text-xs">
+            <div className="flex items-center justify-between border-b border-border/40 pb-2">
+              <span className="text-muted-foreground font-semibold">Forma de Pagamento:</span>
+              <span className="font-bold text-foreground">
+                {paymentMethod === 'STRIPE'
+                  ? `Cartão de Crédito (${selectedInstallments}x de ${formatBRL(planPriceNum / selectedInstallments)})`
+                  : paymentMethod === 'PIX'
+                  ? 'Pix Instantâneo'
+                  : 'Saldo da Carteira Finex'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between border-b border-border/40 pb-2">
+              <span className="text-muted-foreground font-semibold">Valor Total:</span>
+              <span className="font-black text-secondary text-sm">
+                {formatBRL(planPriceNum)}
+              </span>
+            </div>
+            <p className="font-bold text-foreground flex items-center gap-1.5 pt-1">
               <Sparkles className="w-4 h-4 text-primary" /> Próximos Passos:
             </p>
             <ul className="space-y-1 text-muted-foreground text-[11px]">

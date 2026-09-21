@@ -58,6 +58,8 @@ export interface Service {
   format?: "ONLINE" | "PRESENCIAL" | "HIBRIDO" | string;
   benefits?: string[];
   maxStudents?: number;
+  maxInstallments?: number;
+  durationMonths?: number;
   createdAt: string;
   updatedAt: string;
   // Campos enriquecidos no frontend (futuro: endpoint que já entrega)

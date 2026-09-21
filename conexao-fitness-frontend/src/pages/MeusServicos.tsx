@@ -128,6 +128,7 @@ export default function MeusServicos() {
   const [planName, setPlanName] = useState("");
   const [planModality, setPlanModality] = useState(() => isNutri ? "Nutrição" : "Musculação");
   const [planRecurrence, setPlanRecurrence] = useState("MONTHLY");
+  const [planMaxInstallments, setPlanMaxInstallments] = useState("1");
   const [planFormat, setPlanFormat] = useState("ONLINE");
   const [planPrice, setPlanPrice] = useState("");
   const [planDescription, setPlanDescription] = useState("");
@@ -374,6 +375,8 @@ export default function MeusServicos() {
       format: planFormat,
       price: planPrice.replace(",", "."),
       durationMinutes: planRecurrence === "ANNUAL" ? 525600 : planRecurrence === "SEMIANNUAL" ? 259200 : planRecurrence === "QUARTERLY" ? 129600 : 43200,
+      durationMonths: planRecurrence === "ANNUAL" ? 12 : planRecurrence === "SEMIANNUAL" ? 6 : planRecurrence === "QUARTERLY" ? 3 : 1,
+      maxInstallments: parseInt(planMaxInstallments, 10) || 1,
       benefits: planSelectedBenefits,
       maxStudents: parseInt(planMaxStudents, 10) || 20,
       isActive: true,
@@ -662,15 +665,24 @@ export default function MeusServicos() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-1.5">
                         <label className="text-xs font-bold text-foreground">Recorrência / Período</label>
-                        <Select value={planRecurrence} onValueChange={setPlanRecurrence}>
+                        <Select
+                          value={planRecurrence}
+                          onValueChange={(val) => {
+                            setPlanRecurrence(val);
+                            if (val === 'ANNUAL') setPlanMaxInstallments('12');
+                            else if (val === 'SEMIANNUAL') setPlanMaxInstallments('6');
+                            else if (val === 'QUARTERLY') setPlanMaxInstallments('3');
+                            else setPlanMaxInstallments('1');
+                          }}
+                        >
                           <SelectTrigger className="rounded-xl">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="MONTHLY">Mensal (30 dias)</SelectItem>
-                            <SelectItem value="QUARTERLY">Trimestral (3 meses)</SelectItem>
-                            <SelectItem value="SEMIANNUAL">Semestral (6 meses)</SelectItem>
-                            <SelectItem value="ANNUAL">Anual (12 meses)</SelectItem>
+                            <SelectItem value="MONTHLY">Mensal (30 dias de acompanhamento)</SelectItem>
+                            <SelectItem value="QUARTERLY">Trimestral (3 meses de acompanhamento)</SelectItem>
+                            <SelectItem value="SEMIANNUAL">Semestral (6 meses de acompanhamento)</SelectItem>
+                            <SelectItem value="ANNUAL">Anual (12 meses de acompanhamento)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -680,7 +692,7 @@ export default function MeusServicos() {
                         <Input
                           type="number"
                           step="0.01"
-                          placeholder="Ex: 180.00"
+                          placeholder="Ex: 180.00 ou 600.00"
                           value={planPrice}
                           onChange={(e) => setPlanPrice(e.target.value)}
                           required
@@ -688,6 +700,48 @@ export default function MeusServicos() {
                         />
                       </div>
                     </div>
+
+                    {/* Parcelamento no Cartão de Crédito */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-foreground">
+                          Parcelamento Máximo no Cartão de Crédito
+                        </label>
+                        <span className="text-[10px] font-extrabold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                          Sem Juros para o Aluno
+                        </span>
+                      </div>
+                      <Select value={planMaxInstallments} onValueChange={setPlanMaxInstallments}>
+                        <SelectTrigger className="rounded-xl font-semibold">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1x (Somente à vista)</SelectItem>
+                          <SelectItem value="2">Até 2x sem juros</SelectItem>
+                          <SelectItem value="3">Até 3x sem juros (Ideal para Trimestral / 3 Meses)</SelectItem>
+                          <SelectItem value="6">Até 6x sem juros (Ideal para Semestral / 6 Meses)</SelectItem>
+                          <SelectItem value="10">Até 10x sem juros</SelectItem>
+                          <SelectItem value="12">Até 12x sem juros (Ideal para Anual / 12 Meses)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Preview em Tempo Real de Como o Aluno Verá o Plano */}
+                    {Number(planPrice) > 0 && (
+                      <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1">
+                        <span className="font-bold text-emerald-500 flex items-center gap-1.5">
+                          <CreditCard className="w-4 h-4" /> Visualização do Aluno:
+                        </span>
+                        <p className="text-foreground/90 font-medium">
+                          Valor total: <strong>R$ {Number(planPrice).toFixed(2)}</strong>
+                          {Number(planMaxInstallments) > 1 && (
+                            <span>
+                              {' '}ou até <strong>{planMaxInstallments}x de R$ {(Number(planPrice) / Number(planMaxInstallments)).toFixed(2)}</strong> sem juros no cartão
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    )}
 
                     {/* Descrição */}
                     <div className="space-y-1.5">

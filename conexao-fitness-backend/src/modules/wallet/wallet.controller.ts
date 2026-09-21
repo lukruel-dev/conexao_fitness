@@ -67,4 +67,21 @@ export class WalletController {
   async payQrWithCredits(@Param('id') id: string, @CurrentUser() user: any) {
     return this.walletService.payQrWithCredits(user.id, id);
   }
+
+  @Post('hire-plan')
+  @ApiOperation({ summary: 'Contratar plano com saldo da carteira ou registrar contratação' })
+  async hirePlan(
+    @Body() dto: {
+      providerId: string;
+      serviceId: string;
+      planName: string;
+      amount: number;
+      paymentMethod?: string;
+      installments?: number;
+    },
+    @CurrentUser() user: any,
+  ) {
+    return this.walletService.hirePlan(user.id, dto);
+  }
 }
+

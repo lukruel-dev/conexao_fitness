@@ -80,6 +80,12 @@ export class Service {
   @Column({ type: 'int', nullable: true, default: 20 })
   maxStudents?: number | null;
 
+  @Column({ type: 'int', nullable: true, default: 1 })
+  maxInstallments?: number | null;
+
+  @Column({ type: 'int', nullable: true, default: 1 })
+  durationMonths?: number | null;
+
   @OneToMany(() => ScheduleSlot, (slot) => slot.service, {
     cascade: false,
   })

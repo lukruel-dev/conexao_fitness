@@ -225,6 +225,11 @@ const ChatModal = ({
                   <span className="text-[10px] text-muted-foreground font-normal ml-1">
                     /{plan.recurrence === 'ANNUAL' ? 'ano' : plan.recurrence === 'SEMIANNUAL' ? 'semestre' : plan.recurrence === 'QUARTERLY' ? 'trimestre' : 'mês'}
                   </span>
+                  {(plan.maxInstallments || (plan.recurrence === 'ANNUAL' ? 12 : plan.recurrence === 'QUARTERLY' ? 3 : 1)) > 1 && (
+                    <span className="text-[10px] text-emerald-500 font-bold ml-1.5">
+                      (até {plan.maxInstallments || (plan.recurrence === 'ANNUAL' ? 12 : 3)}x sem juros)
+                    </span>
+                  )}
                 </p>
               </div>
             </div>

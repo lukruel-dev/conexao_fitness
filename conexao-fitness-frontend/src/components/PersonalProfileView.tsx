@@ -178,31 +178,64 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
       providerType: 'PERSONAL',
       unitId: null,
       name: isNutri
-        ? 'Plano Nutri + Avaliação de Bioimpedância (Trimestral)'
+        ? 'Programa Nutricional Trimestral (3 Meses)'
         : isFisio
-        ? 'Tratamento & Fortalecimento Articular (Trimestral)'
-        : 'Acompanhamento Presencial (3x / semana)',
+        ? 'Programa de Reabilitação Articular Trimestral (3 Meses)'
+        : 'Acompanhamento Trimestral de Hipertrofia (3 Meses)',
       description: isNutri
-        ? 'Programa de 12 semanas para transformação de composição corporal, redução de gordura e ganho de massa magra.'
+        ? 'Programa de 12 semanas para transformação de composição corporal, redução de gordura e ganho de massa magra. Parcelamento em até 3x sem juros.'
         : isFisio
-        ? 'Programa intensivo para eliminação total de dores crônicas, tendinites e reequilíbrio neuromuscular.'
-        : 'Treinos presenciais individuais em academia parceira ou condomínio com correção biomecânica em tempo real.',
+        ? 'Programa intensivo de 12 semanas para eliminação total de dores crônicas, tendinites e reequilíbrio neuromuscular. Parcelamento em até 3x sem juros.'
+        : 'Acompanhamento intensivo de 12 semanas com periodização contínua, ajustes de carga e suporte direto pelo chat. Parcelamento em até 3x sem juros.',
       modality: isNutri ? 'Nutrição & Performance' : isFisio ? 'Osteopatia & Desportiva' : 'Musculação & Hipertrofia',
       durationMinutes: 60,
       type: 'PLANO_MENSAL',
       recurrence: 'QUARTERLY',
-      format: 'PRESENCIAL',
-      price: isNutri ? '550.00' : isFisio ? '590.00' : '450.00',
+      durationMonths: 3,
+      maxInstallments: 3,
+      format: 'ONLINE',
+      price: isNutri ? '540.00' : isFisio ? '630.00' : '600.00',
       currency: 'BRL',
       isActive: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       benefits: [
-        'Acompanhamento Intensivo de 12 Semanas',
-        'Avaliações Físicas e Relatórios Comparativos',
-        'Atendimento em Consultório e Suporte no App',
-        'Descontos Especiais em Produtos e Suplementos Parceiros',
-        'Foco em Resultados Mensuráveis e Duradouros',
+        'Acompanhamento Intensivo de 12 Semanas (3 Meses)',
+        'Periodização Completa e Avaliações Periódicas no App',
+        'Ajustes Semanais de Cargas e Metas',
+        'Suporte Contínuo pelo Chat do App Finex',
+        'Parcelamento em até 3x sem juros no cartão',
+      ],
+    },
+    {
+      id: 'plan-default-3',
+      providerId: profile.id,
+      providerType: 'PERSONAL',
+      unitId: null,
+      name: isNutri
+        ? 'Acompanhamento Nutricional Anual VIP (12 Meses)'
+        : isFisio
+        ? 'Programa de Manutenção & Performance Anual (12 Meses)'
+        : 'Consultoria Online Anual VIP (12 Meses)',
+      description: 'Transformação completa de 1 ano com acompanhamento de longo prazo, atualizações periódicas no app e suporte prioritário. Parcelamento em até 12x sem juros.',
+      modality: isNutri ? 'Nutrição Esportiva' : isFisio ? 'Fisioterapia & Recovery' : 'Consultoria Online',
+      durationMinutes: 30,
+      type: 'PLANO_MENSAL',
+      recurrence: 'ANNUAL',
+      durationMonths: 12,
+      maxInstallments: 12,
+      format: 'ONLINE',
+      price: '1200.00',
+      currency: 'BRL',
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      benefits: [
+        'Acompanhamento Completo por 12 Meses (1 Ano)',
+        'Fichas de Treino / Cardápios Mensais Atualizados',
+        'Avaliações Trimestrais com Métricas e Fotos',
+        'Suporte Prioritário pelo Chat do App Finex',
+        'Parcelamento em até 12x de R$ 100,00 sem juros',
       ],
     },
   ];
@@ -548,13 +581,27 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
                   ? 'Presencial'
                   : 'Híbrido (Online + Presencial)';
 
+              const maxInstallments =
+                plan.maxInstallments ||
+                (plan.recurrence === 'ANNUAL'
+                  ? 12
+                  : plan.recurrence === 'SEMIANNUAL'
+                  ? 6
+                  : plan.recurrence === 'QUARTERLY'
+                  ? 3
+                  : Number(plan.price) >= 1000
+                  ? 12
+                  : Number(plan.price) >= 300
+                  ? 3
+                  : 1);
+
               const recurrenceLabel =
                 plan.recurrence === 'ANNUAL'
-                  ? 'Plano Anual'
+                  ? 'Plano Anual (12 Meses)'
                   : plan.recurrence === 'SEMIANNUAL'
-                  ? 'Plano Semestral'
+                  ? 'Plano Semestral (6 Meses)'
                   : plan.recurrence === 'QUARTERLY'
-                  ? 'Plano Trimestral'
+                  ? 'Plano Trimestral (3 Meses)'
                   : 'Plano Mensal';
 
               return (
@@ -604,6 +651,15 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
                           /{plan.recurrence === 'ANNUAL' ? 'ano' : plan.recurrence === 'SEMIANNUAL' ? 'semestre' : plan.recurrence === 'QUARTERLY' ? 'trimestre' : 'mês'}
                         </span>
                       </div>
+
+                      {/* Destaque de Parcelamento sem juros */}
+                      {maxInstallments > 1 && (
+                        <p className="text-xs font-bold text-emerald-500 mt-1 flex items-center gap-1">
+                          <CreditCard className="w-3.5 h-3.5 shrink-0" />
+                          ou até {maxInstallments}x de {formatBRL(Number(plan.price) / maxInstallments)} sem juros
+                        </p>
+                      )}
+
                       <p className="text-[11px] text-muted-foreground mt-0.5">
                         Modalidade: <strong>{plan.modality}</strong>
                       </p>
