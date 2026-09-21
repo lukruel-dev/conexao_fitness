@@ -9,6 +9,7 @@ import { resolveMediaUrl } from '@/lib/mediaUrl';
 import { MembershipPlan } from '@/services/memberships';
 import { EnrollmentModal } from '@/components/EnrollmentModal';
 import { StudentAccessPassModal } from '@/components/StudentAccessPassModal';
+import ChatModal from '@/components/ChatModal';
 import { PostCard } from '@/components/feed/PostCard';
 import { CrowdLevelBadge } from '@/components/analytics/CrowdLevelBadge';
 import { PeakHoursChart } from '@/components/analytics/PeakHoursChart';
@@ -82,6 +83,19 @@ export const AcademiaProfileView: React.FC<AcademiaProfileViewProps> = ({
   const [selectedPlanForEnrollment, setSelectedPlanForEnrollment] = useState<MembershipPlan | null>(null);
   const [createdEnrollmentForPass, setCreatedEnrollmentForPass] = useState<any | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  const handleOpenGymChat = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: 'Acesse sua conta',
+        description: 'Faça login para conversar diretamente com a academia pelo chat.',
+      });
+      navigate('/login');
+      return;
+    }
+    setIsChatOpen(true);
+  };
 
   const { data: crowdStats } = useQuery({
     queryKey: ['gym-crowd-stats', profile.id],
@@ -304,20 +318,14 @@ export const AcademiaProfileView: React.FC<AcademiaProfileViewProps> = ({
                 )}
               </Button>
 
-              {profile.whatsapp && (
+              {!isOwnProfile && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 px-4 rounded-xl font-bold border-emerald-500/40 text-emerald-500 hover:bg-emerald-500/10"
-                  asChild
+                  onClick={handleOpenGymChat}
+                  className="h-10 px-4 rounded-xl font-bold border-primary/40 text-primary hover:bg-primary/10 gap-1.5 shadow-sm"
                 >
-                  <a
-                    href={`https://wa.me/${profile.whatsapp.replace(/\D/g, '')}?text=Ol%C3%A1!%20Vi%20o%20perfil%20da%20academia%20no%20Conex%C3%A3o%20Fitness.`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <MessageCircle className="w-4 h-4 mr-1.5" /> WhatsApp
-                  </a>
+                  <MessageCircle className="w-4 h-4 text-primary" /> Chat com a Academia
                 </Button>
               )}
 
@@ -864,6 +872,17 @@ export const AcademiaProfileView: React.FC<AcademiaProfileViewProps> = ({
           enrollment={createdEnrollmentForPass}
         />
       )}
+
+      {/* MODAL DE CHAT DIRETO COM A ACADEMIA */}
+      <ChatModal
+        open={isChatOpen}
+        onOpenChange={setIsChatOpen}
+        bookingId={`dm-gym-${profile.id}`}
+        recipientName={gymName}
+        recipientAvatar={avatarImage}
+        title={`Chat com ${gymName}`}
+        initialMessage={`Olá, ${gymName}! Gostaria de tirar algumas dúvidas sobre os planos e funcionamento da academia.`}
+      />
     </div>
   );
 };

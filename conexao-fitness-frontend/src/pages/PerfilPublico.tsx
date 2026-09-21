@@ -599,7 +599,7 @@ const PerfilPublico: React.FC = () => {
                     Nenhum plano disponível no momento
                   </h3>
                   <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                    A academia ainda não disponibilizou planos para matrícula online. Entre em contato pelo WhatsApp para mais informações.
+                    A academia ainda não disponibilizou planos para matrícula online. Entre em contato pelo chat da plataforma para mais informações.
                   </p>
                 </div>
               ) : (
