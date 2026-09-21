@@ -128,11 +128,11 @@ const Index: React.FC = () => {
               </h1>
 
               <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
-                Descubra treinos, tire dúvidas, compartilhe sua evolução, adquira Day Passes diários e agende sessões com profissionais credenciados.
+                Descubra treinos, tire dúvidas, compartilhe sua evolução, adquira Day Passes e agende sessões com profissionais credenciados.
               </p>
 
               {/* BARRA DE BUSCA GLOBAL RÁPIDA */}
-              <div className="flex flex-col sm:flex-row gap-2 pt-2 max-w-xl scroll-mt-32">
+              <div className="flex flex-col sm:flex-row gap-2 pt-2 max-w-xl">
                 <div className="relative flex-1">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -140,6 +140,21 @@ const Index: React.FC = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && fetchFeed()}
+                    onFocus={() => {
+                      // Se estiver no topo/hero da página, impede que o teclado móvel empurre o banner para fora da tela
+                      if (window.scrollY < 200) {
+                        window.scrollTo({ top: 0, behavior: "instant" });
+                        const lockTop = () => {
+                          if (window.scrollY > 0 && window.scrollY < 200) {
+                            window.scrollTo({ top: 0, behavior: "instant" });
+                          }
+                        };
+                        requestAnimationFrame(lockTop);
+                        setTimeout(lockTop, 50);
+                        setTimeout(lockTop, 150);
+                        setTimeout(lockTop, 300);
+                      }
+                    }}
                     className="pl-10 h-10 text-xs sm:text-sm rounded-xl bg-background/80 border-border/80"
                   />
                   {searchQuery && (
