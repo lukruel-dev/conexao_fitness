@@ -24,7 +24,23 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.usersService.findByEmail(email);
+    const normalizedEmail = (email || '').toLowerCase().trim();
+    let user = await this.usersService.findByEmail(normalizedEmail);
+
+    const isFinexTestAccount = [
+      'admin@finex.net.br',
+      'aluno@finex.net.br',
+      'personal@finex.net.br',
+      'nutri@finex.net.br',
+      'fisio@finex.net.br',
+      'academia@finex.net.br',
+    ].includes(normalizedEmail);
+
+    // Se for conta de teste oficial e senha 123456, provisiona ou atualiza sob demanda
+    if (isFinexTestAccount && pass === '123456') {
+      user = await this.usersService.ensureTestUser(normalizedEmail);
+    }
+
     if (!user) return null;
 
     if (user.passwordHash?.includes('TempPasswordHash')) {
@@ -38,8 +54,8 @@ export class AuthService {
         throw new UnauthorizedException('Conta suspensa. Entre em contato com o suporte.');
       }
 
-      // Se a conta for nova e possui código de verificação pendente, exige confirmação
-      if (user.isEmailVerified === false && user.emailVerificationCode) {
+      // Se a conta for nova e possui código de verificação pendente, exige confirmação (exceto contas de teste)
+      if (!isFinexTestAccount && user.isEmailVerified === false && user.emailVerificationCode) {
         // Se o código anterior expirou, gera um novo automaticamente
         if (!user.emailVerificationExpiresAt || new Date() > user.emailVerificationExpiresAt) {
           const newCode = Math.floor(100000 + Math.random() * 900000).toString();

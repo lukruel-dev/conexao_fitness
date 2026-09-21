@@ -41,14 +41,7 @@ import {
   Edit3,
 } from 'lucide-react';
 import ChatModal from '@/components/ChatModal';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { PersonalPlanHiringModal } from '@/components/PersonalPlanHiringModal';
 
 interface PersonalProfileViewProps {
   profile: PublicUserProfile;
@@ -80,6 +73,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
 
   const [activeTab, setActiveTab] = useState<'plans' | 'methodology' | 'sessions' | 'gallery' | 'posts' | 'reviews'>('plans');
   const [selectedPlanForContact, setSelectedPlanForContact] = useState<Service | null>(null);
+  const [selectedPlanForChat, setSelectedPlanForChat] = useState<Service | null>(null);
   const [isDirectChatOpen, setIsDirectChatOpen] = useState(false);
   const [chatInitialMessage, setChatInitialMessage] = useState<string>('');
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
@@ -273,9 +267,11 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
     setSelectedPlanForContact(plan);
   };
 
-  const handleStartInAppChatHiring = () => {
-    if (!selectedPlanForContact) return;
-    const initialText = `Olá, ${profile.name}! Gostaria de contratar o plano "${selectedPlanForContact.name}" (${formatBRL(selectedPlanForContact.price)}) pelo app Finex. Como iniciamos meu acompanhamento?`;
+  const handleStartInAppChatHiring = (customPlan?: Service) => {
+    const plan = customPlan || selectedPlanForContact;
+    if (!plan) return;
+    setSelectedPlanForChat(plan);
+    const initialText = `Olá, ${profile.name}! Gostaria de tirar algumas dúvidas sobre o plano "${plan.name}" (${formatBRL(plan.price)}) pelo app Finex.`;
     setChatInitialMessage(initialText);
     setSelectedPlanForContact(null);
     setIsDirectChatOpen(true);
@@ -909,73 +905,17 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
         </div>
       )}
 
-      {/* MODAL DE CONTRATAÇÃO / CONTATO DIRETO DE PLANO DE TREINO */}
-      <Dialog
+      {/* MODAL DE CONTRATAÇÃO DIRETA DE PLANO DE TREINO (COM OPÇÃO DE PAGAR OU TIRAR DÚVIDAS) */}
+      <PersonalPlanHiringModal
         open={Boolean(selectedPlanForContact)}
         onOpenChange={(open) => !open && setSelectedPlanForContact(null)}
-      >
-        <DialogContent className="max-w-md bg-card border-border/80 rounded-3xl p-6 space-y-4">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl font-display font-black">
-              <CreditCard className="w-5 h-5 text-primary" /> Contratar Plano de Treino
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              Inicie seu acompanhamento com {profile.name}.
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedPlanForContact && (
-            <div className="space-y-4 pt-2">
-              <div className="p-4 rounded-2xl bg-muted/50 border border-border/60 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-primary uppercase">
-                    {selectedPlanForContact.modality}
-                  </span>
-                  <span className="text-lg font-black text-secondary">
-                    {formatBRL(selectedPlanForContact.price)}
-                  </span>
-                </div>
-                <h4 className="font-bold text-base text-foreground">
-                  {selectedPlanForContact.name}
-                </h4>
-                {selectedPlanForContact.description && (
-                  <p className="text-xs text-muted-foreground">
-                    {selectedPlanForContact.description}
-                  </p>
-                )}
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-primary/10 border border-primary/20 space-y-1 text-xs text-foreground">
-                <p className="font-bold flex items-center gap-1.5 text-primary">
-                  <Sparkles className="w-4 h-4" /> Contratação & Acompanhamento Seguro pelo App:
-                </p>
-                <p className="text-[11px] text-muted-foreground">
-                  Toda a contratação, liberação da ficha de treino, controle de cargas e suporte ocorrem 100% pelo aplicativo Finex através do nosso Chat integrado.
-                </p>
-              </div>
-
-              <DialogFooter className="gap-2 sm:gap-0 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setSelectedPlanForContact(null)}
-                  className="rounded-xl font-bold"
-                >
-                  Voltar
-                </Button>
-                <Button
-                  type="button"
-                  variant="hero"
-                  onClick={handleStartInAppChatHiring}
-                  className="rounded-xl font-black bg-gradient-to-r from-primary to-secondary text-black gap-1.5 shadow-md"
-                >
-                  <MessageCircle className="w-4 h-4" /> Conversar no Chat do App
-                </Button>
-              </DialogFooter>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+        plan={selectedPlanForContact}
+        professional={profile}
+        onOpenChat={() => handleStartInAppChatHiring(selectedPlanForContact!)}
+        onHiringSuccess={() => {
+          setSelectedPlanForContact(null);
+        }}
+      />
 
       {/* LIGHTBOX DE IMAGEM */}
       <Dialog
@@ -1010,6 +950,11 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
         recipientAvatar={profile.avatarUrl || undefined}
         title={`Conversa com ${profile.name}`}
         initialMessage={chatInitialMessage}
+        plan={selectedPlanForChat}
+        onHirePlan={(planToHire) => {
+          setIsDirectChatOpen(false);
+          setSelectedPlanForContact(planToHire);
+        }}
       />
     </div>
   );

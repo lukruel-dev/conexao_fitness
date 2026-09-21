@@ -631,4 +631,63 @@ export class WalletService {
     await this.walletRepo.save(wallet);
     return wallet;
   }
+
+  async hirePlan(studentId: string, dto: {
+    providerId: string;
+    serviceId?: string;
+    planName: string;
+    amount: number;
+    paymentMethod?: string;
+  }) {
+    const amount = Number(dto.amount);
+    if (isNaN(amount) || amount <= 0) {
+      throw new BadRequestException('Valor do plano inválido');
+    }
+
+    const studentBalance = await this.getMyBalance(studentId);
+    if (studentBalance.current_balance < amount) {
+      throw new BadRequestException(
+        `Saldo insuficiente na carteira. Disponível: R$ ${studentBalance.current_balance.toFixed(2)} - Necessário: R$ ${amount.toFixed(2)}`
+      );
+    }
+
+    // 1. Debita do saldo do aluno
+    const newStudentBalance = await this.deductBalance(studentId, amount);
+
+    // 2. Credita no saldo do profissional
+    await this.addBalance(dto.providerId, amount, { type: 'AVAILABLE' });
+
+    // 3. Registra débito no extrato do aluno
+    await this.recordTransaction({
+      userId: studentId,
+      type: 'DEBIT',
+      amount: amount,
+      description: `Contratação de Plano: ${dto.planName}`,
+      targetUserId: dto.providerId,
+      referenceType: 'PLAN',
+      referenceId: dto.serviceId,
+      paymentMethod: 'FINEX_WALLET',
+    });
+
+    // 4. Registra crédito no extrato do profissional com dados do aluno
+    const student = await this.userRepo.findOne({ where: { id: studentId } });
+    await this.recordTransaction({
+      userId: dto.providerId,
+      type: 'CREDIT',
+      amount: amount,
+      description: `Novo Aluno - Plano Contratado: ${dto.planName}`,
+      sourceUserId: studentId,
+      sourceUserName: student?.name,
+      sourceUserAvatar: student?.avatarUrl,
+      referenceType: 'PLAN',
+      referenceId: dto.serviceId,
+      paymentMethod: 'FINEX_WALLET',
+    });
+
+    return {
+      success: true,
+      message: 'Plano contratado com sucesso!',
+      new_balance: newStudentBalance,
+    };
+  }
 }

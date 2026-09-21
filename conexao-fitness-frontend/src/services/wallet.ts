@@ -109,21 +109,21 @@ function getLocalWallet(): { balance: number; pending: number; withdrawn: number
   try {
     const raw = localStorage.getItem(LOCAL_WALLET_KEY);
     if (raw) return JSON.parse(raw);
-  } catch (e) {}
+  } catch (e) { }
   return { balance: 185.0, pending: 0, withdrawn: 0 };
 }
 
 function saveLocalWallet(data: { balance: number; pending: number; withdrawn: number }) {
   try {
     localStorage.setItem(LOCAL_WALLET_KEY, JSON.stringify(data));
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function getLocalTransactions(): WalletTransaction[] {
   try {
     const raw = localStorage.getItem(LOCAL_TRANSACTIONS_KEY);
     if (raw) return JSON.parse(raw);
-  } catch (e) {}
+  } catch (e) { }
 
   // Dados iniciais realistas de exemplo caso o backend ainda não tenha transações gravadas
   const initial: WalletTransaction[] = [
@@ -191,28 +191,28 @@ function getLocalTransactions(): WalletTransaction[] {
 function saveLocalTransactions(txs: WalletTransaction[]) {
   try {
     localStorage.setItem(LOCAL_TRANSACTIONS_KEY, JSON.stringify(txs));
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function getLocalWithdrawals(): WalletWithdrawal[] {
   try {
     const raw = localStorage.getItem(LOCAL_WITHDRAWALS_KEY);
     if (raw) return JSON.parse(raw);
-  } catch (e) {}
+  } catch (e) { }
   return [];
 }
 
 function saveLocalWithdrawals(withdrawals: WalletWithdrawal[]) {
   try {
     localStorage.setItem(LOCAL_WITHDRAWALS_KEY, JSON.stringify(withdrawals));
-  } catch (e) {}
+  } catch (e) { }
 }
 
 export function getLocalPixSettings(): PixSettings {
   try {
     const raw = localStorage.getItem(LOCAL_PIX_KEY);
     if (raw) return JSON.parse(raw);
-  } catch (e) {}
+  } catch (e) { }
   return {
     pixKeyType: "CPF",
     pixKey: "",
@@ -224,7 +224,7 @@ export function getLocalPixSettings(): PixSettings {
 export function saveLocalPixSettings(settings: PixSettings) {
   try {
     localStorage.setItem(LOCAL_PIX_KEY, JSON.stringify(settings));
-  } catch (e) {}
+  } catch (e) { }
 }
 
 // ---------------- API FUNCTIONS ----------------

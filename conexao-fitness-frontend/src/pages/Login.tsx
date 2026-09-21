@@ -11,12 +11,12 @@ import OAuthModal, { OAuthUserData } from "@/components/OAuthModal";
 import EmailVerificationModal from "@/components/EmailVerificationModal";
 import type { AuthUser } from "@/types/api";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sparkles, ShieldCheck } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, oauthLogin, loading } = useAuth();
+  const { login, oauthLogin, loading, startImpersonation } = useAuth();
   const [email, setEmail] = useState(() => {
     const params = new URLSearchParams(location.search);
     return params.get("email") || "";
@@ -41,6 +41,44 @@ const Login = () => {
       navigate("/agenda-profissional");
     } else {
       navigate("/buscar");
+    }
+  };
+
+  const handleQuickLogin = async (testEmail: string, testRole: any) => {
+    setEmail(testEmail);
+    setPassword("123456");
+    try {
+      const logged = await login({ email: testEmail, password: "123456" });
+      toast.success(`Acessando como ${logged.name.split(" ")[0]}!`);
+      const searchParams = new URLSearchParams(location.search);
+      const redirectUrl = searchParams.get("redirect");
+      if (redirectUrl) {
+        navigate(redirectUrl);
+      } else if (logged.role === "ADMIN") {
+        navigate("/perfil");
+      } else if (logged.role === "PERSONAL" || logged.role === "ACADEMIA") {
+        navigate("/agenda-profissional");
+      } else {
+        navigate("/buscar");
+      }
+    } catch (err: any) {
+      try {
+        await startImpersonation(testRole);
+        toast.success(`Acessando conta de demonstração!`);
+        const searchParams = new URLSearchParams(location.search);
+        const redirectUrl = searchParams.get("redirect");
+        if (redirectUrl) {
+          navigate(redirectUrl);
+        } else if (testRole === "ADMIN") {
+          navigate("/perfil");
+        } else if (testRole === "PERSONAL" || testRole === "ACADEMIA" || testRole === "NUTRICIONISTA") {
+          navigate("/agenda-profissional");
+        } else {
+          navigate("/buscar");
+        }
+      } catch (fallbackErr: any) {
+        toast.error("Erro ao entrar", { description: fallbackErr.message });
+      }
     }
   };
 
@@ -220,6 +258,101 @@ const Login = () => {
               {loading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
+
+          {/* ⚡ SEÇÃO DE ACESSO RÁPIDO PARA TESTES */}
+          <div className="mt-6 p-4 rounded-2xl bg-gradient-to-br from-primary/10 via-card to-secondary/10 border border-primary/25 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-primary" /> Logins de Teste Finex
+              </span>
+              <span className="text-[10px] text-muted-foreground font-semibold">
+                1 clique para entrar
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => handleQuickLogin("aluno@finex.net.br", "STUDENT")}
+                className="flex flex-col items-start p-2.5 rounded-xl bg-card border border-border/80 hover:border-primary/60 hover:bg-primary/5 transition-all text-left shadow-sm group"
+              >
+                <span className="text-xs font-bold text-foreground group-hover:text-primary flex items-center gap-1">
+                  🏋️‍♂️ Aluno
+                </span>
+                <span className="text-[10px] text-muted-foreground truncate w-full">
+                  R$ 100 na Carteira
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleQuickLogin("personal@finex.net.br", "PERSONAL")}
+                className="flex flex-col items-start p-2.5 rounded-xl bg-card border border-border/80 hover:border-primary/60 hover:bg-primary/5 transition-all text-left shadow-sm group"
+              >
+                <span className="text-xs font-bold text-foreground group-hover:text-primary flex items-center gap-1">
+                  ⚡ Personal
+                </span>
+                <span className="text-[10px] text-muted-foreground truncate w-full">
+                  Diego Martins
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleQuickLogin("nutri@finex.net.br", "NUTRICIONISTA")}
+                className="flex flex-col items-start p-2.5 rounded-xl bg-card border border-border/80 hover:border-primary/60 hover:bg-primary/5 transition-all text-left shadow-sm group"
+              >
+                <span className="text-xs font-bold text-foreground group-hover:text-primary flex items-center gap-1">
+                  🥗 Nutri
+                </span>
+                <span className="text-[10px] text-muted-foreground truncate w-full">
+                  Dra. Camila
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleQuickLogin("fisio@finex.net.br", "PERSONAL")}
+                className="flex flex-col items-start p-2.5 rounded-xl bg-card border border-border/80 hover:border-primary/60 hover:bg-primary/5 transition-all text-left shadow-sm group"
+              >
+                <span className="text-xs font-bold text-foreground group-hover:text-primary flex items-center gap-1">
+                  🩺 Fisio
+                </span>
+                <span className="text-[10px] text-muted-foreground truncate w-full">
+                  Dr. Rodrigo
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleQuickLogin("academia@finex.net.br", "ACADEMIA")}
+                className="flex flex-col items-start p-2.5 rounded-xl bg-card border border-border/80 hover:border-primary/60 hover:bg-primary/5 transition-all text-left shadow-sm group"
+              >
+                <span className="text-xs font-bold text-foreground group-hover:text-primary flex items-center gap-1">
+                  🏢 Academia
+                </span>
+                <span className="text-[10px] text-muted-foreground truncate w-full">
+                  Iron Peak
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleQuickLogin("admin@finex.net.br", "ADMIN")}
+                className="flex flex-col items-start p-2.5 rounded-xl bg-card border border-border/80 hover:border-primary/60 hover:bg-primary/5 transition-all text-left shadow-sm group"
+              >
+                <span className="text-xs font-bold text-foreground group-hover:text-primary flex items-center gap-1">
+                  🛡️ Admin
+                </span>
+                <span className="text-[10px] text-muted-foreground truncate w-full">
+                  Painel Geral
+                </span>
+              </button>
+            </div>
+            <p className="text-[10px] text-muted-foreground text-center pt-0.5">
+              Senha padrão para todos: <strong className="text-foreground font-mono">123456</strong>
+            </p>
+          </div>
 
           <div className="mt-8 flex items-center justify-center gap-4">
             <div className="flex-1 h-px bg-border"></div>

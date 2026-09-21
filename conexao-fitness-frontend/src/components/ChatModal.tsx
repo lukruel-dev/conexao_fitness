@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   X,
   Lock,
+  CreditCard,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -25,6 +26,8 @@ import { listChatMessages, sendChatMessage, type ChatMessage } from "@/services/
 import { useAuth } from "@/contexts/AuthContext";
 import { sounds } from "@/lib/soundEffects";
 import { validateChatMessage } from "@/lib/bioValidator";
+import { formatBRL } from "@/lib/format";
+import type { Service } from "@/types/api";
 
 interface ChatModalProps {
   open: boolean;
@@ -34,6 +37,8 @@ interface ChatModalProps {
   recipientName?: string;
   recipientAvatar?: string;
   initialMessage?: string;
+  plan?: Service | null;
+  onHirePlan?: (plan: Service) => void;
 }
 
 const QUICK_EMOJIS = ["💪", "🔥", "🏋️‍♂️", "🥗", "👏", "⚡", "🎯"];
@@ -46,6 +51,8 @@ const ChatModal = ({
   recipientName,
   recipientAvatar,
   initialMessage,
+  plan,
+  onHirePlan,
 }: ChatModalProps) => {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -201,6 +208,37 @@ const ChatModal = ({
             <span>Anti-Fraude</span>
           </div>
         </div>
+
+        {/* Banner de Contratação do Plano (se acessado a partir de um plano) */}
+        {plan && onHirePlan && (
+          <div className="px-4 py-2.5 bg-gradient-to-r from-primary/15 via-card to-secondary/15 border-b border-primary/30 flex items-center justify-between gap-3 shrink-0 shadow-sm">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center shrink-0">
+                <CreditCard className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-foreground truncate">
+                  {plan.name}
+                </p>
+                <p className="text-[11px] font-extrabold text-secondary">
+                  {formatBRL(plan.price)}
+                  <span className="text-[10px] text-muted-foreground font-normal ml-1">
+                    /{plan.recurrence === 'ANNUAL' ? 'ano' : plan.recurrence === 'SEMIANNUAL' ? 'semestre' : plan.recurrence === 'QUARTERLY' ? 'trimestre' : 'mês'}
+                  </span>
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="hero"
+              type="button"
+              onClick={() => onHirePlan(plan)}
+              className="rounded-xl text-xs font-black bg-gradient-to-r from-primary to-secondary text-black shrink-0 shadow-sm h-8 px-3"
+            >
+              Contratar Agora
+            </Button>
+          </div>
+        )}
 
         {/* Área de Mensagens */}
         <ScrollArea className="flex-1 p-4 bg-background/50">

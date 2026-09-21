@@ -47,8 +47,9 @@ export class EmailService {
     }
 
     try {
+      const fromAddress = process.env.SMTP_FROM || (process.env.SMTP_USER ? `"Conexão Fitness" <${process.env.SMTP_USER}>` : '"Conexão Fitness" <noreply@finex.net.br>');
       const info = await this.transporter.sendMail({
-        from: '"Conexão Fitness" <noreply@conexaofitness.com.br>',
+        from: fromAddress,
         to,
         subject,
         html,

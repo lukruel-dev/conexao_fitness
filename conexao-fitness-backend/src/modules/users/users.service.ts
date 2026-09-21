@@ -4,6 +4,13 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { PersonalProfile } from './entities/personal-profile.entity';
 import { AcademiaProfile } from './entities/academia-profile.entity';
+import { AlunoProfile } from './entities/aluno-profile.entity';
+import { WalletAccount } from '../wallet/entities/wallet-account.entity';
+import { Service as AppService } from '../services/entities/service.entity';
+import { ScheduleSlot } from '../services/entities/schedule-slot.entity';
+import { MembershipPlan } from '../memberships/entities/membership-plan.entity';
+import { ServiceCatalog } from '../service-catalog/entities/service-catalog.entity';
+import { seedOfficialFinexAccounts } from './official-test-accounts.seeder';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreatePersonalProfileDto } from './dto/create-personal-profile.dto';
@@ -107,9 +114,42 @@ export class UsersService implements OnApplicationBootstrap {
 
         console.log('✅ [Auto-Purge] Banco limpo com sucesso! Apenas usuários reais e catálogo oficial permanecem.');
       }
+
+      // 3. Garantir que as contas de teste oficiais da Finex sempre existam
+      await this.ensureOfficialTestAccounts();
     } catch (err) {
-      console.error('Erro na inicialização da purga de bots:', err);
+      console.error('Erro na inicialização de usuários e contas de teste:', err);
     }
+  }
+
+  async ensureOfficialTestAccounts(): Promise<void> {
+    try {
+      const alunoRepo = this.usersRepo.manager.getRepository(AlunoProfile);
+      const walletRepo = this.usersRepo.manager.getRepository(WalletAccount);
+      const servicesRepo = this.usersRepo.manager.getRepository(AppService);
+      const slotsRepo = this.usersRepo.manager.getRepository(ScheduleSlot);
+      const planRepo = this.usersRepo.manager.getRepository(MembershipPlan);
+      const catalogRepo = this.usersRepo.manager.getRepository(ServiceCatalog);
+
+      await seedOfficialFinexAccounts({
+        usersRepo: this.usersRepo,
+        alunoRepo,
+        personalRepo: this.personalProfileRepo,
+        academiaRepo: this.academiaProfileRepo,
+        walletRepo,
+        servicesRepo,
+        slotsRepo,
+        planRepo,
+        catalogRepo,
+      });
+    } catch (err) {
+      console.error('Erro ao provisionar contas de teste Finex:', err);
+    }
+  }
+
+  async ensureTestUser(email: string): Promise<User | null> {
+    await this.ensureOfficialTestAccounts();
+    return this.findByEmail(email);
   }
 
   async create(dto: CreateUserDto): Promise<User> {
