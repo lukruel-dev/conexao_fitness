@@ -442,137 +442,150 @@ const Buscar = () => {
                 <div key={i} className="h-32 rounded-2xl bg-muted animate-pulse" />
               ))}
             </div>
-          ) : services && services.length > 0 ? (
-            <div className="grid gap-4">
-              {services.map((s) => {
-                const avatarSrc = (() => {
-                  if (s.providerAvatar) return s.providerAvatar;
-                  const lowerName = (s.providerName || s.name || "").toLowerCase();
-                  const lowerMod = (s.modality || "").toLowerCase();
-                  const lowerTitle = (s.professionTitle || "").toLowerCase();
-                  if (s.providerType === "ACADEMIA" || lowerMod.includes("academia")) {
-                    return "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400&auto=format&fit=crop";
-                  }
-                  if (lowerName.includes("camila") || lowerName.includes("dra") || lowerMod.includes("nutri") || lowerTitle.includes("nutri")) {
-                    return "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop";
-                  }
-                  if (lowerName.includes("rodrigo") || lowerMod.includes("fisio") || lowerTitle.includes("fisio")) {
-                    return "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=400&auto=format&fit=crop";
-                  }
-                  if (lowerName.includes("diego") || lowerMod.includes("personal") || lowerTitle.includes("personal")) {
-                    return "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop";
-                  }
-                  return "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop";
-                })();
+          ) : (
+            <div className="space-y-10">
+              {/* SERVIÇOS CREDENCIADOS FINEX */}
+              {services && services.length > 0 ? (
+                <div className="grid gap-4">
+                  {services.map((s) => {
+                    const avatarSrc = (() => {
+                      if (s.providerAvatar) return s.providerAvatar;
+                      const lowerName = (s.providerName || s.name || "").toLowerCase();
+                      const lowerMod = (s.modality || "").toLowerCase();
+                      const lowerTitle = (s.professionTitle || "").toLowerCase();
+                      if (s.providerType === "ACADEMIA" || lowerMod.includes("academia")) {
+                        return "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400&auto=format&fit=crop";
+                      }
+                      if (lowerName.includes("camila") || lowerName.includes("dra") || lowerMod.includes("nutri") || lowerTitle.includes("nutri")) {
+                        return "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop";
+                      }
+                      if (lowerName.includes("rodrigo") || lowerMod.includes("fisio") || lowerTitle.includes("fisio")) {
+                        return "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=400&auto=format&fit=crop";
+                      }
+                      if (lowerName.includes("diego") || lowerMod.includes("personal") || lowerTitle.includes("personal")) {
+                        return "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop";
+                      }
+                      return "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop";
+                    })();
 
-                return (
-                  <Link
-                    key={s.id}
-                    to={`/perfil/${s.providerId || s.id}`}
-                    className={`relative block bg-card rounded-2xl p-5 transition-all ${
-                      s.isPremium
-                        ? "border-2 border-yellow-400 shadow-[0_0_0_4px_rgba(250,204,21,0.12)] hover:shadow-[0_0_0_6px_rgba(250,204,21,0.18)]"
-                        : "border border-border hover:border-primary/40 hover:shadow-card"
-                    }`}
-                  >
-                    {s.isPremium && (
-                      <span className="absolute -top-2 left-4 flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-amber-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
-                        <BadgeCheck className="w-3 h-3" />
-                        DESTAQUE
-                      </span>
-                    )}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex gap-4 flex-1">
-                        {/* Provider Image */}
-                        <div className="shrink-0 flex items-start mt-1">
-                          <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-primary to-secondary shadow-[0_0_10px_rgba(45,212,191,0.3)]">
-                            <img 
-                              src={avatarSrc} 
-                              alt={s.providerName || "Profissional"} 
-                              className="w-full h-full rounded-full object-cover border-2 border-background"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                s.providerType === "ACADEMIA"
-                                  ? "bg-primary/10 text-primary"
-                                  : "bg-secondary/10 text-secondary"
-                              }`}
-                            >
-                              {s.providerType === "ACADEMIA"
-                                ? "Academia Parceira"
-                                : s.professionTitle || "Profissional"}
-                            </span>
-                            <span className="text-xs text-muted-foreground">{s.modality}</span>
-                          </div>
-                          <h3 className="font-display font-bold text-lg text-foreground">{s.name}</h3>
-                        <p className="text-sm text-muted-foreground mt-0.5">
-                          {s.providerName}
-                          {s.providerType === "PERSONAL" && s.professionTitle ? ` • ${s.professionTitle}` : ""}
-                        </p>
-                        <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                          {(() => {
-                            const rating = s.providerRating ?? s.rating;
-                            const total = s.totalReviews ?? s.reviewsCount;
-                            if (rating == null) return null;
-                            return (
-                              <span className="flex items-center gap-1">
-                                <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                                <span className="text-foreground font-medium">{Number(rating).toFixed(1)}</span>
-                                <span>({total ?? 0} {(total ?? 0) === 1 ? "avaliação" : "avaliações"})</span>
-                              </span>
-                            );
-                          })()}
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" />
-                            {s.durationMinutes} min
+                    return (
+                      <Link
+                        key={s.id}
+                        to={`/perfil/${s.providerId || s.id}`}
+                        className={`relative block bg-card rounded-2xl p-5 transition-all ${
+                          s.isPremium
+                            ? "border-2 border-yellow-400 shadow-[0_0_0_4px_rgba(250,204,21,0.12)] hover:shadow-[0_0_0_6px_rgba(250,204,21,0.18)]"
+                            : "border border-border hover:border-primary/40 hover:shadow-card"
+                        }`}
+                      >
+                        {s.isPremium && (
+                          <span className="absolute -top-2 left-4 flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-amber-500 text-black text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
+                            <BadgeCheck className="w-3 h-3" />
+                            DESTAQUE
                           </span>
-                          {(() => {
-                            const d = s.distance ?? s.distanceKm;
-                            return d != null ? (
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-3.5 h-3.5 text-primary" />
-                                A {d.toFixed(1).replace(".", ",")} km de você
-                              </span>
-                            ) : null;
-                          })()}
-                        </div>
-                      </div>
-                      </div>
-                      <div className="flex md:flex-col items-end justify-between md:justify-center gap-2">
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-secondary">{formatBRL(s.price)}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {s.type === "PLANO_MENSAL" ? "por mês" : s.type === "DAY_PASS" ? "day pass" : "por sessão"}
+                        )}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div className="flex gap-4 flex-1">
+                            {/* Provider Image */}
+                            <div className="shrink-0 flex items-start mt-1">
+                              <div className="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-primary to-secondary shadow-[0_0_10px_rgba(45,212,191,0.3)]">
+                                <img 
+                                  src={avatarSrc} 
+                                  alt={s.providerName || "Profissional"} 
+                                  className="w-full h-full rounded-full object-cover border-2 border-background"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span
+                                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                    s.providerType === "ACADEMIA"
+                                      ? "bg-primary/10 text-primary"
+                                      : "bg-secondary/10 text-secondary"
+                                  }`}
+                                >
+                                  {s.providerType === "ACADEMIA"
+                                    ? "Academia Parceira"
+                                    : s.professionTitle || "Profissional"}
+                                </span>
+                                <span className="text-xs text-muted-foreground">{s.modality}</span>
+                              </div>
+                              <h3 className="font-display font-bold text-lg text-foreground">{s.name}</h3>
+                              <p className="text-sm text-muted-foreground mt-0.5">
+                                {s.providerName}
+                                {s.providerType === "PERSONAL" && s.professionTitle ? ` • ${s.professionTitle}` : ""}
+                              </p>
+                              <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                                {(() => {
+                                  const rating = s.providerRating ?? s.rating;
+                                  const total = s.totalReviews ?? s.reviewsCount;
+                                  if (rating == null) return null;
+                                  return (
+                                    <span className="flex items-center gap-1">
+                                      <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                                      <span className="text-foreground font-medium">{Number(rating).toFixed(1)}</span>
+                                      <span>({total ?? 0} {(total ?? 0) === 1 ? "avaliação" : "avaliações"})</span>
+                                    </span>
+                                  );
+                                })()}
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3.5 h-3.5" />
+                                  {s.durationMinutes} min
+                                </span>
+                                {(() => {
+                                  const d = s.distance ?? s.distanceKm;
+                                  return d != null ? (
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="w-3.5 h-3.5 text-primary" />
+                                      A {d.toFixed(1).replace(".", ",")} km de você
+                                    </span>
+                                  ) : null;
+                                })()}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex md:flex-col items-end justify-between md:justify-center gap-2">
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-secondary">{formatBRL(s.price)}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {s.type === "PLANO_MENSAL" ? "por mês" : s.type === "DAY_PASS" ? "day pass" : "por sessão"}
+                              </div>
+                            </div>
+                            <span className="inline-flex items-center justify-center rounded-xl text-xs font-bold px-3.5 py-2 bg-primary text-primary-foreground shadow-sm hover:opacity-95 transition-opacity pointer-events-none">
+                              {s.providerType === "ACADEMIA" ? "Conhecer Academia & Planos" : "Ver Perfil & Planos"}
+                            </span>
                           </div>
                         </div>
-                        <span className="inline-flex items-center justify-center rounded-xl text-xs font-bold px-3.5 py-2 bg-primary text-primary-foreground shadow-sm hover:opacity-95 transition-opacity pointer-events-none">
-                          {s.providerType === "ACADEMIA" ? "Conhecer Academia & Planos" : "Ver Perfil & Planos"}
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                );
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-10 text-muted-foreground bg-card/40 rounded-2xl border border-dashed border-border/80">
+                  <Building2 className="w-8 h-8 mx-auto text-muted-foreground/50 mb-2" />
+                  <p className="font-semibold text-sm">Nenhum serviço credenciado encontrado com esses filtros.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Veja abaixo as academias reais mapeadas nesta cidade e ajude a trazê-las para o Finex!</p>
+                </div>
+              )}
+
               {/* SEÇÃO ESPECIAL: ACADEMIAS REAIS DA CIDADE (NÃO CREDENCIADAS) */}
               {(providerType === "" || providerType === "ACADEMIA") && realGyms.length > 0 && (
-                <div className="mt-8 pt-8 border-t border-border/60 space-y-4">
+                <div className="pt-6 border-t border-border/60 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h2 className="font-display text-xl font-bold text-foreground">
                           Academias em {selectedCity}
                         </h2>
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-500 text-[11px] font-bold">
-                          <AlertCircle className="w-3 h-3" /> Ainda não credenciadas
+                          <AlertCircle className="w-3 h-3" /> Ainda não fazem parte do ecossistema
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Academias reais da sua região mapeadas no Google Maps. Indique sua academia para treinar com Day Pass pelo app Finex!
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Academias reais da sua região mapeadas no Google Maps. Indique sua academia favorita para que ela aceite Day Pass e planos integrados pelo Conexão Finex!
                       </p>
                     </div>
                   </div>
@@ -651,94 +664,6 @@ const Buscar = () => {
                               Indicar para o Ecossistema Finex
                             </Button>
                           </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-8">
-              <div className="text-center py-12 text-muted-foreground">
-                Nenhum serviço cadastrado encontrado com esses filtros.
-              </div>
-
-              {/* MESMO SEM SERVIÇOS CADASTRADOS, EXIBE AS ACADEMIAS REAIS DA CIDADE */}
-              {realGyms.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <h2 className="font-display text-xl font-bold text-foreground">
-                      Academias Reais em {selectedCity}
-                    </h2>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-500 text-[11px] font-bold">
-                      <AlertCircle className="w-3 h-3" /> Ainda não credenciadas
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Veja as academias mapeadas pelo Google Maps na sua cidade. Clique em indicar para convidar a academia a integrar o Conexão Finex!
-                  </p>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {realGyms.map((gym) => (
-                      <div
-                        key={gym.id}
-                        className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-card hover:border-amber-500/50 transition-all duration-300 shadow-sm"
-                      >
-                        <div className="relative h-44 w-full overflow-hidden bg-muted">
-                          <img
-                            src={gym.photoUrl}
-                            alt={gym.name}
-                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            loading="lazy"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
-
-                          <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500 text-black text-[10px] font-extrabold shadow-md">
-                              <AlertCircle className="w-3 h-3 shrink-0" />
-                              Ainda não faz parte do ecossistema
-                            </span>
-
-                            <div className="flex items-center gap-1 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[11px] font-bold text-amber-400">
-                              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                              {gym.googleRating}
-                            </div>
-                          </div>
-
-                          <div className="absolute bottom-2.5 left-3 right-3 text-white">
-                            <h3 className="font-bold text-base leading-snug drop-shadow-sm line-clamp-1">
-                              {gym.name}
-                            </h3>
-                            <div className="flex items-center gap-1 text-[11px] text-white/85 mt-0.5 truncate">
-                              <MapPin className="h-3 w-3 text-primary shrink-0" />
-                              <span className="truncate">{gym.address}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="p-4 flex flex-col justify-between flex-1 gap-3">
-                          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                            <span>Horários: {gym.openingHours || "Seg a Sex"}</span>
-                            <a
-                              href={gym.mapsUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary hover:underline font-semibold flex items-center gap-1"
-                            >
-                              Google Maps <ExternalLink className="w-3 h-3" />
-                            </a>
-                          </div>
-
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedGymForInvite(gym)}
-                            className="w-full h-9 rounded-xl text-xs font-bold gap-1.5 border-amber-500/40 text-amber-500 hover:bg-amber-500/10 hover:text-amber-400"
-                          >
-                            <Share2 className="w-3.5 h-3.5" />
-                            Indicar para o Ecossistema Finex
-                          </Button>
                         </div>
                       </div>
                     ))}
