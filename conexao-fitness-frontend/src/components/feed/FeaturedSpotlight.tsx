@@ -143,6 +143,21 @@ export const FeaturedSpotlight: React.FC = () => {
             </Button>
           </div>
         )}
+
+        {/* BANNER / CONVITE PARA ACADEMIAS DA CIDADE NÃO CREDENCIADAS */}
+        <div className="mt-4 p-3.5 rounded-xl bg-muted/40 border border-border/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              Procurando outra academia da sua cidade? Veja as academias mapeadas pelo Google Maps e convide para o ecossistema Finex!
+            </p>
+          </div>
+          <Button size="sm" variant="outline" className="h-7 text-xs font-semibold shrink-0 gap-1 rounded-xl" asChild>
+            <Link to="/buscar?providerType=ACADEMIA">
+              Ver Academias Mapeadas <ChevronRight className="h-3 w-3" />
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* SEÇÃO 2: PROFISSIONAIS EM DESTAQUE */}
