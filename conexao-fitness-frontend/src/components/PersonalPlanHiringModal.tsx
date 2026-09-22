@@ -31,8 +31,8 @@ import { getMyBalance, hirePlanWithWallet } from '@/services/wallet';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { CheckoutModal } from '@/components/CheckoutModal';
-import type { PublicUserProfile, Service } from '@/types/api';
 import { sounds } from '@/lib/soundEffects';
+import { addDemoBooking } from '@/services/bookings';
 
 interface PersonalPlanHiringModalProps {
   open: boolean;
@@ -152,7 +152,31 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
         localStorage.setItem(studentPlansKey, JSON.stringify(current));
       } catch (e) {}
 
-      sounds.playSuccess();
+      // Registra a contratação também para o profissional visualizar imediatamente na agenda/painel
+      try {
+        addDemoBooking({
+          name: user?.name || 'Lucas Atleta (Aluno)',
+          email: user?.email,
+          avatarUrl: user?.avatarUrl,
+          phone: user?.phone,
+          serviceName: plan!.name,
+          goal: 'Acompanhamento & Evolução',
+          providerId: professional.id,
+          studentId: user?.id,
+          price: planPriceNum,
+          status: 'CONFIRMED',
+        });
+      } catch (e) {}
+
+      qc.invalidateQueries({ queryKey: ['provider-bookings'] });
+      qc.invalidateQueries({ queryKey: ['notifications'] });
+
+      try {
+        sounds.playSuccess();
+      } catch (e) {
+        console.warn('Sound effect error:', e);
+      }
+
       setIsSuccessModalOpen(true);
       onOpenChange(false);
       if (onHiringSuccess && plan) {

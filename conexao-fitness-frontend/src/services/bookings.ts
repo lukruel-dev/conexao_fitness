@@ -260,19 +260,22 @@ export function addDemoBooking(customStudent: {
   serviceName?: string;
   goal?: string;
   providerId?: string;
+  studentId?: string;
+  price?: number;
+  status?: BookingStatus;
 }): any {
   const current = getDemoBookings();
-  const studentId = `demo-student-${Date.now()}`;
+  const studentId = customStudent.studentId || `demo-student-${Date.now()}`;
   const impersonatedRole = localStorage.getItem("cf_impersonation_role");
   const effectiveProviderId =
     customStudent.providerId ||
     (impersonatedRole === "NUTRICIONISTA" ? "demo-nutri-id-004" : "demo-personal-id-002");
 
   const newBooking = {
-    id: `demo-booking-${Date.now()}`,
+    id: `booking-${Date.now()}`,
     providerId: effectiveProviderId,
     studentId,
-    status: "CONFIRMED" as const,
+    status: customStudent.status || ("CONFIRMED" as const),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     service: {
@@ -283,7 +286,7 @@ export function addDemoBooking(customStudent: {
           ? "Consulta Nutricional Esportiva & Plano Alimentar"
           : "Treinamento Personalizado & Consultoria VIP"),
       type: "PERSONAL",
-      price: impersonatedRole === "NUTRICIONISTA" ? 220 : 200,
+      price: customStudent.price || (impersonatedRole === "NUTRICIONISTA" ? 220 : 200),
       durationMinutes: 60,
     },
     student: {
@@ -297,8 +300,8 @@ export function addDemoBooking(customStudent: {
     },
     slot: {
       id: `slot-${Date.now()}`,
-      startsAt: new Date(Date.now() + 2 * 3600000).toISOString(),
-      endsAt: new Date(Date.now() + 3 * 3600000).toISOString(),
+      startsAt: new Date().toISOString(),
+      endsAt: new Date(Date.now() + 30 * 86400000).toISOString(),
     },
   };
 
@@ -367,14 +370,22 @@ export async function listBookingsByProvider(
 
   try {
     const realBookings = await apiRequest<Booking[]>(`/bookings/providers/${providerId}`, { query: { status } });
-    if (!realBookings || realBookings.length === 0) {
-      const demoList = getDemoBookings().filter((b) => b.providerId === providerId);
-      return status ? demoList.filter((b) => b.status === status) : demoList;
+    const localBookings = getDemoBookings().filter((b) => b.providerId === providerId);
+    const combined = [...(realBookings || [])];
+    for (const local of localBookings) {
+      if (!combined.some((b: any) => b.id === local.id)) {
+        combined.unshift(local);
+      }
     }
-    return realBookings;
+    if (combined.length === 0) {
+      const defaultDemo = getDemoBookings().filter((b) => b.providerId === providerId);
+      return status ? defaultDemo.filter((b) => b.status === status) : (defaultDemo.length > 0 ? defaultDemo : getDemoBookings());
+    }
+    return status ? combined.filter((b: any) => b.status === status) : combined;
   } catch (err) {
     console.warn("[Bookings] Fallback to demo bookings for provider:", err);
-    const demoList = getDemoBookings().filter((b) => b.providerId === providerId);
+    const localBookings = getDemoBookings().filter((b) => b.providerId === providerId);
+    const demoList = localBookings.length > 0 ? localBookings : getDemoBookings();
     return status ? demoList.filter((b) => b.status === status) : demoList;
   }
 }

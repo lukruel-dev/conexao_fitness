@@ -14,6 +14,11 @@ import { User } from '../users/entities/user.entity';
 import { GymAccessLog } from '../memberships/entities/gym-access-log.entity';
 import { GymEnrollment } from '../memberships/entities/gym-enrollment.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
+import { Service } from '../services/entities/service.entity';
+import { ScheduleSlot } from '../services/entities/schedule-slot.entity';
+import { ScheduleSlotStatus } from '../services/enums/schedule-slot-status.enum';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
 
 @Injectable()
 export class WalletService {
@@ -36,6 +41,11 @@ export class WalletService {
     private readonly enrollmentRepo: Repository<GymEnrollment>,
     @InjectRepository(Booking)
     private readonly bookingRepo: Repository<Booking>,
+    @InjectRepository(Service)
+    private readonly servicesRepo: Repository<Service>,
+    @InjectRepository(ScheduleSlot)
+    private readonly slotsRepo: Repository<ScheduleSlot>,
+    private readonly notificationsService: NotificationsService,
     private readonly qrService: QRService,
     private readonly paymentsService: PaymentsService,
   ) {}
@@ -709,6 +719,49 @@ export class WalletService {
       referenceId: dto.serviceId,
       paymentMethod: isWallet ? 'FINEX_WALLET' : (dto.paymentMethod === 'STRIPE' ? 'CREDIT_CARD' : dto.paymentMethod),
     });
+
+    // 5. Cria agendamento/matrícula (Booking) para que o aluno apareça imediatamente na tela/agenda do profissional
+    try {
+      let service = await this.servicesRepo.findOne({ where: { id: dto.serviceId } });
+      if (!service) {
+        service = await this.servicesRepo.findOne({
+          where: { providerId: dto.providerId, name: dto.planName },
+        });
+      }
+
+      if (service) {
+        const slot = this.slotsRepo.create({
+          serviceId: service.id,
+          startsAt: new Date(),
+          endsAt: new Date(Date.now() + 30 * 24 * 3600 * 1000),
+          status: ScheduleSlotStatus.BOOKED,
+          studentId: studentId,
+        });
+        const savedSlot = await this.slotsRepo.save(slot);
+
+        const booking = this.bookingRepo.create({
+          serviceId: service.id,
+          slotId: savedSlot.id,
+          studentId: studentId,
+          status: BookingStatus.CONFIRMED,
+        });
+        await this.bookingRepo.save(booking);
+      }
+    } catch (bookingErr: any) {
+      this.logger.warn(`Não foi possível criar Booking automático: ${bookingErr?.message}`);
+    }
+
+    // 6. Envia notificação em tempo real para o profissional
+    try {
+      await this.notificationsService.create(
+        dto.providerId,
+        'Novo Aluno Matriculado!',
+        `O aluno ${student?.name || 'Novo Aluno'} contratou o seu plano "${dto.planName}".`,
+        NotificationType.BOOKING,
+      );
+    } catch (notifErr: any) {
+      this.logger.warn(`Não foi possível enviar notificação ao profissional: ${notifErr?.message}`);
+    }
 
     return {
       success: true,

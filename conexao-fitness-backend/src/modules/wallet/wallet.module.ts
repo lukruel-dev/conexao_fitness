@@ -10,8 +10,11 @@ import { User } from '../users/entities/user.entity';
 import { GymAccessLog } from '../memberships/entities/gym-access-log.entity';
 import { GymEnrollment } from '../memberships/entities/gym-enrollment.entity';
 import { Booking } from '../bookings/entities/booking.entity';
+import { Service } from '../services/entities/service.entity';
+import { ScheduleSlot } from '../services/entities/schedule-slot.entity';
 import { QRModule } from '../qr/qr.module';
 import { PaymentsModule } from '../payments/payments.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -24,9 +27,12 @@ import { PaymentsModule } from '../payments/payments.module';
       GymAccessLog,
       GymEnrollment,
       Booking,
+      Service,
+      ScheduleSlot,
     ]),
     QRModule,
     forwardRef(() => PaymentsModule),
+    NotificationsModule,
   ],
   controllers: [WalletController],
   providers: [WalletService],

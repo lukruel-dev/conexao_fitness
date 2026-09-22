@@ -188,6 +188,11 @@ class SoundEngine {
     osc.start(now);
     osc.stop(now + 0.25);
   }
+
+  // Som de sucesso / confirmação de pagamento / contratação concluída
+  public playSuccess() {
+    this.playAccessGranted();
+  }
 }
 
 export const sounds = new SoundEngine();
