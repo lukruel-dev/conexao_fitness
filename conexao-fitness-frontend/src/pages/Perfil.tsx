@@ -43,6 +43,7 @@ import {
 import { useRef, useState, useEffect } from "react";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
 import { CameraCaptureModal } from "@/components/CameraCaptureModal";
+import { StripeConnectCard } from "@/components/StripeConnectCard";
 import { isNativePlatform, captureNativePhoto } from "@/utils/nativeCamera";
 import { validateBioContent } from "@/lib/bioValidator";
 import { updateMyBio } from "@/services/users";
@@ -685,7 +686,13 @@ const Perfil = () => {
                 </div>
               )}
 
+              {/* CARD STRIPE CONNECT - RECEBIMENTO AUTOMÁTICO (PROFISSIONAL & ACADEMIA) */}
+              {isProvider && (
+                <StripeConnectCard role={user.role as "PERSONAL" | "ACADEMIA"} />
+              )}
+
               {/* ATALHOS DE CONTA */}
+
               <div className="flex flex-col gap-2">
                 <Link to="/carteira" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
                   <div className="flex items-center gap-3">

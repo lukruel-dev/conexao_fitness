@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards, Body } from '@nestjs/common';
+import { Controller, Post, Get, UseGuards, Body } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -8,6 +8,12 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Get('status')
+  async getAccountStatus(@CurrentUser() user: any) {
+    return this.paymentsService.getAccountStatus(user.id);
+  }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PERSONAL', 'ACADEMIA')
@@ -30,3 +36,4 @@ export class PaymentsController {
     return this.paymentsService.createSubscriptionPaymentIntent(user?.id, priceId);
   }
 }
+

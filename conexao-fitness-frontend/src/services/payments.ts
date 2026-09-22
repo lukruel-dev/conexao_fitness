@@ -18,3 +18,17 @@ export async function createSubscription(priceId: string): Promise<CreateSubscri
     body: { priceId },
   });
 }
+
+export interface PaymentAccountStatus {
+  isConnected: boolean;
+  accountId: string | null;
+  chargesEnabled: boolean;
+  payoutsEnabled: boolean;
+  detailsSubmitted: boolean;
+  error?: string;
+}
+
+export async function getPaymentAccountStatus(): Promise<PaymentAccountStatus> {
+  return apiRequest<PaymentAccountStatus>("/payments/status", { method: "GET" });
+}
+

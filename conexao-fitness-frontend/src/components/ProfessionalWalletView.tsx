@@ -28,6 +28,7 @@ import {
   WalletWithdrawal,
 } from "@/services/wallet";
 import { WithdrawalReceiptModal } from "@/components/WithdrawalReceiptModal";
+import { StripeConnectCard } from "@/components/StripeConnectCard";
 
 export function ProfessionalWalletView() {
   const qc = useQueryClient();
@@ -258,7 +259,11 @@ export function ProfessionalWalletView() {
         </div>
       </div>
 
+      {/* Card Stripe Connect - Recebimento Automático & Split */}
+      <StripeConnectCard role="PERSONAL" />
+
       {/* Navegação por Abas */}
+
       <div className="flex border-b border-border/60 gap-2 sm:gap-4 overflow-x-auto pb-px">
         <button
           type="button"

@@ -229,4 +229,44 @@ export class PaymentsService {
       this.logger.log(`Assinatura cancelada: ${subscriptionId}`);
     }
   }
+
+  /**
+   * Obtém o status da conta Stripe Connect do profissional/academia
+   */
+  async getAccountStatus(userId: string) {
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) throw new NotFoundException('User not found');
+
+    if (!user.stripeAccountId) {
+      return {
+        isConnected: false,
+        accountId: null,
+        chargesEnabled: false,
+        payoutsEnabled: false,
+        detailsSubmitted: false,
+      };
+    }
+
+    try {
+      const account = await this.stripe.accounts.retrieve(user.stripeAccountId);
+      return {
+        isConnected: true,
+        accountId: user.stripeAccountId,
+        chargesEnabled: !!account.charges_enabled,
+        payoutsEnabled: !!account.payouts_enabled,
+        detailsSubmitted: !!account.details_submitted,
+      };
+    } catch (err: any) {
+      this.logger.warn(`Erro ao consultar conta Stripe ${user.stripeAccountId}: ${err.message}`);
+      return {
+        isConnected: false,
+        accountId: user.stripeAccountId,
+        chargesEnabled: false,
+        payoutsEnabled: false,
+        detailsSubmitted: false,
+        error: err.message,
+      };
+    }
+  }
 }
+
