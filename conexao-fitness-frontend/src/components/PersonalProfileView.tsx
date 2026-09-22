@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import ChatModal from '@/components/ChatModal';
 import { PersonalPlanHiringModal } from '@/components/PersonalPlanHiringModal';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface PersonalProfileViewProps {
   profile: PublicUserProfile;
