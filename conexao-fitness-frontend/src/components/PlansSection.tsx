@@ -151,6 +151,7 @@ const gymPlans: PlanItem[] = [
     period: "/mês",
     description: "Para conhecer a plataforma",
     features: [
+      "Taxa de intermediação de 12%",
       "Acesso básico",
       "Perfil listado no marketplace",
       "Divulgação de endereço e fotos",
@@ -164,6 +165,7 @@ const gymPlans: PlanItem[] = [
     period: "/mês",
     description: "Sistema de Matrícula & Catraca Digital",
     features: [
+      "Taxa de intermediação de 10%",
       "Matrícula Online de Alunos",
       "Catraca Digital com QR Code",
       "Gerenciamento de Matrículas",
@@ -179,6 +181,7 @@ const gymPlans: PlanItem[] = [
     period: "/mês",
     description: "Para atrair mais alunos e crescer",
     features: [
+      "Taxa de intermediação reduzida para 8%",
       "Tudo do Essencial",
       "Melhor posicionamento em buscas",
       "Relatórios avançados de acessos",
@@ -194,6 +197,7 @@ const gymPlans: PlanItem[] = [
     period: "/mês",
     description: "Para grandes academias e redes",
     features: [
+      "Menor taxa de intermediação: apenas 6%",
       "Tudo do Destaque",
       "Prioridade máxima no ranking",
       "API de integração com catracas físicas",
@@ -203,6 +207,7 @@ const gymPlans: PlanItem[] = [
     cta: "Assinar Elite",
   },
 ];
+
 
 const PlansSection = () => {
   const { user, isAuthenticated, setUser } = useAuth();

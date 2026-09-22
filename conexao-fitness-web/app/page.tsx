@@ -459,7 +459,7 @@ export default function Home() {
                     <span className="text-slate-500">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    {['Perfil na plataforma', 'Recebimento via créditos/PIX', 'Sem elegibilidade ao freepass'].map((item, i) => (
+                    {['Taxa de intermediação de 12%', 'Perfil na plataforma', 'Recebimento via créditos/PIX', 'Sem elegibilidade ao freepass'].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
                         <Check className="w-4 h-4 text-brand-green" /> {item}
                       </li>
@@ -479,7 +479,7 @@ export default function Home() {
                     <span className="text-slate-500">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    {['Elegibilidade ao freepass', 'Recebimento via créditos/PIX', 'Presença básica em buscas'].map((item, i) => (
+                    {['Taxa de intermediação de 10%', 'Elegibilidade ao freepass', 'Recebimento via créditos/PIX', 'Presença básica em buscas'].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
                         <Check className="w-4 h-4 text-brand-green" /> {item}
                       </li>
@@ -502,7 +502,7 @@ export default function Home() {
                     <span className="text-slate-500">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    {['Tudo do Essencial', 'Melhor posicionamento em buscas', 'Selo de destaque', 'Perfil com mais fotos'].map((item, i) => (
+                    {['Taxa reduzida de 8%', 'Tudo do Essencial', 'Melhor posicionamento em buscas', 'Selo de destaque', 'Perfil com mais fotos'].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
                         <Check className="w-4 h-4 text-brand-green" /> {item}
                       </li>
@@ -523,7 +523,7 @@ export default function Home() {
                     <span className="text-slate-500">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    {['Tudo do Destaque', 'Topo nas buscas', 'Selo premium', 'Participação em campanhas', 'Prioridade máxima de exibição'].map((item, i) => (
+                    {['Menor taxa: apenas 6%', 'Tudo do Destaque', 'Topo nas buscas', 'Selo premium', 'Participação em campanhas', 'Prioridade máxima de exibição'].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
                         <Check className="w-4 h-4 text-brand-green" /> {item}
                       </li>
@@ -533,6 +533,7 @@ export default function Home() {
                     Assinar Elite
                   </button>
                 </div>
+
               </div>
             </div>
           </div>

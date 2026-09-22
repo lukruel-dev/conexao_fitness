@@ -123,6 +123,7 @@ export default function PlanosPage() {
       icon: Heart,
       iconColor: 'bg-slate-500',
       features: [
+        'Taxa de intermediação de 12%',
         'Acesso básico',
         'Perfil listado'
       ],
@@ -135,6 +136,7 @@ export default function PlanosPage() {
       icon: Zap,
       iconColor: 'bg-orange-500',
       features: [
+        'Taxa de intermediação de 10%',
         'Perfil verificado',
         'Day pass digital'
       ],
@@ -148,6 +150,7 @@ export default function PlanosPage() {
       iconColor: 'bg-brand-green',
       isPopular: true,
       features: [
+        'Taxa reduzida de 8%',
         'Tudo do Essencial',
         'Reservas ilimitadas',
         'Destaque regional'
@@ -161,6 +164,7 @@ export default function PlanosPage() {
       icon: Crown,
       iconColor: 'bg-yellow-500',
       features: [
+        'Menor taxa: apenas 6%',
         'Tudo do Destaque',
         'Prioridade máxima',
         'API de integração'
@@ -168,6 +172,7 @@ export default function PlanosPage() {
       buttonStyle: 'bg-transparent border border-slate-700 hover:bg-slate-800 text-white'
     }
   ];
+
 
   const getPlanos = () => {
     switch (activeTab) {

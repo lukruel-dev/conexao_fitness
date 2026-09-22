@@ -23,14 +23,37 @@ export class PaymentsService {
   }
 
   /**
+   * Obtém a taxa de intermediação com base no perfil e plano ativo
+   * - Personal: Gratuito (12%), Start (10%), Pro (8%), Elite (6%)
+   * - Academia: Gratuito (12%), Essencial (10%), Destaque (8%), Elite (6%)
+   */
+  getCommissionRate(role: string, planName?: string): number {
+    const normalized = (planName || 'Gratuito').toLowerCase();
+
+    if (role === 'ACADEMIA') {
+      if (normalized.includes('elite')) return 0.06;
+      if (normalized.includes('destaque')) return 0.08;
+      if (normalized.includes('essencial')) return 0.10;
+      return 0.12;
+    }
+
+    // Role PERSONAL (Profissionais)
+    if (normalized.includes('elite')) return 0.06;
+    if (normalized.includes('pro')) return 0.08;
+    if (normalized.includes('start')) return 0.10;
+    return 0.12;
+  }
+
+  /**
    * Calcula o Split Payment
    */
-  calculateSplit(totalAmount: number): { platformFee: number; providerAmount: number } {
-    const platformFee = totalAmount * this.PLATFORM_FEE_PERCENTAGE;
+  calculateSplit(totalAmount: number, rate: number = 0.10): { platformFee: number; providerAmount: number; rate: number } {
+    const platformFee = totalAmount * rate;
     const providerAmount = totalAmount - platformFee;
     return {
       platformFee: Number(platformFee.toFixed(2)),
       providerAmount: Number(providerAmount.toFixed(2)),
+      rate,
     };
   }
 
@@ -66,7 +89,14 @@ export class PaymentsService {
       throw new BadRequestException('O profissional ainda não configurou sua conta de recebimento (Stripe Connect).');
     }
 
-    const { platformFee, providerAmount } = this.calculateSplit(amount);
+    // Determina a taxa de comissão de acordo com o plano ativo do prestador
+    const activeSub = await this.subscriptionRepo.findOne({
+      where: { userId: provider.id, status: SubscriptionStatus.ACTIVE },
+      order: { createdAt: 'DESC' },
+    });
+    const commissionRate = this.getCommissionRate(provider.role, activeSub?.planName);
+
+    const { platformFee, providerAmount } = this.calculateSplit(amount, commissionRate);
     
     const amountInCents = Math.round(amount * 100);
     const platformFeeInCents = Math.round(platformFee * 100);
@@ -76,11 +106,14 @@ export class PaymentsService {
       currency: 'brl',
       metadata: {
         bookingId: bookingId,
-        purpose: 'BOOKING'
+        purpose: 'BOOKING',
+        commissionRate: `${commissionRate * 100}%`,
+        providerPlan: activeSub?.planName || 'Gratuito',
       },
     };
 
     if (provider.stripeAccountId && provider.stripeAccountId.startsWith('acct_')) {
+
       intentConfig.application_fee_amount = platformFeeInCents;
       intentConfig.transfer_data = {
         destination: provider.stripeAccountId,
