@@ -92,6 +92,50 @@ export class BookingsController {
   }
 
   /**
+   * POST /bookings/:bookingId/request-cancellation
+   * O personal solicita o cancelamento de uma aula/plano, informando o motivo
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post(':bookingId/request-cancellation')
+  requestCancellation(
+    @Param('bookingId', ParseUUIDPipe) bookingId: string,
+    @Body() body: { reason?: string },
+    @CurrentUser() user: any,
+  ): Promise<Booking> {
+    return this.bookingsService.requestCancellation(
+      bookingId,
+      { id: user.id, role: user.role },
+      body?.reason || 'Readequação de agenda / Imprevisto',
+    );
+  }
+
+  /**
+   * POST /bookings/:bookingId/confirm-cancellation
+   * O aluno confirma a solicitação de cancelamento feita pelo personal
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post(':bookingId/confirm-cancellation')
+  confirmCancellation(
+    @Param('bookingId', ParseUUIDPipe) bookingId: string,
+    @CurrentUser() user: any,
+  ): Promise<Booking> {
+    return this.bookingsService.confirmCancellationByStudent(bookingId, { id: user.id, role: user.role });
+  }
+
+  /**
+   * POST /bookings/:bookingId/reject-cancellation
+   * O aluno recusa a solicitação de cancelamento feita pelo personal
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post(':bookingId/reject-cancellation')
+  rejectCancellation(
+    @Param('bookingId', ParseUUIDPipe) bookingId: string,
+    @CurrentUser() user: any,
+  ): Promise<Booking> {
+    return this.bookingsService.rejectCancellationByStudent(bookingId, { id: user.id, role: user.role });
+  }
+
+  /**
    * GET /bookings/students/:studentId
    * Lista todos os bookings de um aluno, com filtro opcional ?status=CONFIRMED|CANCELLED|PENDING
    */

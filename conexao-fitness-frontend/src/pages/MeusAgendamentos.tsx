@@ -5,14 +5,31 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { listBookingsByStudent, cancelBooking, retryBookingPayment, payBookingWithWallet, simulateBookingSuccess } from "@/services/bookings";
+import {
+  listBookingsByStudent,
+  cancelBooking,
+  retryBookingPayment,
+  payBookingWithWallet,
+  simulateBookingSuccess,
+  confirmBookingCancellation,
+  rejectBookingCancellation,
+} from "@/services/bookings";
 import { getMyBalance } from "@/services/wallet";
 import { listServices } from "@/services/services";
 import { listSlotsByService } from "@/services/slots";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDateTime, formatBookingSchedule } from "@/lib/format";
 import type { BookingStatus } from "@/types/api";
-import { Calendar, MapPin, X, Star, MessageCircle, CreditCard, Wallet } from "lucide-react";
+import {
+  Calendar,
+  MapPin,
+  X,
+  Star,
+  MessageCircle,
+  CreditCard,
+  Wallet,
+  AlertTriangle,
+} from "lucide-react";
 import { CheckoutModal } from "@/components/CheckoutModal";
 import ReviewModal from "@/components/ReviewModal";
 import ChatModal from "@/components/ChatModal";
@@ -126,6 +143,31 @@ const MeusAgendamentos = () => {
       qc.invalidateQueries({ queryKey: ["slots"] });
     },
     onError: (err: Error) => toast.error("Erro ao cancelar", { description: err.message }),
+  });
+
+  const confirmCancellationMutation = useMutation({
+    mutationFn: (bookingId: string) => confirmBookingCancellation(bookingId),
+    onSuccess: () => {
+      toast.success("Cancelamento confirmado!", {
+        description: "O agendamento foi cancelado e o saldo correspondente foi estornado para a sua Carteira Finex.",
+      });
+      qc.invalidateQueries({ queryKey: ["my-bookings"] });
+      qc.invalidateQueries({ queryKey: ["wallet-balance"] });
+      qc.invalidateQueries({ queryKey: ["wallet-statement"] });
+      qc.invalidateQueries({ queryKey: ["slots"] });
+    },
+    onError: (err: Error) => toast.error("Erro ao confirmar cancelamento", { description: err.message }),
+  });
+
+  const rejectCancellationMutation = useMutation({
+    mutationFn: (bookingId: string) => rejectBookingCancellation(bookingId),
+    onSuccess: () => {
+      toast.info("Solicitação de cancelamento recusada.", {
+        description: "Seu agendamento/plano continua ativo normalmente.",
+      });
+      qc.invalidateQueries({ queryKey: ["my-bookings"] });
+    },
+    onError: (err: Error) => toast.error("Erro ao recusar cancelamento", { description: err.message }),
   });
 
   if (!isAuthenticated) {
@@ -300,6 +342,40 @@ const MeusAgendamentos = () => {
                           <X className="w-4 h-4 mr-2" />
                           Cancelar
                         </Button>
+                      </div>
+                    )}
+
+                    {b.cancellationRequestedBy === "PROVIDER" && b.status !== "CANCELLED" && (
+                      <div className="w-full mt-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-500">
+                            <AlertTriangle className="w-4 h-4 shrink-0" />
+                            O profissional solicitou o cancelamento deste agendamento
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Motivo informado: <strong className="text-foreground">"{b.cancellationReason || "Readequação de agenda"}"</strong>
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="rounded-xl text-xs font-bold w-full sm:w-auto"
+                            onClick={() => confirmCancellationMutation.mutate(b.id)}
+                            disabled={confirmCancellationMutation.isPending}
+                          >
+                            {confirmCancellationMutation.isPending ? "Confirmando..." : "Confirmar Cancelamento (Estornar)"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-xl text-xs w-full sm:w-auto"
+                            onClick={() => rejectCancellationMutation.mutate(b.id)}
+                            disabled={rejectCancellationMutation.isPending}
+                          >
+                            Manter Ativo
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>

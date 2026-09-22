@@ -12,6 +12,81 @@ export async function cancelBooking(bookingId: string, dto?: CancelBookingDto): 
   });
 }
 
+export async function requestBookingCancellation(bookingId: string, reason: string): Promise<any> {
+  try {
+    const res = await apiRequest<any>(`/bookings/${bookingId}/request-cancellation`, {
+      method: "POST",
+      body: { reason },
+    });
+    updateLocalBooking(bookingId, {
+      cancellationRequestedAt: new Date().toISOString(),
+      cancellationReason: reason,
+      cancellationRequestedBy: 'PROVIDER',
+    });
+    return res;
+  } catch (err) {
+    updateLocalBooking(bookingId, {
+      cancellationRequestedAt: new Date().toISOString(),
+      cancellationReason: reason,
+      cancellationRequestedBy: 'PROVIDER',
+    });
+    return { success: true, bookingId, cancellationReason: reason };
+  }
+}
+
+export async function confirmBookingCancellation(bookingId: string): Promise<any> {
+  try {
+    const res = await apiRequest<any>(`/bookings/${bookingId}/confirm-cancellation`, {
+      method: "POST",
+    });
+    updateLocalBooking(bookingId, {
+      status: 'CANCELLED',
+      cancelledAt: new Date().toISOString(),
+      cancellationRequestedAt: null,
+    });
+    return res;
+  } catch (err) {
+    updateLocalBooking(bookingId, {
+      status: 'CANCELLED',
+      cancelledAt: new Date().toISOString(),
+      cancellationRequestedAt: null,
+    });
+    return { success: true, bookingId, status: 'CANCELLED' };
+  }
+}
+
+export async function rejectBookingCancellation(bookingId: string): Promise<any> {
+  try {
+    const res = await apiRequest<any>(`/bookings/${bookingId}/reject-cancellation`, {
+      method: "POST",
+    });
+    updateLocalBooking(bookingId, {
+      cancellationRequestedAt: null,
+      cancellationReason: null,
+      cancellationRequestedBy: null,
+    });
+    return res;
+  } catch (err) {
+    updateLocalBooking(bookingId, {
+      cancellationRequestedAt: null,
+      cancellationReason: null,
+      cancellationRequestedBy: null,
+    });
+    return { success: true, bookingId };
+  }
+}
+
+function updateLocalBooking(bookingId: string, patch: any) {
+  try {
+    const list = getDemoBookings();
+    const idx = list.findIndex((b: any) => b.id === bookingId);
+    if (idx !== -1) {
+      list[idx] = { ...list[idx], ...patch };
+      localStorage.setItem(DEMO_BOOKINGS_STORAGE_KEY, JSON.stringify(list));
+    }
+  } catch {}
+}
+
 export async function retryBookingPayment(bookingId: string): Promise<RetryPaymentResponse> {
   return apiRequest<RetryPaymentResponse>(`/bookings/${bookingId}/retry-payment`, {
     method: "POST",

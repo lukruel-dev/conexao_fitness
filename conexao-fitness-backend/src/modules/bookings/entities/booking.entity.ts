@@ -63,6 +63,15 @@ export class Booking {
   @Column({ type: 'timestamptz', nullable: true, default: null })
   cancelledAt: Date | null;
 
+  @Column({ type: 'timestamptz', nullable: true, default: null })
+  cancellationRequestedAt: Date | null;
+
+  @Column({ type: 'text', nullable: true, default: null })
+  cancellationReason: string | null;
+
+  @Column({ type: 'varchar', length: 50, nullable: true, default: null })
+  cancellationRequestedBy: string | null;
+
   @ManyToOne(() => Service, (service) => service.bookings, {
     onDelete: 'CASCADE',
   })

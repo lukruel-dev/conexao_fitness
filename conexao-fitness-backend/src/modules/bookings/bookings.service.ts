@@ -446,4 +446,151 @@ export class BookingsService {
 
     return qb.getMany();
   }
+
+  /**
+   * O profissional solicita o cancelamento de uma aula/plano, informando o motivo.
+   * O cancelamento fica pendente de confirmação do aluno.
+   */
+  async requestCancellation(
+    bookingId: string,
+    user: { id: string; role?: string },
+    reason: string,
+  ): Promise<Booking> {
+    const booking = await this.bookingsRepo.findOne({
+      where: { id: bookingId },
+      relations: ['service', 'student'],
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Reserva não encontrada');
+    }
+
+    const isProvider = booking.service?.providerId === user.id;
+    const isAdmin = user.role === 'ADMIN';
+    if (!isProvider && !isAdmin) {
+      throw new ForbiddenException(
+        'Apenas o profissional responsável pode solicitar o cancelamento desta reserva',
+      );
+    }
+
+    if (booking.status === BookingStatus.CANCELLED) {
+      throw new BadRequestException('Esta reserva já está cancelada');
+    }
+
+    booking.cancellationRequestedAt = new Date();
+    booking.cancellationReason = reason;
+    booking.cancellationRequestedBy = 'PROVIDER';
+
+    const saved = await this.bookingsRepo.save(booking);
+
+    // Notifica o aluno para confirmação
+    try {
+      const provider = await this.userRepo.findOneBy({ id: booking.service.providerId });
+      const providerName = provider?.name || 'Seu profissional';
+      await this.notificationsService.create(
+        booking.studentId,
+        'Solicitação de Cancelamento',
+        `${providerName} solicitou o cancelamento de "${booking.service.name}". Motivo: ${reason}. Acesse seus agendamentos para confirmar ou recusar.`,
+        NotificationType.BOOKING,
+      );
+      if (booking.student?.email) {
+        await this.emailService.sendEmail(
+          booking.student.email,
+          'Solicitação de Cancelamento de Reserva',
+          `<p>O profissional <strong>${providerName}</strong> solicitou o cancelamento da reserva <strong>${booking.service.name}</strong>.</p><p><strong>Motivo:</strong> ${reason}</p><p>Acesse o aplicativo Finex para confirmar ou recusar a solicitação.</p>`,
+        );
+      }
+    } catch (e) {
+      console.error('Erro ao notificar aluno sobre cancelamento solicitado:', e);
+    }
+
+    return saved;
+  }
+
+  /**
+   * O aluno confirma a solicitação de cancelamento feita pelo profissional.
+   * A reserva é cancelada, os estornos são efetuados e ambos são notificados.
+   */
+  async confirmCancellationByStudent(
+    bookingId: string,
+    user: { id: string; role?: string },
+  ): Promise<Booking> {
+    const booking = await this.bookingsRepo.findOne({
+      where: { id: bookingId },
+      relations: ['service', 'student'],
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Reserva não encontrada');
+    }
+
+    if (user.role !== 'ADMIN' && booking.studentId !== user.id) {
+      throw new ForbiddenException('Apenas o aluno titular pode confirmar o cancelamento');
+    }
+
+    // Executa o cancelamento oficial da reserva
+    const cancelled = await this.cancelBooking(bookingId, user);
+
+    // Notifica o profissional sobre a confirmação do aluno
+    try {
+      const provider = await this.userRepo.findOneBy({ id: booking.service.providerId });
+      if (provider) {
+        await this.notificationsService.create(
+          provider.id,
+          'Cancelamento Confirmado pelo Aluno',
+          `O aluno ${booking.student?.name || 'Aluno'} confirmou o cancelamento de "${booking.service?.name}".`,
+          NotificationType.BOOKING,
+        );
+      }
+    } catch (e) {
+      console.error('Erro ao notificar profissional sobre confirmação de cancelamento:', e);
+    }
+
+    return cancelled;
+  }
+
+  /**
+   * O aluno recusa a solicitação de cancelamento feita pelo profissional.
+   * A solicitação é limpa e a reserva continua ativa.
+   */
+  async rejectCancellationByStudent(
+    bookingId: string,
+    user: { id: string; role?: string },
+  ): Promise<Booking> {
+    const booking = await this.bookingsRepo.findOne({
+      where: { id: bookingId },
+      relations: ['service', 'student'],
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Reserva não encontrada');
+    }
+
+    if (user.role !== 'ADMIN' && booking.studentId !== user.id) {
+      throw new ForbiddenException('Apenas o aluno titular pode responder ao cancelamento');
+    }
+
+    booking.cancellationRequestedAt = null;
+    booking.cancellationReason = null;
+    booking.cancellationRequestedBy = null;
+
+    const saved = await this.bookingsRepo.save(booking);
+
+    // Notifica o profissional sobre a recusa do aluno
+    try {
+      const provider = await this.userRepo.findOneBy({ id: booking.service.providerId });
+      if (provider) {
+        await this.notificationsService.create(
+          provider.id,
+          'Solicitação de Cancelamento Recusada',
+          `O aluno ${booking.student?.name || 'Aluno'} recusou a solicitação de cancelamento de "${booking.service?.name}". A reserva continua ativa.`,
+          NotificationType.BOOKING,
+        );
+      }
+    } catch (e) {
+      console.error('Erro ao notificar profissional sobre recusa de cancelamento:', e);
+    }
+
+    return saved;
+  }
 }

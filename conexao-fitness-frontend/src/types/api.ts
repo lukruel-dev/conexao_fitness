@@ -12,6 +12,9 @@ export interface Booking {
   studentId: string;
   status: BookingStatus;
   cancelledAt: string | null;
+  cancellationRequestedAt?: string | null;
+  cancellationReason?: string | null;
+  cancellationRequestedBy?: 'PROVIDER' | 'STUDENT' | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,10 +1,15 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Navigate, useSearchParams, Link } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { listBookingsByProvider, addDemoBooking, resetDemoBookings } from "@/services/bookings";
+import {
+  listBookingsByProvider,
+  addDemoBooking,
+  resetDemoBookings,
+  requestBookingCancellation,
+} from "@/services/bookings";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDateTime, formatBookingSchedule } from "@/lib/format";
 import type { BookingStatus } from "@/types/api";
@@ -13,6 +18,7 @@ import {
   MessageCircle,
   Users,
   AlertCircle,
+  AlertTriangle,
   Clock,
   CheckCircle2,
   ChevronRight,
@@ -23,6 +29,7 @@ import {
   UserPlus,
   RotateCcw,
   Check,
+  X,
 } from "lucide-react";
 import ChatModal from "@/components/ChatModal";
 import { IntelligentPrescriptionWizard } from "@/components/prescription/IntelligentPrescriptionWizard";
@@ -132,6 +139,26 @@ export default function AgendaProfissional() {
   const [isAddStudentOpen, setIsAddStudentOpen] = useState(false);
   const [newStudentName, setNewStudentName] = useState("");
   const [newStudentService, setNewStudentService] = useState("Consultoria VIP & Prescrição");
+
+  // Modal de solicitação de cancelamento pelo profissional
+  const [cancelModalBooking, setCancelModalBooking] = useState<{ id: string; studentName: string; serviceName: string } | null>(null);
+  const [cancellationReason, setCancellationReason] = useState("");
+
+  const requestCancelMutation = useMutation({
+    mutationFn: ({ bookingId, reason }: { bookingId: string; reason: string }) =>
+      requestBookingCancellation(bookingId, reason),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["provider-bookings"] });
+      toast.success("Solicitação de cancelamento enviada ao aluno!", {
+        description: "O cancelamento será concluído assim que o aluno confirmar no aplicativo dele.",
+      });
+      setCancelModalBooking(null);
+      setCancellationReason("");
+    },
+    onError: (err: any) => {
+      toast.error("Erro ao solicitar cancelamento", { description: err.message });
+    },
+  });
 
   const isProvider = user?.role === "PERSONAL" || user?.role === "ACADEMIA";
   const isNutri = isNutritionist(user);
@@ -472,6 +499,31 @@ export default function AgendaProfissional() {
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Abrir Chat
                     </Button>
+
+                    {b.cancellationRequestedBy === "PROVIDER" && b.status !== "CANCELLED" ? (
+                      <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-amber-500/15 border border-amber-500/30 rounded-xl text-amber-500 text-[11px] font-semibold">
+                        <Clock className="w-3.5 h-3.5 animate-spin" />
+                        Cancelamento Pendente
+                      </div>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setCancelModalBooking({
+                            id: b.id,
+                            studentName: b.student?.name || "Aluno",
+                            serviceName: b.service?.name || "Serviço",
+                          });
+                          setCancellationReason("");
+                        }}
+                        className="w-full sm:w-auto text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl"
+                        title="Solicitar cancelamento (requer confirmação do aluno)"
+                      >
+                        <X className="w-3.5 h-3.5 mr-1" />
+                        Cancelar
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
@@ -488,6 +540,68 @@ export default function AgendaProfissional() {
           title={chatBooking.name}
         />
       )}
+
+      {/* MODAL DE SOLICITAÇÃO DE CANCELAMENTO PELO PERSONAL */}
+      <Dialog
+        open={Boolean(cancelModalBooking)}
+        onOpenChange={(o) => !o && setCancelModalBooking(null)}
+      >
+        <DialogContent className="max-w-md bg-card border-border rounded-3xl p-6 space-y-4">
+          <DialogHeader>
+            <DialogTitle className="font-display text-lg font-bold text-foreground flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+              Solicitar Cancelamento de Aluno
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground pt-1 leading-relaxed">
+              O cancelamento de planos ou aulas contratadas exige a <strong>confirmação do aluno</strong> no aplicativo dele para garantir transparência e o estorno adequado de saldo.
+            </DialogDescription>
+          </DialogHeader>
+
+          {cancelModalBooking && (
+            <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/70 text-xs space-y-1">
+              <div><strong>Aluno:</strong> {cancelModalBooking.studentName}</div>
+              <div><strong>Plano / Aula:</strong> {cancelModalBooking.serviceName}</div>
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold">Motivo do cancelamento (visível para o aluno) *</Label>
+            <Input
+              value={cancellationReason}
+              onChange={(e) => setCancellationReason(e.target.value)}
+              placeholder="Ex: Readequação de horários, imprevisto médico, etc."
+              className="text-xs rounded-xl"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCancelModalBooking(null)}
+              className="rounded-xl text-xs"
+            >
+              Voltar
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={!cancellationReason.trim() || requestCancelMutation.isPending}
+              onClick={() => {
+                if (cancelModalBooking) {
+                  requestCancelMutation.mutate({
+                    bookingId: cancelModalBooking.id,
+                    reason: cancellationReason.trim(),
+                  });
+                }
+              }}
+              className="rounded-xl text-xs font-bold gap-1.5"
+            >
+              {requestCancelMutation.isPending ? "Enviando..." : "Enviar Solicitação ao Aluno"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <IntelligentPrescriptionWizard
         open={isPrescriptionWizardOpen}
