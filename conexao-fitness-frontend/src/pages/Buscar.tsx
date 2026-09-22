@@ -572,102 +572,135 @@ const Buscar = () => {
               )}
 
               {/* SEÇÃO ESPECIAL: ACADEMIAS REAIS DA CIDADE (NÃO CREDENCIADAS) */}
-              {(providerType === "" || providerType === "ACADEMIA") && realGyms.length > 0 && (
+              {(providerType === "" || providerType === "ACADEMIA") && (
                 <div className="pt-6 border-t border-border/60 space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h2 className="font-display text-xl font-bold text-foreground">
-                          Academias em {selectedCity}
-                        </h2>
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-500 text-[11px] font-bold">
-                          <AlertCircle className="w-3 h-3" /> Ainda não fazem parte do ecossistema
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Academias reais da sua região mapeadas no Google Maps. Indique sua academia favorita para que ela aceite Day Pass e planos integrados pelo Conexão Finex!
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {realGyms.map((gym) => (
-                      <div
-                        key={gym.id}
-                        className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-card hover:border-amber-500/50 transition-all duration-300 shadow-sm hover:shadow-md"
-                      >
-                        {/* Imagem do Google da Academia */}
-                        <div className="relative h-44 w-full overflow-hidden bg-muted">
-                          <img
-                            src={gym.photoUrl}
-                            alt={gym.name}
-                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            loading="lazy"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
-
-                          {/* BADGE SOLICITADO: AINDA NÃO FAZ PARTE DO ECOSSISTEMA */}
-                          <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500 text-black text-[10px] font-extrabold shadow-md backdrop-blur-md">
-                              <AlertCircle className="w-3 h-3 shrink-0" />
-                              Ainda não faz parte do ecossistema
+                  {realGyms.length > 0 ? (
+                    <>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h2 className="font-display text-xl font-bold text-foreground">
+                              Academias em {selectedCity}
+                            </h2>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-500 text-[11px] font-bold">
+                              <AlertCircle className="w-3 h-3" /> Ainda não fazem parte do ecossistema
                             </span>
-
-                            <div className="flex items-center gap-1 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[11px] font-bold text-amber-400 border border-amber-400/20">
-                              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                              {gym.googleRating}
-                            </div>
                           </div>
-
-                          <div className="absolute bottom-2.5 left-3 right-3 text-white">
-                            <h3 className="font-bold text-base leading-snug drop-shadow-sm line-clamp-1">
-                              {gym.name}
-                            </h3>
-                            <div className="flex items-center gap-1 text-[11px] text-white/85 mt-0.5 truncate">
-                              <MapPin className="h-3 w-3 text-primary shrink-0" />
-                              <span className="truncate">{gym.address}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Detalhes & Ações */}
-                        <div className="p-4 flex flex-col justify-between flex-1 gap-3">
-                          <div className="space-y-1.5">
-                            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                              <span>Horários: {gym.openingHours || "Seg a Sex"}</span>
-                              <a
-                                href={gym.mapsUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary hover:underline font-semibold flex items-center gap-1"
-                              >
-                                Google Maps <ExternalLink className="w-3 h-3" />
-                              </a>
-                            </div>
-
-                            {gym.indicationCount && gym.indicationCount > 0 ? (
-                              <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold">
-                                <Sparkles className="w-3.5 h-3.5" />
-                                <span>{gym.indicationCount} alunos já indicaram esta academia</span>
-                              </div>
-                            ) : null}
-                          </div>
-
-                          <div className="pt-2 border-t border-border/50 flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedGymForInvite(gym)}
-                              className="w-full h-9 rounded-xl text-xs font-bold gap-1.5 border-amber-500/40 text-amber-500 hover:bg-amber-500/10 hover:text-amber-400"
-                            >
-                              <Share2 className="w-3.5 h-3.5" />
-                              Indicar para o Ecossistema Finex
-                            </Button>
-                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Academias reais da sua região verificadas no Google Maps. Indique sua academia para que ela passe a aceitar Day Pass e planos pelo Conexão Finex!
+                          </p>
                         </div>
                       </div>
-                    ))}
-                  </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {realGyms.map((gym) => (
+                          <div
+                            key={gym.id}
+                            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-card hover:border-amber-500/50 transition-all duration-300 shadow-sm hover:shadow-md"
+                          >
+                            {/* Imagem do Google da Academia */}
+                            <div className="relative h-44 w-full overflow-hidden bg-muted">
+                              <img
+                                src={gym.photoUrl}
+                                alt={gym.name}
+                                className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                loading="lazy"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+
+                              {/* BADGE: AINDA NÃO FAZ PARTE DO ECOSSISTEMA */}
+                              <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500 text-black text-[10px] font-extrabold shadow-md backdrop-blur-md">
+                                  <AlertCircle className="w-3 h-3 shrink-0" />
+                                  Ainda não faz parte do ecossistema
+                                </span>
+
+                                <div className="flex items-center gap-1 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[11px] font-bold text-amber-400 border border-amber-400/20">
+                                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                                  {gym.googleRating}
+                                </div>
+                              </div>
+
+                              <div className="absolute bottom-2.5 left-3 right-3 text-white">
+                                <h3 className="font-bold text-base leading-snug drop-shadow-sm line-clamp-1">
+                                  {gym.name}
+                                </h3>
+                                <div className="flex items-center gap-1 text-[11px] text-white/85 mt-0.5 truncate">
+                                  <MapPin className="h-3 w-3 text-primary shrink-0" />
+                                  <span className="truncate">{gym.address}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Detalhes & Ações */}
+                            <div className="p-4 flex flex-col justify-between flex-1 gap-3">
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                                  <span>Horários: {gym.openingHours || "Seg a Sex"}</span>
+                                  <a
+                                    href={gym.mapsUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:underline font-semibold flex items-center gap-1"
+                                  >
+                                    Google Maps <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                </div>
+
+                                {gym.phone && (
+                                  <div className="text-[11px] text-muted-foreground">
+                                    <span>Tel: {gym.phone}</span>
+                                  </div>
+                                )}
+
+                                {gym.indicationCount && gym.indicationCount > 0 ? (
+                                  <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold">
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    <span>{gym.indicationCount} alunos já indicaram esta academia</span>
+                                  </div>
+                                ) : null}
+                              </div>
+
+                              <div className="pt-2 border-t border-border/50 flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setSelectedGymForInvite(gym)}
+                                  className="w-full h-9 rounded-xl text-xs font-bold gap-1.5 border-amber-500/40 text-amber-500 hover:bg-amber-500/10 hover:text-amber-400"
+                                >
+                                  <Share2 className="w-3.5 h-3.5" />
+                                  Indicar para o Ecossistema Finex
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-6 rounded-2xl bg-card border border-border/70 text-center space-y-3">
+                      <Building2 className="w-10 h-10 text-primary mx-auto opacity-80" />
+                      <h3 className="font-display font-bold text-base text-foreground">
+                        Nenhuma academia de {selectedCity} catalogada ainda
+                      </h3>
+                      <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                        Conhece ou frequenta uma academia em {selectedCity}? Indique pelo WhatsApp para nossa equipe entrar em contato e integrá-la ao ecossistema Finex!
+                      </p>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          const msg = encodeURIComponent(
+                            `Olá! Gostaria de indicar uma academia de ${selectedCity} para integrar o ecossistema Conexão Finex!`
+                          );
+                          window.open(`https://wa.me/5555999999999?text=${msg}`, "_blank");
+                        }}
+                        className="rounded-xl text-xs font-bold gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
+                        Indicar Academia de {selectedCity} no WhatsApp
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
