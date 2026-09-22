@@ -372,7 +372,7 @@ export default function Home() {
                     <span className="text-slate-500">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    {['20% a 22% de comissão', 'Perfil básico', 'Aparece na busca padrão', 'Sem prioridade'].map((item, i) => (
+                    {['Taxa de intermediação de 12%', 'Perfil básico', 'Aparece na busca padrão', 'Sem prioridade'].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
                         <Check className="w-4 h-4 text-[#06b6d4]" /> {item}
                       </li>
@@ -391,7 +391,7 @@ export default function Home() {
                     <span className="text-slate-500">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    {['15% a 18% de comissão', 'Perfil completo', 'Leve melhora de posição na busca'].map((item, i) => (
+                    {['Taxa de intermediação de 10%', 'Perfil completo', 'Leve melhora de posição na busca'].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
                         <Check className="w-4 h-4 text-[#06b6d4]" /> {item}
                       </li>
@@ -413,7 +413,7 @@ export default function Home() {
                     <span className="text-slate-500">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    {['10% a 12% de comissão', 'Posição destacada na busca', 'Selo de verificado', 'Agenda integrada com prioridade'].map((item, i) => (
+                    {['Taxa de intermediação reduzida para 8%', 'Posição destacada na busca', 'Selo de verificado', 'Agenda integrada com prioridade'].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
                         <Check className="w-4 h-4 text-[#06b6d4]" /> {item}
                       </li>
@@ -433,7 +433,7 @@ export default function Home() {
                     <span className="text-slate-500">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    {['5% a 7% de comissão', 'Topo nas buscas da região', 'Selo premium', 'Destaque em campanhas'].map((item, i) => (
+                    {['Menor taxa de intermediação: apenas 6%', 'Topo nas buscas da região', 'Selo premium', 'Destaque em campanhas'].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
                         <Check className="w-4 h-4 text-[#06b6d4]" /> {item}
                       </li>
@@ -459,7 +459,7 @@ export default function Home() {
                     <span className="text-slate-500">/mês</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    {['Taxa de intermediação de 12%', 'Perfil na plataforma', 'Recebimento via créditos/PIX', 'Sem elegibilidade ao freepass'].map((item, i) => (
+                    {['Perfil na plataforma', 'Recebimento via créditos/PIX', 'Sem elegibilidade ao freepass'].map((item, i) => (
                       <li key={i} className="flex items-center gap-3 text-slate-300 text-sm">
                         <Check className="w-4 h-4 text-brand-green" /> {item}
                       </li>
@@ -469,6 +469,7 @@ export default function Home() {
                     Começar Grátis
                   </button>
                 </div>
+
 
                 {/* Essencial */}
                 <div className="bg-[#12151c] rounded-2xl border border-slate-800 p-8 flex flex-col">

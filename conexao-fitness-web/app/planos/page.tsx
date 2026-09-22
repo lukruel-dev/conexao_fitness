@@ -68,7 +68,7 @@ export default function PlanosPage() {
       icon: Heart,
       iconColor: 'bg-slate-500',
       features: [
-        'Comissão de 20% a 22%',
+        'Taxa de intermediação de 12%',
         'Perfil listado'
       ],
       buttonStyle: 'bg-slate-700 hover:bg-slate-600 text-white'
@@ -80,7 +80,7 @@ export default function PlanosPage() {
       icon: Zap,
       iconColor: 'bg-orange-500',
       features: [
-        'Comissão de 15% a 18%',
+        'Taxa de intermediação de 10%',
         'Perfil verificado',
         'Até 10 leads/mês'
       ],
@@ -94,7 +94,7 @@ export default function PlanosPage() {
       iconColor: 'bg-[#14b8a6]',
       isPopular: true,
       features: [
-        'Comissão de 10% a 12%',
+        'Taxa de intermediação reduzida para 8%',
         'Leads ilimitados',
         'Destaque nas buscas'
       ],
@@ -107,7 +107,7 @@ export default function PlanosPage() {
       icon: Crown,
       iconColor: 'bg-yellow-500',
       features: [
-        'Comissão de 5% a 7%',
+        'Menor taxa de intermediação: apenas 6%',
         'Prioridade máxima',
         'Página personalizada'
       ],
@@ -123,12 +123,12 @@ export default function PlanosPage() {
       icon: Heart,
       iconColor: 'bg-slate-500',
       features: [
-        'Taxa de intermediação de 12%',
         'Acesso básico',
         'Perfil listado'
       ],
       buttonStyle: 'bg-slate-700 hover:bg-slate-600 text-white'
     },
+
     {
       name: 'Essencial',
       description: 'Para academias em crescimento.',

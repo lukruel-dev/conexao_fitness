@@ -92,7 +92,7 @@ const personalPlans: PlanItem[] = [
     period: "/mês",
     description: "Para quem está começando",
     features: [
-      "Comissão de 12%",
+      "Taxa de intermediação de 12%",
       "Perfil listado no catálogo",
       "Agenda básica",
     ],
@@ -105,7 +105,7 @@ const personalPlans: PlanItem[] = [
     period: "/mês",
     description: "Fluidez, constância, equilíbrio",
     features: [
-      "Comissão de 10%",
+      "Taxa de intermediação de 10%",
       "Perfil verificado",
       "Até 10 leads/mês",
       "Relatórios básicos de alunos",
@@ -119,7 +119,7 @@ const personalPlans: PlanItem[] = [
     period: "/mês",
     description: "Consistência, estilo próprio",
     features: [
-      "Comissão de 8%",
+      "Taxa de intermediação reduzida para 8%",
       "Leads ilimitados",
       "Destaque nas buscas e mapa",
       "Histórico de evolução de alunos",
@@ -135,7 +135,7 @@ const personalPlans: PlanItem[] = [
     features: [
       "✨ Prescritor Inteligente de Treinos & Dietas",
       "📲 Envio Direto para o App do Aluno",
-      "Comissão reduzida de 6%",
+      "Menor taxa de intermediação: apenas 6%",
       "Prioridade máxima nas buscas",
       "Página personalizada e suporte prioritário",
     ],
@@ -151,7 +151,6 @@ const gymPlans: PlanItem[] = [
     period: "/mês",
     description: "Para conhecer a plataforma",
     features: [
-      "Taxa de intermediação de 12%",
       "Acesso básico",
       "Perfil listado no marketplace",
       "Divulgação de endereço e fotos",
@@ -163,6 +162,7 @@ const gymPlans: PlanItem[] = [
     name: "Essencial",
     price: "R$ 99,90",
     period: "/mês",
+
     description: "Sistema de Matrícula & Catraca Digital",
     features: [
       "Taxa de intermediação de 10%",
