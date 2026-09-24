@@ -77,6 +77,7 @@ const userPlans: PlanItem[] = [
     price: "R$ 299,90",
     period: "/mês",
     description: "Acesso ilimitado e premium",
+    priceId: "price_1UJJTFR8Zsp2ACDItynCjM5C",
     features: [
       "~18 treinos (R$15)",
       "~9 treinos (R$30)",

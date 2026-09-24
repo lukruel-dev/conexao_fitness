@@ -31,6 +31,7 @@ async function main() {
     // Planos para Alunos
     { name: 'Plano Aluno Start', priceCents: 9990, role: 'STUDENT' },
     { name: 'Plano Aluno Plus', priceCents: 17990, role: 'STUDENT' },
+    { name: 'Plano Aluno Premium', priceCents: 29990, role: 'STUDENT' },
   ];
 
   const createdPrices: Record<string, string> = {};
