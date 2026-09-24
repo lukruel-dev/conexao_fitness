@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards, ForbiddenException } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { CreateTopupDto } from './dto/create-topup.dto';
 import { RequestWithdrawalDto } from './dto/request-withdrawal.dto';
@@ -59,6 +59,11 @@ export class WalletController {
   @Post('topups/:id/simulate-success')
   @ApiOperation({ summary: 'Simular sucesso na recarga' })
   async simulateTopupSuccess(@Param('id') id: string) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new ForbiddenException(
+        'Simulação de recarga desabilitada em produção. O saldo só pode ser creditado após confirmação do webhook do gateway.',
+      );
+    }
     return this.walletService.simulateTopupSuccess(id);
   }
 

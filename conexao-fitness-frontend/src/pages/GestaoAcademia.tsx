@@ -449,7 +449,12 @@ export default function GestaoAcademia() {
 
   // Mutação para Validação de Acesso
   const validateAccessMutation = useMutation({
-    mutationFn: (code: string) => validateGymAccess({ qrCode: code, deviceInfo: 'Catraca Recepção' }),
+    mutationFn: (param: string | { qrCode: string; bypassAntiPassback?: boolean }) => {
+      const dto = typeof param === 'string'
+        ? { qrCode: param, deviceInfo: 'Catraca Recepção' }
+        : { ...param, deviceInfo: 'Catraca Recepção' };
+      return validateGymAccess(dto);
+    },
     onSuccess: (res) => {
       setLastScanResult(res);
       playBeep(res.granted);
@@ -1706,6 +1711,28 @@ Qualquer dúvida estamos à disposição na recepção. Bons treinos! 💪🚀`;
                             )}
                           </div>
                         </div>
+                      </div>
+                    )}
+                    {/* SOBREPOSIÇÃO DE ANTI-PASSBACK PELO RECEPCIONISTA */}
+                    {lastScanResult.reason?.includes('Anti-passback') && (
+                      <div className="mt-4 pt-3 border-t border-destructive/20 flex flex-col sm:flex-row items-center justify-between gap-3 bg-amber-500/10 p-3 rounded-2xl">
+                        <p className="text-xs text-amber-500 font-medium">
+                          Reutilização recente detectada. Deseja liberar entrada avulsa manual com justificativa?
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="border-amber-500/50 text-amber-500 hover:bg-amber-500/20 font-bold shrink-0"
+                          onClick={() => {
+                            const targetCode = manualCodeInput.trim() || lastScanResult.student?.id || '';
+                            if (targetCode) {
+                              validateAccessMutation.mutate({ qrCode: targetCode, bypassAntiPassback: true });
+                            }
+                          }}
+                          disabled={validateAccessMutation.isPending}
+                        >
+                          Liberar Entrada (Sobrescrever Anti-passback)
+                        </Button>
                       </div>
                     )}
                   </div>

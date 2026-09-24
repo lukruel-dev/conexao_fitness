@@ -18,6 +18,7 @@ import { PaymentsService } from '../payments/payments.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { EmailService } from '../notifications/email.service';
 import { User } from '../users/entities/user.entity';
+import { WalletService } from '../wallet/wallet.service';
 
 // ─── Factories ───────────────────────────────────────────────────────────────
 
@@ -46,6 +47,7 @@ function makeBooking(overrides?: Partial<Booking>): Booking {
     studentId: 'student-uuid',
     status: BookingStatus.CONFIRMED,
     cancelledAt: null,
+    service: makeService({ price: '100.00', providerId: 'provider-uuid' }),
     slot: makeSlot({ status: ScheduleSlotStatus.BOOKED }),
     ...overrides,
   });
@@ -102,9 +104,10 @@ describe('BookingsService', () => {
         { provide: getRepositoryToken(ScheduleSlot), useValue: {} },
         { provide: getRepositoryToken(User), useValue: {} },
         { provide: DataSource, useValue: mockDataSource },
-        { provide: PaymentsService, useValue: { createCheckoutSessionForBooking: jest.fn().mockResolvedValue({ checkoutUrl: 'url', paymentIntentId: 'pi' }) } },
+        { provide: PaymentsService, useValue: { createPaymentIntentForBooking: jest.fn().mockResolvedValue({ clientSecret: 'secret', paymentIntentId: 'pi' }) } },
         { provide: NotificationsService, useValue: { create: jest.fn() } },
         { provide: EmailService, useValue: { sendEmail: jest.fn() } },
+        { provide: WalletService, useValue: { getMyBalance: jest.fn(), recordTransaction: jest.fn(), refundPendingBalance: jest.fn().mockResolvedValue(true) } },
       ],
     }).compile();
 

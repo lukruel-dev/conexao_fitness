@@ -8,10 +8,19 @@ import Stripe from 'stripe';
 
 jest.mock('stripe', () => {
   return jest.fn().mockImplementation(() => ({
-    checkout: {
-      sessions: {
-        create: jest.fn().mockResolvedValue({ url: 'http://test.url', payment_intent: 'pi_test' }),
-      },
+    customers: {
+      create: jest.fn().mockResolvedValue({ id: 'cus_123' }),
+    },
+    paymentIntents: {
+      create: jest.fn().mockResolvedValue({ id: 'pi_test', client_secret: 'secret_123' }),
+    },
+    subscriptions: {
+      create: jest.fn().mockResolvedValue({
+        id: 'sub_stripe_1',
+        latest_invoice: {
+          payment_intent: { client_secret: 'pi_secret_1' },
+        },
+      }),
     },
     accounts: {
       create: jest.fn().mockResolvedValue({ id: 'acct_new123' }),
@@ -61,57 +70,48 @@ describe('PaymentsService', () => {
   });
 
   describe('calculateSplit', () => {
-    it('should correctly calculate platform fee and provider amount', () => {
-      const result = service.calculateSplit(100);
+    it('should correctly calculate platform fee and provider amount with default 10%', () => {
+      const result = service.calculateSplit(100, 0.10);
       expect(result.platformFee).toBe(10);
       expect(result.providerAmount).toBe(90);
     });
   });
 
-  describe('createCheckoutSessionForBooking', () => {
+  describe('createPaymentIntentForBooking', () => {
     it('should throw NotFoundException if provider does not exist', async () => {
       mockUserRepo.findOneBy.mockResolvedValue(null);
       await expect(
-        service.createCheckoutSessionForBooking('booking-1', 100, 'provider-1'),
+        service.createPaymentIntentForBooking('booking-1', 100, 'provider-1'),
       ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw BadRequestException if provider has no stripeAccountId in production', async () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'production';
-      mockUserRepo.findOneBy.mockResolvedValue({ id: 'provider-1' }); // no stripeAccountId
+      mockUserRepo.findOneBy.mockResolvedValue({ id: 'provider-1', role: 'PERSONAL' });
 
       await expect(
-        service.createCheckoutSessionForBooking('booking-1', 100, 'provider-1'),
+        service.createPaymentIntentForBooking('booking-1', 100, 'provider-1'),
       ).rejects.toThrow(BadRequestException);
 
-      process.env.NODE_ENV = originalEnv; // restore
+      process.env.NODE_ENV = originalEnv;
     });
 
-    it('should create a checkout session successfully without split if no connected account', async () => {
-      mockUserRepo.findOneBy.mockResolvedValue({ id: 'provider-1' }); // Not production, so allowed
-      
-      const result = await service.createCheckoutSessionForBooking('booking-1', 100, 'provider-1');
-      expect(result).toEqual({
-        checkoutUrl: 'http://test.url',
-        paymentIntentId: 'pi_test',
-      });
-      expect(service.stripe.checkout.sessions.create).toHaveBeenCalled();
-    });
+    it('should create a payment intent successfully with split if valid stripeAccountId', async () => {
+      mockUserRepo.findOneBy.mockResolvedValue({ id: 'provider-1', role: 'PERSONAL', stripeAccountId: 'acct_123' });
+      mockSubscriptionRepo.findOne.mockResolvedValue(null);
 
-    it('should create a checkout session successfully with split if valid stripeAccountId', async () => {
-      mockUserRepo.findOneBy.mockResolvedValue({ id: 'provider-1', stripeAccountId: 'acct_123' });
-      
-      const result = await service.createCheckoutSessionForBooking('booking-1', 100, 'provider-1');
+      const result = await service.createPaymentIntentForBooking('booking-1', 100, 'provider-1');
       expect(result).toEqual({
-        checkoutUrl: 'http://test.url',
+        clientSecret: 'secret_123',
         paymentIntentId: 'pi_test',
       });
-      expect(service.stripe.checkout.sessions.create).toHaveBeenCalledWith(
+      expect(service.stripe.paymentIntents.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          payment_intent_data: expect.objectContaining({
-            transfer_data: { destination: 'acct_123' }
-          })
+          amount: 10000,
+          currency: 'brl',
+          application_fee_amount: 1200,
+          transfer_data: { destination: 'acct_123' },
         })
       );
     });
@@ -155,21 +155,24 @@ describe('PaymentsService', () => {
     });
   });
 
-  describe('createSubscriptionCheckout', () => {
+  describe('createSubscriptionPaymentIntent', () => {
     it('should throw NotFoundException if user not found', async () => {
       mockUserRepo.findOneBy.mockResolvedValue(null);
-      await expect(service.createSubscriptionCheckout('user-1', 'price-1')).rejects.toThrow(NotFoundException);
+      await expect(service.createSubscriptionPaymentIntent('user-1', 'price-1')).rejects.toThrow(NotFoundException);
     });
 
-    it('should create subscription and checkout session', async () => {
+    it('should create subscription and payment intent for user', async () => {
       mockUserRepo.findOneBy.mockResolvedValue({ id: 'user-1', email: 'test@test.com' });
       mockSubscriptionRepo.create.mockReturnValue({ id: 'sub-1' });
 
-      const result = await service.createSubscriptionCheckout('user-1', 'price-1');
+      const result = await service.createSubscriptionPaymentIntent('user-1', 'price-1');
       expect(mockSubscriptionRepo.create).toHaveBeenCalled();
       expect(mockSubscriptionRepo.save).toHaveBeenCalled();
-      expect(service.stripe.checkout.sessions.create).toHaveBeenCalled();
-      expect(result).toEqual({ checkoutUrl: 'http://test.url' });
+      expect(service.stripe.subscriptions.create).toHaveBeenCalled();
+      expect(result).toEqual({
+        clientSecret: 'pi_secret_1',
+        subscriptionId: 'sub_stripe_1',
+      });
     });
   });
 

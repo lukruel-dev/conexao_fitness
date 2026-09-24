@@ -31,7 +31,7 @@ export class WalletWithdrawal {
   @Column({ name: 'bank_name', nullable: true })
   bankName?: string;
 
-  @Column({ type: 'varchar', default: 'COMPLETED' })
+  @Column({ type: 'varchar', default: 'PROCESSING' })
   status: WithdrawalStatus;
 
   @Column({ name: 'transfer_protocol' })

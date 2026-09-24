@@ -17,4 +17,11 @@ export class ValidateAccessDto {
   @IsString()
   @IsOptional()
   deviceInfo?: string;
+
+  @ApiPropertyOptional({
+    description: 'Permitir liberação manual pela recepção ignorando anti-passback de 15 minutos',
+    default: false,
+  })
+  @IsOptional()
+  bypassAntiPassback?: boolean;
 }

@@ -3,7 +3,17 @@ import { WalletService } from './wallet.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { WalletAccount } from './entities/wallet-account.entity';
 import { PaymentIntent } from './entities/payment-intent.entity';
+import { WalletTransaction } from './entities/wallet-transaction.entity';
+import { WalletWithdrawal } from './entities/wallet-withdrawal.entity';
+import { User } from '../users/entities/user.entity';
+import { GymAccessLog } from '../memberships/entities/gym-access-log.entity';
+import { GymEnrollment } from '../memberships/entities/gym-enrollment.entity';
+import { Booking } from '../bookings/entities/booking.entity';
+import { Service } from '../services/entities/service.entity';
+import { ScheduleSlot } from '../services/entities/schedule-slot.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 import { QRService } from '../qr/qr.service';
+import { PaymentsService } from '../payments/payments.service';
 
 describe('WalletService', () => {
   let service: WalletService;
@@ -11,19 +21,51 @@ describe('WalletService', () => {
   const mockWalletRepo = {
     findOne: jest.fn(),
     findOneOrFail: jest.fn(),
-    create: jest.fn().mockImplementation(dto => dto),
-    save: jest.fn().mockImplementation(dto => ({ id: 'w1', ...dto })),
+    create: jest.fn().mockImplementation((dto) => dto),
+    save: jest.fn().mockImplementation((dto) => Promise.resolve({ id: 'w1', ...dto })),
   };
 
   const mockPaymentIntentRepo = {
-    create: jest.fn().mockImplementation(dto => dto),
-    save: jest.fn().mockImplementation(dto => ({ id: 'pi1', ...dto })),
+    create: jest.fn().mockImplementation((dto) => dto),
+    save: jest.fn().mockImplementation((dto) => Promise.resolve({ id: 'pi1', ...dto })),
     findOne: jest.fn(),
+  };
+
+  const mockTransactionRepo = {
+    create: jest.fn().mockImplementation((dto) => dto),
+    save: jest.fn().mockImplementation((dto) => Promise.resolve({ id: 'tx1', ...dto })),
+    find: jest.fn().mockResolvedValue([]),
+  };
+
+  const mockWithdrawalRepo = {
+    create: jest.fn().mockImplementation((dto) => dto),
+    save: jest.fn().mockImplementation((dto) => Promise.resolve({ id: 'with1', ...dto })),
+    find: jest.fn().mockResolvedValue([]),
+  };
+
+  const mockGenericRepo = {
+    findOne: jest.fn().mockResolvedValue(null),
+    findOneBy: jest.fn().mockResolvedValue(null),
+    find: jest.fn().mockResolvedValue([]),
+    save: jest.fn().mockImplementation((dto) => Promise.resolve(dto)),
+    create: jest.fn().mockImplementation((dto) => dto),
+  };
+
+  const mockNotificationsService = {
+    createNotification: jest.fn().mockResolvedValue({}),
   };
 
   const mockQrService = {
     getQrCharge: jest.fn(),
     markAsPaid: jest.fn(),
+  };
+
+  const mockPaymentsService = {
+    createPaymentIntent: jest.fn(),
+    createPaymentIntentForTopup: jest.fn().mockResolvedValue({
+      clientSecret: 'cs_123',
+      stripePublicKey: 'pk_test_123',
+    }),
   };
 
   beforeEach(async () => {
@@ -32,7 +74,17 @@ describe('WalletService', () => {
         WalletService,
         { provide: getRepositoryToken(WalletAccount), useValue: mockWalletRepo },
         { provide: getRepositoryToken(PaymentIntent), useValue: mockPaymentIntentRepo },
+        { provide: getRepositoryToken(WalletTransaction), useValue: mockTransactionRepo },
+        { provide: getRepositoryToken(WalletWithdrawal), useValue: mockWithdrawalRepo },
+        { provide: getRepositoryToken(User), useValue: mockGenericRepo },
+        { provide: getRepositoryToken(GymAccessLog), useValue: mockGenericRepo },
+        { provide: getRepositoryToken(GymEnrollment), useValue: mockGenericRepo },
+        { provide: getRepositoryToken(Booking), useValue: mockGenericRepo },
+        { provide: getRepositoryToken(Service), useValue: mockGenericRepo },
+        { provide: getRepositoryToken(ScheduleSlot), useValue: mockGenericRepo },
+        { provide: NotificationsService, useValue: mockNotificationsService },
         { provide: QRService, useValue: mockQrService },
+        { provide: PaymentsService, useValue: mockPaymentsService },
       ],
     }).compile();
 
@@ -47,7 +99,8 @@ describe('WalletService', () => {
   describe('getMyBalance', () => {
     it('should create wallet if not exists', async () => {
       mockWalletRepo.findOne.mockResolvedValue(null);
-      
+      mockWithdrawalRepo.find.mockResolvedValue([]);
+
       const result = await service.getMyBalance('u1');
       expect(mockWalletRepo.create).toHaveBeenCalled();
       expect(mockWalletRepo.save).toHaveBeenCalled();
@@ -56,7 +109,8 @@ describe('WalletService', () => {
 
     it('should return existing wallet balance', async () => {
       mockWalletRepo.findOne.mockResolvedValue({ id: 'w1', currency: 'BRL', currentBalance: '100.50' });
-      
+      mockWithdrawalRepo.find.mockResolvedValue([]);
+
       const result = await service.getMyBalance('u1');
       expect(mockWalletRepo.create).not.toHaveBeenCalled();
       expect(result.current_balance).toBe(100.50);
@@ -85,7 +139,7 @@ describe('WalletService', () => {
       mockWalletRepo.findOneOrFail.mockResolvedValue({ id: 'w1', ownerId: 'u1', currentBalance: '100.00' });
 
       const result = await service.simulateTopupSuccess('pi1');
-      
+
       expect(mockPaymentIntentRepo.save).toHaveBeenCalledWith(expect.objectContaining({ status: 'SUCCEEDED' }));
       expect(mockWalletRepo.save).toHaveBeenCalledWith(expect.objectContaining({ currentBalance: '150.00' }));
       expect(result.new_balance).toBe(150);
@@ -110,7 +164,7 @@ describe('WalletService', () => {
 
     it('should throw if insufficient balance', async () => {
       mockQrService.getQrCharge.mockResolvedValue({ id: 'qr1', status: 'PENDING', amount: '200.00' });
-      mockWalletRepo.findOne.mockResolvedValue({ id: 'w1', currentBalance: '100.00' }); // Balance < Amount
+      mockWalletRepo.findOne.mockResolvedValue({ id: 'w1', currentBalance: '100.00' });
       await expect(service.payQrWithCredits('u1', 'qr1')).rejects.toThrow('Saldo insuficiente na carteira');
     });
 
@@ -120,7 +174,7 @@ describe('WalletService', () => {
       mockWalletRepo.findOneOrFail.mockResolvedValue({ id: 'w1', currentBalance: '100.00' });
 
       const result = await service.payQrWithCredits('u1', 'qr1');
-      
+
       expect(mockWalletRepo.save).toHaveBeenCalledWith(expect.objectContaining({ currentBalance: '50.00' }));
       expect(mockQrService.markAsPaid).toHaveBeenCalledWith('qr1');
       expect(result.new_balance).toBe(50);

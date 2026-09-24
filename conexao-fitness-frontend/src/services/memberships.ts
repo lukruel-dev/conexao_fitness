@@ -230,6 +230,7 @@ export interface ManualEnrollmentDto {
 export interface ValidateAccessDto {
   qrCode: string;
   deviceInfo?: string;
+  bypassAntiPassback?: boolean;
 }
 
 export interface RenewEnrollmentDto {

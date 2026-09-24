@@ -31,6 +31,12 @@ export class UsersService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap() {
+    const isProd = process.env.NODE_ENV === 'production';
+    if (isProd && process.env.ALLOW_BOOTSTRAP_SEED !== 'true') {
+      console.log('🔒 [Production] Inicialização sem purge nem seeding destrutivo de contas.');
+      return;
+    }
+
     try {
       const testEmails = [
         'aluno@conexaofitness.com.br',

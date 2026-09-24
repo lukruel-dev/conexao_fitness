@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, ILike, LessThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { Between, ILike, LessThan, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { MembershipPlan } from './entities/membership-plan.entity';
 import {
@@ -951,9 +951,55 @@ export class MembershipsService {
       }
 
       if (studentUser) {
+        // Verificar se o aluno tem matrícula ativa em OUTRA academia
+        const otherEnrollment = await this.enrollmentRepo
+          .createQueryBuilder('enr')
+          .leftJoinAndSelect('enr.academia', 'acad')
+          .leftJoinAndSelect('enr.student', 'enrStudent')
+          .where('(enr.qrAccessCode = :code OR enr.studentId = :sId)', {
+            code: cleanCode,
+            sId: studentUser.id,
+          })
+          .andWhere('enr.status = :actStatus', { actStatus: EnrollmentStatus.ACTIVE })
+          .andWhere('enr.endDate >= :now', { now })
+          .andWhere('enr.academiaId != :academiaId', { academiaId })
+          .orderBy('enr.endDate', 'DESC')
+          .getOne();
+
         const dayPassPrice = await this.getDayPassPrice(academiaId);
         const balance = await this.walletService.getMyBalance(studentUser.id);
         const hasEnough = balance.current_balance >= dayPassPrice;
+
+        if (otherEnrollment) {
+          const otherGymName = otherEnrollment.academia?.name || 'outra unidade';
+          const log = this.accessLogRepo.create({
+            academiaId,
+            studentId: studentUser.id,
+            status: AccessStatus.DENIED,
+            denialReason: `Matrícula ativa emitida para outra academia (${otherGymName}).`,
+            deviceInfo: dto.deviceInfo || 'Catraca Principal',
+          });
+          const savedLog = await this.accessLogRepo.save(log);
+
+          return {
+            granted: false,
+            isDayPass: true,
+            canChargeDayPass: true,
+            dayPassPrice,
+            studentBalance: balance.current_balance,
+            hasEnoughBalance: hasEnough,
+            reason: `Matrícula ativa emitida para outra academia (${otherGymName}).`,
+            student: {
+              id: studentUser.id,
+              name: studentUser.name,
+              email: studentUser.email,
+              avatarUrl: studentUser.avatarUrl,
+              cpf: studentUser.cpf,
+            },
+            accessLogId: savedLog.id,
+            message: `Acesso Negado: Matrícula ativa pertence à academia "${otherGymName}". Para treinar nesta unidade, é necessário adquirir um Day Pass (R$ ${dayPassPrice.toFixed(2)}).`,
+          };
+        }
 
         // Registrar tentativa no histórico com os dados completos do aluno!
         const log = this.accessLogRepo.create({
@@ -1094,7 +1140,59 @@ export class MembershipsService {
       };
     }
 
-    // 4. Acesso Válido e Liberado!
+    // 4. Verificação de Anti-passback (código ou aluno já utilizado nos últimos 15 minutos)
+    if (!dto.bypassAntiPassback && student?.id) {
+      const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+      const recentAccess = await this.accessLogRepo.findOne({
+        where: {
+          academiaId,
+          studentId: student.id,
+          status: AccessStatus.GRANTED,
+          accessedAt: MoreThan(fifteenMinutesAgo),
+        },
+        order: { accessedAt: 'DESC' },
+      });
+
+      if (recentAccess) {
+        const minutesAgo = Math.max(
+          1,
+          Math.round((Date.now() - new Date(recentAccess.accessedAt).getTime()) / (60 * 1000)),
+        );
+        const log = this.accessLogRepo.create({
+          academiaId,
+          enrollmentId: enrollment.id,
+          studentId: student.id,
+          status: AccessStatus.DENIED,
+          denialReason: `Anti-passback: Código já utilizado há ${minutesAgo} min nesta catraca.`,
+          deviceInfo: dto.deviceInfo || 'Catraca Principal',
+        });
+        const savedLog = await this.accessLogRepo.save(log);
+
+        return {
+          granted: false,
+          reason: `Anti-passback: Código já utilizado há ${minutesAgo} min.`,
+          student: {
+            id: student.id,
+            name: student.name,
+            email: student.email,
+            avatarUrl: student.avatarUrl,
+            cpf: student.cpf,
+          },
+          enrollment: {
+            id: enrollment.id,
+            planName: enrollment.planName,
+            startDate: enrollment.startDate,
+            endDate: enrollment.endDate,
+            daysRemaining,
+            status: enrollment.status,
+          },
+          accessLogId: savedLog.id,
+          message: `Acesso Negado: Código utilizado há ${minutesAgo} min. Reutilização imediata bloqueada (Anti-passback).`,
+        };
+      }
+    }
+
+    // 5. Acesso Válido e Liberado!
     const log = this.accessLogRepo.create({
       academiaId,
       enrollmentId: enrollment.id,

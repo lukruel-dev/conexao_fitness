@@ -33,9 +33,15 @@ export async function fetchMyDietPlan(studentId?: string): Promise<DietPlan | nu
     } catch {}
   }
 
-  // Plano alimentar padrão inicial de exemplo de alta qualidade
-  const defaultDiet: DietPlan = {
-    id: "diet-finex-default-camila",
+  // Se não houver plano no backend nem salvo localmente, retorna null para exibir estado vazio claro
+  return null;
+}
+
+/**
+ * Modelo de referência para nutricionistas prescreverem com base em template
+ */
+export function getDefaultSampleDietPlan(studentId?: string): DietPlan {
+  return {
     studentId: studentId || "current-user",
     studentName: "Aluno Finex",
     nutritionistId: "nutri-camila-santos",
@@ -325,9 +331,6 @@ export async function fetchMyDietPlan(studentId?: string): Promise<DietPlan | nu
     updatedAt: new Date().toISOString(),
     isActive: true,
   };
-
-  localStorage.setItem(`${LOCAL_DIET_PLAN_KEY}_${studentId || "me"}`, JSON.stringify(defaultDiet));
-  return defaultDiet;
 }
 
 /**

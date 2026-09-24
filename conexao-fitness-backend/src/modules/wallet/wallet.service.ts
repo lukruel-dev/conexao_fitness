@@ -196,7 +196,7 @@ export class WalletService {
 
     await this.walletRepo.save(wallet);
 
-    // Registrar o saque
+    // Registrar o saque em processamento
     const withdrawal = this.withdrawalRepo.create({
       userId,
       amount: amount.toFixed(2),
@@ -206,21 +206,20 @@ export class WalletService {
       pixKey: dto.pixKey.trim(),
       holderName: dto.holderName || wallet.pixHolderName,
       bankName: dto.bankName || wallet.bankName,
-      status: 'COMPLETED',
+      status: 'PROCESSING',
       transferProtocol,
-      processedAt: new Date(),
     });
     const savedWithdrawal = await this.withdrawalRepo.save(withdrawal);
 
-    // Registrar no extrato de transações
+    // Registrar no extrato de transações como PENDING/PROCESSING
     const transaction = this.transactionRepo.create({
       userId,
       type: 'WITHDRAWAL',
       amount: amount.toFixed(2),
       fee: '0.00',
       netAmount: (-amount).toFixed(2),
-      status: 'COMPLETED',
-      description: `Saque PIX (${dto.pixKeyType}: ${dto.pixKey})`,
+      status: 'PENDING',
+      description: `Saque PIX em processamento (${dto.pixKeyType}: ${dto.pixKey})`,
       pixKey: dto.pixKey,
       pixKeyType: dto.pixKeyType,
       referenceType: 'WITHDRAWAL',
@@ -229,11 +228,11 @@ export class WalletService {
     });
     await this.transactionRepo.save(transaction);
 
-    this.logger.log(`Saque PIX processado: Usuário ${userId} | Valor R$ ${amount.toFixed(2)} | Protocolo: ${transferProtocol}`);
+    this.logger.log(`Saque PIX solicitado: Usuário ${userId} | Valor R$ ${amount.toFixed(2)} | Protocolo: ${transferProtocol}`);
 
     return {
       success: true,
-      message: 'Saque via PIX realizado com sucesso!',
+      message: 'Solicitação de saque PIX recebida e em processamento.',
       withdrawal: savedWithdrawal,
       new_balance: newBal,
     };

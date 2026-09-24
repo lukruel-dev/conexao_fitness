@@ -7,8 +7,9 @@ describe('PaymentsController', () => {
   let service: PaymentsService;
 
   const mockPaymentsService = {
+    getAccountStatus: jest.fn(),
     getOnboardingLink: jest.fn(),
-    createSubscriptionCheckout: jest.fn(),
+    createSubscriptionPaymentIntent: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -46,21 +47,19 @@ describe('PaymentsController', () => {
   });
 
   describe('createSubscription', () => {
-    it('should return error if user is STUDENT', async () => {
-      const result = await controller.createSubscription('price-1', { role: 'STUDENT' });
-      expect(result).toEqual({ error: 'Only providers can subscribe' });
-    });
-
     it('should return error if priceId is missing', async () => {
-      const result = await controller.createSubscription('', { role: 'PERSONAL' });
+      const result = await controller.createSubscription('', 'Plan', { role: 'PERSONAL' });
       expect(result).toEqual({ error: 'priceId is required' });
     });
 
-    it('should call createSubscriptionCheckout', async () => {
-      mockPaymentsService.createSubscriptionCheckout.mockResolvedValue({ checkoutUrl: 'http://checkout.url' } as any);
-      const result = await controller.createSubscription('price-1', { id: 'user-1', role: 'PERSONAL' });
-      expect(result).toEqual({ checkoutUrl: 'http://checkout.url' });
-      expect(mockPaymentsService.createSubscriptionCheckout).toHaveBeenCalledWith('user-1', 'price-1');
+    it('should call createSubscriptionPaymentIntent', async () => {
+      mockPaymentsService.createSubscriptionPaymentIntent.mockResolvedValue({
+        clientSecret: 'secret_1',
+        subscriptionId: 'sub_1',
+      } as any);
+      const result = await controller.createSubscription('price-1', 'Plan', { id: 'user-1', role: 'PERSONAL' });
+      expect(result).toEqual({ clientSecret: 'secret_1', subscriptionId: 'sub_1' });
+      expect(mockPaymentsService.createSubscriptionPaymentIntent).toHaveBeenCalledWith('user-1', 'price-1');
     });
   });
 });

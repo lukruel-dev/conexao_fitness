@@ -71,6 +71,11 @@ export class BookingsController {
   simulateSuccess(
     @Param('bookingId', ParseUUIDPipe) bookingId: string,
   ) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new ForbiddenException(
+        'Simulação de pagamento desabilitada em produção. O pagamento deve ser confirmado via webhook oficial do provedor.',
+      );
+    }
     return this.bookingsService.confirmBooking(bookingId);
   }
 

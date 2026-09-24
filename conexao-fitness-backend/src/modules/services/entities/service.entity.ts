@@ -21,6 +21,19 @@ export enum ServiceType {
   DAY_PASS = 'DAY_PASS',
 }
 
+export enum AttendanceType {
+  PRESENCIAL = 'PRESENCIAL',
+  ONLINE = 'ONLINE',
+  HIBRIDO = 'HIBRIDO',
+}
+
+export enum LocationType {
+  ACADEMIA_PARCEIRA = 'ACADEMIA_PARCEIRA',
+  ESTABELECIMENTO_EXTERNO = 'ESTABELECIMENTO_EXTERNO',
+  DOMICILIO = 'DOMICILIO',
+  ONLINE = 'ONLINE',
+}
+
 @Entity('services')
 export class Service {
   @PrimaryGeneratedColumn('uuid')
@@ -73,6 +86,41 @@ export class Service {
 
   @Column({ type: 'varchar', nullable: true, default: 'PRESENCIAL' })
   format?: string | null;
+
+  @Column({
+    type: 'varchar',
+    length: 20,
+    default: 'PRESENCIAL',
+  })
+  attendanceType: AttendanceType;
+
+  @Column({
+    type: 'varchar',
+    length: 30,
+    nullable: true,
+  })
+  locationType?: LocationType | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  partnerGymId?: string | null;
+
+  @Column({ length: 180, nullable: true })
+  locationName?: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  locationAddress?: string | null;
+
+  @Column({ length: 100, nullable: true })
+  locationCity?: string | null;
+
+  @Column({ length: 10, nullable: true })
+  locationState?: string | null;
+
+  @Column({ length: 150, nullable: true })
+  locationPlaceId?: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  onlineInstructions?: string | null;
 
   @Column({ type: 'simple-array', nullable: true })
   benefits?: string[] | null;

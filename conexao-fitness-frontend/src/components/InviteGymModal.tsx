@@ -21,7 +21,7 @@ import {
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { ExternalGym, indicateGymToFinex, getUserIndicatedGyms } from '@/services/externalGyms';
+import { ExternalGym, indicateGymToFinex } from '@/services/externalGyms';
 
 interface InviteGymModalProps {
   gym: ExternalGym | null;
@@ -38,11 +38,11 @@ export const InviteGymModal: React.FC<InviteGymModalProps> = ({
 }) => {
   const [hasIndicated, setHasIndicated] = useState(false);
   const [indicatedCount, setIndicatedCount] = useState<number | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   React.useEffect(() => {
     if (gym) {
-      const userIndications = getUserIndicatedGyms();
-      setHasIndicated(userIndications.includes(gym.id));
+      setHasIndicated(Boolean(gym.userAlreadyIndicated));
       setIndicatedCount(gym.indicationCount || 0);
     }
   }, [gym]);
@@ -53,14 +53,27 @@ export const InviteGymModal: React.FC<InviteGymModalProps> = ({
     `Olá! Sou aluno(a) e frequento a ${gym.name} em ${gym.city}. Gostaria muito que vocês fizessem parte do ecossistema Finex (https://finex.net.br) para liberar Day Pass digital por QR Code e matrículas no aplicativo!`
   );
 
-  const handleIndicate = () => {
-    const res = indicateGymToFinex(gym.id);
-    setHasIndicated(true);
-    setIndicatedCount(res.totalIndications);
-    toast.success('Indicação registrada com sucesso!', {
-      description: `Nossa equipe de parcerias já recebeu seu interesse para credenciamento da ${gym.name}.`,
-    });
-    if (onIndicated) onIndicated(gym.id);
+  const handleIndicate = async () => {
+    if (!gym || submitting) return;
+    setSubmitting(true);
+    try {
+      const res = await indicateGymToFinex(gym);
+      setHasIndicated(true);
+      setIndicatedCount(res.totalIndications);
+      toast.success('Indicação registrada com sucesso!', {
+        description: `Nossa equipe de parcerias já recebeu seu interesse para credenciamento da ${gym.name}.`,
+      });
+      if (onIndicated) onIndicated(gym.placeId || gym.id);
+    } catch (err: any) {
+      if (err.status === 409 || err.message?.includes('já indicou')) {
+        setHasIndicated(true);
+        toast.info('Você já indicou esta academia anteriormente.');
+      } else {
+        toast.error('Não foi possível registrar a indicação no momento.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleOpenWhatsapp = () => {

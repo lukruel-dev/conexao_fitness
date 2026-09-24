@@ -1,0 +1,432 @@
+import {
+  Injectable,
+  Logger,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+import { GymIndication } from './entities/gym-indication.entity';
+import { AcademiaProfile } from '../users/entities/academia-profile.entity';
+import { User } from '../users/entities/user.entity';
+import { GetNearbyGymsDto } from './dto/get-nearby-gyms.dto';
+import { IndicateGymDto } from './dto/indicate-gym.dto';
+
+export interface StandardGymItem {
+  id: string; // Google Place ID ou ID interno
+  placeId: string;
+  name: string;
+  address: string;
+  city: string;
+  state: string;
+  lat?: number;
+  lng?: number;
+  googleRating: number;
+  googleReviewsCount: number;
+  mapsUrl: string;
+  isPartner: boolean;
+  partnerId?: string;
+  partnerDayPassPrice?: number;
+  photoUrl?: string;
+  phone?: string;
+  openingHours?: string;
+  indicationCount: number;
+  userAlreadyIndicated?: boolean;
+}
+
+interface CacheEntry {
+  timestamp: number;
+  data: StandardGymItem[];
+}
+
+@Injectable()
+export class PlacesService {
+  private readonly logger = new Logger(PlacesService.name);
+  private readonly cache = new Map<string, CacheEntry>();
+  private readonly CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 horas
+
+  constructor(
+    @InjectRepository(GymIndication)
+    private readonly indicationRepo: Repository<GymIndication>,
+    @InjectRepository(AcademiaProfile)
+    private readonly academiaProfileRepo: Repository<AcademiaProfile>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+    private readonly configService: ConfigService,
+  ) {}
+
+  /**
+   * Busca academias na região por Cidade ou Coordenadas (GPS)
+   */
+  async getGyms(dto: GetNearbyGymsDto, currentUserId?: string, userIp?: string): Promise<{
+    items: StandardGymItem[];
+    source: 'GOOGLE_PLACES_API' | 'LOCAL_CATALOG';
+    cityFilter?: string;
+  }> {
+    const cacheKey = `gyms_${dto.city || ''}_${dto.lat || ''}_${dto.lng || ''}_${dto.radiusKm || 15}`;
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL_MS) {
+      const enriched = await this.enrichGymsWithPartnerAndIndications(cached.data, currentUserId, userIp);
+      return { items: enriched, source: 'GOOGLE_PLACES_API', cityFilter: dto.city };
+    }
+
+    const apiKey = this.configService.get<string>('GOOGLE_PLACES_API_KEY');
+
+    let rawGyms: StandardGymItem[] = [];
+    let source: 'GOOGLE_PLACES_API' | 'LOCAL_CATALOG' = 'LOCAL_CATALOG';
+
+    if (apiKey && apiKey !== 'mock_key' && !apiKey.startsWith('sk_')) {
+      try {
+        rawGyms = await this.fetchFromGooglePlacesNew(dto, apiKey);
+        source = 'GOOGLE_PLACES_API';
+      } catch (err: any) {
+        this.logger.warn(`Google Places API falhou (${err.message}). Utilizando fallback seguro.`);
+        rawGyms = await this.fetchFallbackLocalGyms(dto);
+      }
+    } else {
+      rawGyms = await this.fetchFallbackLocalGyms(dto);
+    }
+
+    // Salva cache bruto da busca
+    this.cache.set(cacheKey, { timestamp: Date.now(), data: rawGyms });
+
+    // Enriquece com status de parceiro Finex e contagem de indicações do banco
+    const enriched = await this.enrichGymsWithPartnerAndIndications(rawGyms, currentUserId, userIp);
+
+    return {
+      items: enriched,
+      source,
+      cityFilter: dto.city,
+    };
+  }
+
+  /**
+   * Consulta Google Places API (New)
+   */
+  private async fetchFromGooglePlacesNew(dto: GetNearbyGymsDto, apiKey: string): Promise<StandardGymItem[]> {
+    const hasGps = dto.lat !== undefined && dto.lng !== undefined;
+    const radiusMeters = (dto.radiusKm || 15) * 1000;
+
+    let endpoint = 'https://places.googleapis.com/v1/places:searchText';
+    let body: any = {};
+
+    if (hasGps) {
+      endpoint = 'https://places.googleapis.com/v1/places:searchNearby';
+      body = {
+        includedTypes: ['gym', 'fitness_center'],
+        maxResultCount: 20,
+        locationRestriction: {
+          circle: {
+            center: { latitude: dto.lat, longitude: dto.lng },
+            radius: radiusMeters,
+          },
+        },
+      };
+    } else {
+      const cityQuery = dto.city?.trim() || 'Brasil';
+      body = {
+        textQuery: `academias de musculação e crossfit em ${cityQuery}`,
+        maxResultCount: 20,
+      };
+    }
+
+    const fieldMask = [
+      'places.id',
+      'places.displayName',
+      'places.formattedAddress',
+      'places.rating',
+      'places.userRatingCount',
+      'places.googleMapsUri',
+      'places.regularOpeningHours',
+      'places.location',
+    ].join(',');
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': fieldMask,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Google Places HTTP ${response.status}: ${errText}`);
+    }
+
+    const json = await response.json();
+    const places = json.places || [];
+
+    return places.map((p: any) => {
+      const fullAddress = p.formattedAddress || '';
+      const addressParts = fullAddress.split('-');
+      const statePart = addressParts[addressParts.length - 1]?.trim().slice(0, 2) || '';
+      const cityPart = addressParts.length > 1 ? addressParts[addressParts.length - 2]?.trim() : (dto.city || '');
+
+      const openNow = p.regularOpeningHours?.openNow;
+      const hoursText = openNow !== undefined
+        ? (openNow ? 'Aberto agora' : 'Fechado no momento')
+        : 'Horário sob consulta';
+
+      return {
+        id: p.id,
+        placeId: p.id,
+        name: p.displayName?.text || 'Academia',
+        address: fullAddress,
+        city: cityPart,
+        state: statePart,
+        lat: p.location?.latitude,
+        lng: p.location?.longitude,
+        googleRating: p.rating || 4.5,
+        googleReviewsCount: p.userRatingCount || 0,
+        mapsUrl: p.googleMapsUri || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.displayName?.text || '')}`,
+        isPartner: false,
+        openingHours: hoursText,
+        indicationCount: 0,
+      };
+    });
+  }
+
+  private readonly FALLBACK_KNOWN_GYMS: StandardGymItem[] = [
+    {
+      id: 'place_sm_corpo_acao',
+      placeId: 'place_sm_corpo_acao',
+      name: 'Academia Corpo & Ação',
+      address: 'Rua Venâncio Aires, 1500 – Centro, Santa Maria - RS',
+      city: 'Santa Maria',
+      state: 'RS',
+      lat: -29.6868,
+      lng: -53.8078,
+      googleRating: 4.8,
+      googleReviewsCount: 195,
+      mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Academia+Corpo+e+Acao+Santa+Maria',
+      isPartner: false,
+      openingHours: 'Seg a Sex: 06h às 23h • Sáb: 08h às 18h',
+      indicationCount: 0,
+    },
+    {
+      id: 'place_sm_smartfit',
+      placeId: 'place_sm_smartfit',
+      name: 'Smart Fit - Santa Maria Centro',
+      address: 'Av. Rio Branco, 442 – Centro, Santa Maria - RS',
+      city: 'Santa Maria',
+      state: 'RS',
+      lat: -29.6842,
+      lng: -53.8069,
+      googleRating: 4.7,
+      googleReviewsCount: 420,
+      mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Smart+Fit+Rio+Branco+Santa+Maria',
+      isPartner: false,
+      openingHours: 'Seg a Sex: 06h às 23h • Sáb: 08h às 17h • Dom: 09h às 14h',
+      indicationCount: 0,
+    },
+    {
+      id: 'place_sp_smartfit_paulista',
+      placeId: 'place_sp_smartfit_paulista',
+      name: 'Smart Fit - Paulista Consolação',
+      address: 'Av. Paulista, 2064 – Bela Vista, São Paulo - SP',
+      city: 'São Paulo',
+      state: 'SP',
+      lat: -23.5587,
+      lng: -46.6601,
+      googleRating: 4.6,
+      googleReviewsCount: 890,
+      mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Smart+Fit+Paulista+Consolacao',
+      isPartner: false,
+      openingHours: 'Seg a Sex: 06h às 23h • Sáb: 08h às 18h',
+      indicationCount: 0,
+    },
+    {
+      id: 'place_urg_skyfit',
+      placeId: 'place_urg_skyfit',
+      name: 'SkyFit Academia Uruguaiana',
+      address: 'Av. Marechal Setembrino de Carvalho, 278 – Vila Julia, Uruguaiana - RS',
+      city: 'Uruguaiana',
+      state: 'RS',
+      lat: -29.7578,
+      lng: -57.0872,
+      googleRating: 4.9,
+      googleReviewsCount: 310,
+      mapsUrl: 'https://www.google.com/maps/search/?api=1&query=SkyFit+Academia+Uruguaiana',
+      isPartner: false,
+      openingHours: 'Seg a Sex: 05h às 23h • Sáb: 08h às 20h • Dom: 09h às 14h',
+      indicationCount: 0,
+    },
+  ];
+
+  /**
+   * Catálogo de contingência limpo quando a chave do Google não estiver configurada
+   */
+  private async fetchFallbackLocalGyms(dto: GetNearbyGymsDto): Promise<StandardGymItem[]> {
+    // 1. Busca academias reais já cadastradas na plataforma
+    const registeredGyms = await this.academiaProfileRepo.find({
+      relations: ['user'],
+    });
+
+    const items: StandardGymItem[] = [];
+
+    for (const g of registeredGyms) {
+      if (g.user && g.user.status === 'ATIVO') {
+        const matchesCity = !dto.city || (g.city && g.city.toLowerCase().includes(dto.city.toLowerCase()));
+        if (matchesCity) {
+          items.push({
+            id: g.googlePlaceId || g.id,
+            placeId: g.googlePlaceId || g.id,
+            name: g.nomeFantasia || g.razaoSocial,
+            address: `${g.address || ''} – ${g.city || ''}, ${g.state || ''}`,
+            city: g.city || '',
+            state: g.state || '',
+            googleRating: Number(g.qualityScore) || 5.0,
+            googleReviewsCount: 1,
+            mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(g.nomeFantasia || '')}`,
+            isPartner: true,
+            partnerId: g.userId,
+            partnerDayPassPrice: g.dayPassPrice ? Number(g.dayPassPrice) : undefined,
+            photoUrl: g.coverUrl,
+            phone: g.phone || g.whatsapp,
+            openingHours: 'Seg a Sex',
+            indicationCount: 0,
+          });
+        }
+      }
+    }
+
+    // 2. Adiciona catálogo de academias conhecidas para a cidade pesquisada se não houver duplicidade
+    for (const known of this.FALLBACK_KNOWN_GYMS) {
+      const matchesCity = !dto.city || known.city.toLowerCase().includes(dto.city.toLowerCase());
+      const alreadyIncluded = items.some((i) => i.placeId === known.placeId);
+      if (matchesCity && !alreadyIncluded) {
+        items.push({ ...known });
+      }
+    }
+
+    return items;
+  }
+
+  /**
+   * Cruza academias encontradas com academias parceiras Finex cadastradas
+   * e calcula contagem real de votos/indicações do banco de dados
+   */
+  private async enrichGymsWithPartnerAndIndications(
+    gyms: StandardGymItem[],
+    currentUserId?: string,
+    userIp?: string,
+  ): Promise<StandardGymItem[]> {
+    if (gyms.length === 0) return [];
+
+    const placeIds = gyms.map((g) => g.placeId).filter(Boolean);
+
+    // 1. Buscar correspondência em academia_profiles
+    const partnerProfiles = await this.academiaProfileRepo
+      .createQueryBuilder('p')
+      .innerJoinAndSelect('p.user', 'u')
+      .where('p.googlePlaceId IN (:...placeIds)', { placeIds: placeIds.length > 0 ? placeIds : ['none'] })
+      .andWhere("u.status = 'ATIVO'")
+      .getMany();
+
+    const partnerMap = new Map<string, AcademiaProfile>();
+    partnerProfiles.forEach((p) => {
+      if (p.googlePlaceId) partnerMap.set(p.googlePlaceId, p);
+    });
+
+    // 2. Buscar contagem de indicações reais agrupadas por placeId
+    const indicationsCountRaw = await this.indicationRepo
+      .createQueryBuilder('ind')
+      .select('ind.placeId', 'placeId')
+      .addSelect('COUNT(ind.id)', 'count')
+      .where('ind.placeId IN (:...placeIds)', { placeIds: placeIds.length > 0 ? placeIds : ['none'] })
+      .groupBy('ind.placeId')
+      .getRawMany();
+
+    const countsMap = new Map<string, number>();
+    indicationsCountRaw.forEach((row) => {
+      countsMap.set(row.placeId, parseInt(row.count, 10));
+    });
+
+    // 3. Checar se o usuário atual já indicou
+    const userIndications = new Set<string>();
+    if (currentUserId || userIp) {
+      const qb = this.indicationRepo.createQueryBuilder('ind').where('ind.placeId IN (:...placeIds)', {
+        placeIds: placeIds.length > 0 ? placeIds : ['none'],
+      });
+
+      if (currentUserId) {
+        qb.andWhere('ind.userId = :currentUserId', { currentUserId });
+      } else if (userIp) {
+        qb.andWhere('ind.userIp = :userIp', { userIp });
+      }
+
+      const existingVoted = await qb.getMany();
+      existingVoted.forEach((v) => userIndications.add(v.placeId));
+    }
+
+    return gyms.map((gym) => {
+      const partner = partnerMap.get(gym.placeId);
+      const indicationCount = countsMap.get(gym.placeId) || 0;
+      const userAlreadyIndicated = userIndications.has(gym.placeId);
+
+      if (partner) {
+        return {
+          ...gym,
+          isPartner: true,
+          partnerId: partner.userId,
+          partnerDayPassPrice: partner.dayPassPrice ? Number(partner.dayPassPrice) : undefined,
+          photoUrl: partner.coverUrl || gym.photoUrl,
+          name: partner.nomeFantasia || gym.name,
+          indicationCount,
+          userAlreadyIndicated,
+        };
+      }
+
+      return {
+        ...gym,
+        isPartner: false,
+        indicationCount,
+        userAlreadyIndicated,
+      };
+    });
+  }
+
+  /**
+   * Salva a indicação do aluno para trazer a academia ao Finex
+   * Protegido contra votos duplicados por (placeId, userId) ou (placeId, userIp)
+   */
+  async indicateGym(placeId: string, dto: IndicateGymDto, userId?: string, userIp?: string) {
+    if (!placeId) throw new BadRequestException('ID do local é obrigatório.');
+
+    // Verificar se já votou
+    const existing = await this.indicationRepo.findOne({
+      where: userId ? { placeId, userId } : { placeId, userIp },
+    });
+
+    if (existing) {
+      throw new ConflictException('Você já indicou esta academia para o ecossistema Finex.');
+    }
+
+    const indication = this.indicationRepo.create({
+      placeId,
+      gymName: dto.gymName,
+      gymAddress: dto.gymAddress || null,
+      city: dto.city || null,
+      state: dto.state || null,
+      userId: userId || null,
+      userIp: userIp || null,
+    });
+
+    await this.indicationRepo.save(indication);
+
+    const totalCount = await this.indicationRepo.count({ where: { placeId } });
+
+    this.logger.log(`Indicação registrada para ${dto.gymName} (${placeId}). Total acumulado: ${totalCount}`);
+
+    return {
+      success: true,
+      message: 'Indicação registrada com sucesso!',
+      placeId,
+      totalIndications: totalCount,
+    };
+  }
+}

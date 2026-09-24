@@ -401,10 +401,10 @@ export async function getMyPersonalProfile(): Promise<PersonalProfileData> {
     ],
     modalities: ["Musculação", "Funcional", "Consultoria Online"],
     galleryUrls: [],
-    instagram: "@personal_finex",
-    whatsapp: stored.phone || "5555999999999",
-    cityBase: stored.cityBase || "Uruguaiana - RS",
-    serviceRadiusKm: 10,
+    instagram: "",
+    whatsapp: stored.phone || "",
+    cityBase: stored.cityBase || "",
+    serviceRadiusKm: 15,
     baseHourlyPrice: "120.00",
   };
 }

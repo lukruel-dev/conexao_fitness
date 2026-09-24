@@ -84,28 +84,27 @@ const Buscar = () => {
   const [radiusKm, setRadiusKm] = useState<number | undefined>(undefined);
   const [geoLoading, setGeoLoading] = useState(false);
 
-  // Controle de Cidade Selecionada para Academias Reais
-  const [selectedCity, setSelectedCity] = useState("Uruguaiana - RS");
+  // Controle de Cidade Selecionada para Resultados
+  const [selectedCity, setSelectedCity] = useState("São Paulo - SP");
   const [customCityInput, setCustomCityInput] = useState("");
   const [gymFilterTab, setGymFilterTab] = useState<"ALL" | "PARTNER" | "EXTERNAL">("ALL");
   const [selectedGymForInvite, setSelectedGymForInvite] = useState<ExternalGym | null>(null);
 
   const CITIES_PRESETS = [
-    "Uruguaiana - RS",
-    "Porto Alegre - RS",
     "São Paulo - SP",
+    "Santa Maria - RS",
+    "Porto Alegre - RS",
     "Rio de Janeiro - RJ",
     "Curitiba - PR",
+    "Uruguaiana - RS",
   ];
-
-  const URUGUAIANA_COORDS = { lat: -29.7578, lng: -57.0872 };
 
   const requestGeolocation = async (silent = false) => {
     if (coords && !silent) {
       // Se já possui coords ativas e o usuário clicou de novo, desativa
       setCoords(null);
       setRadiusKm(undefined);
-      toast({ title: "Filtro de localização removido", description: "Mostrando todos os serviços sem restrição de distância." });
+      toast({ title: "Filtro GPS removido", description: `Exibindo resultados da cidade: ${selectedCity}` });
       return;
     }
 
@@ -129,8 +128,7 @@ const Buscar = () => {
               timeout: 10000,
               maximumAge: 5 * 60 * 1000,
             });
-          } catch (highAccErr) {
-            // Fallback: se alta precisão (GPS de satélite) falhar/expirar em ambiente fechado, usa rede/Wi-Fi
+          } catch {
             position = await Geolocation.getCurrentPosition({
               enableHighAccuracy: false,
               timeout: 12000,
@@ -144,11 +142,11 @@ const Buscar = () => {
           return;
         } else {
           setGeoLoading(false);
-          setCoords(URUGUAIANA_COORDS);
+          setCoords(null);
           if (!silent) {
             toast({
-              title: "Permissão de GPS Negada",
-              description: "Para usar sua localização, permita o acesso no celular ou ative nas Configurações.",
+              title: "Permissão de GPS Não Concedida",
+              description: "Para usar 'Perto de mim', permita o acesso ao GPS ou escolha uma cidade no seletor acima.",
             });
           }
           return;
@@ -157,21 +155,30 @@ const Buscar = () => {
 
       // Executando no navegador Web
       if (!("geolocation" in navigator)) {
-        setCoords(URUGUAIANA_COORDS);
         setGeoLoading(false);
-        if (!silent) toast({ title: "Localização Padrão", description: "Geolocalização não suportada neste navegador. Usando Uruguaiana - RS como referência." });
+        setCoords(null);
+        if (!silent) {
+          toast({
+            title: "GPS não suportado",
+            description: "Geolocalização não suportada neste navegador. Selecione uma cidade para filtrar os resultados.",
+          });
+        }
         return;
       }
 
-      // Verificar se a origem é segura em testes móveis
-      const isSecure = window.isSecureContext || window.location.protocol === "https:" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+      const isSecure =
+        window.isSecureContext ||
+        window.location.protocol === "https:" ||
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
+
       if (!isSecure) {
-        setCoords(URUGUAIANA_COORDS);
         setGeoLoading(false);
+        setCoords(null);
         if (!silent) {
           toast({
             title: "Conexão Não Segura (HTTP)",
-            description: "No celular via navegador, a localização exige HTTPS. No app instalado funciona nativamente.",
+            description: "A geolocalização no navegador requer HTTPS. Selecione uma cidade acima.",
           });
         }
         return;
@@ -185,37 +192,37 @@ const Buscar = () => {
         },
         (err) => {
           setGeoLoading(false);
-          setCoords(URUGUAIANA_COORDS);
+          setCoords(null);
           if (!silent) {
-            let desc = "Não foi possível obter GPS. Usando Uruguaiana - RS como referência.";
+            let desc = "Não foi possível obter o GPS. Selecione uma cidade para pesquisar.";
             if (err.code === err.PERMISSION_DENIED) {
-              desc = "Permissão de GPS negada. Permita o acesso nas configurações do celular.";
+              desc = "Permissão de GPS negada. Selecione uma cidade ou autorize nas permissões do navegador.";
             } else if (err.code === err.POSITION_UNAVAILABLE) {
-              desc = "Sinal de GPS indisponível. Verifique se o GPS está ativado no celular.";
+              desc = "Sinal de GPS indisponível no dispositivo. Selecione uma cidade acima.";
             } else if (err.code === err.TIMEOUT) {
-              desc = "Tempo limite para obter localização excedido. Tente novamente.";
+              desc = "Tempo esgotado para obter localização. Tente novamente ou selecione uma cidade.";
             }
             toast({
-              title: "Localização Padrão Ativada",
+              title: "Localização Não Disponível",
               description: desc,
             });
           }
         },
         { enableHighAccuracy: false, timeout: 15000, maximumAge: 5 * 60 * 1000 }
       );
-    } catch (err) {
+    } catch {
       setGeoLoading(false);
-      setCoords(URUGUAIANA_COORDS);
+      setCoords(null);
       if (!silent) {
         toast({
-          title: "Localização Padrão Ativada",
-          description: "Não foi possível acessar a localização nativa. Usando Uruguaiana - RS.",
+          title: "Atenção",
+          description: "Não foi possível obter sua localização. Selecione uma cidade para ver os resultados.",
         });
       }
     }
   };
 
-  // Auto-tenta uma vez ao montar (silencioso)
+  // Auto-tenta apenas se já concedido anteriormente pelo usuário
   useEffect(() => {
     if (navigator && navigator.permissions && typeof navigator.permissions.query === "function") {
       navigator.permissions
@@ -229,27 +236,31 @@ const Buscar = () => {
     }
   }, []);
 
+  const selectedCityClean = selectedCity.split(" - ")[0].trim();
+
+  // Busca serviços credenciados Finex via backend
   const { data: services, isLoading } = useQuery({
-    queryKey: ["services", { q, modality, providerType, coords, radiusKm }],
+    queryKey: ["services", { q, modality, providerType, coords, radiusKm, city: coords ? undefined : selectedCityClean }],
     queryFn: () =>
       listServices({
         q: q || undefined,
         modality: modality !== "Todos" ? modality : undefined,
         providerType: providerType || undefined,
+        city: coords ? undefined : selectedCityClean,
         lat: coords?.lat,
         lng: coords?.lng,
         radiusKm: coords ? radiusKm : undefined,
       }),
   });
 
-  // Busca academias reais da cidade (incluindo as não credenciadas)
+  // Busca academias reais (Google Places New & Parceiras Finex)
   const {
     data: realGyms = [],
     isLoading: loadingRealGyms,
     refetch: refetchRealGyms,
   } = useQuery({
-    queryKey: ["external-gyms", selectedCity],
-    queryFn: () => getRealGymsByCity(selectedCity),
+    queryKey: ["external-gyms", { city: coords ? undefined : selectedCityClean, coords }],
+    queryFn: () => getRealGymsByCity(coords ? undefined : selectedCityClean, coords),
   });
 
 
@@ -293,10 +304,11 @@ const Buscar = () => {
                       key={city}
                       onClick={() => {
                         setSelectedCity(city);
+                        setCoords(null);
                         setCustomCityInput("");
                       }}
                       className={`px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                        selectedCity === city
+                        selectedCity === city && !coords
                           ? "bg-primary text-primary-foreground shadow-sm scale-[1.02]"
                           : "bg-muted text-muted-foreground hover:bg-muted/80"
                       }`}
@@ -316,6 +328,7 @@ const Buscar = () => {
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && customCityInput.trim()) {
                       setSelectedCity(customCityInput.trim());
+                      setCoords(null);
                     }
                   }}
                   className="h-8 text-xs rounded-xl bg-muted/70 min-w-[180px]"
@@ -326,6 +339,7 @@ const Buscar = () => {
                   onClick={() => {
                     if (customCityInput.trim()) {
                       setSelectedCity(customCityInput.trim());
+                      setCoords(null);
                     }
                   }}
                   className="h-8 text-xs rounded-xl font-semibold shrink-0"
@@ -499,7 +513,7 @@ const Buscar = () => {
 
                             {/* Content */}
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <span
                                   className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                                     s.providerType === "ACADEMIA"
@@ -512,22 +526,44 @@ const Buscar = () => {
                                     : s.professionTitle || "Profissional"}
                                 </span>
                                 <span className="text-xs text-muted-foreground">{s.modality}</span>
+
+                                {s.attendanceType === "ONLINE" ? (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center gap-1">
+                                    <Globe className="w-2.5 h-2.5" /> 100% Online
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-muted text-muted-foreground border border-border flex items-center gap-1">
+                                    <MapPin className="w-2.5 h-2.5 text-primary" />
+                                    {s.partnerGymName
+                                      ? `Presencial na ${s.partnerGymName}`
+                                      : s.locationName
+                                      ? `Presencial em ${s.locationName}`
+                                      : "Presencial"}
+                                  </span>
+                                )}
                               </div>
                               <h3 className="font-display font-bold text-lg text-foreground">{s.name}</h3>
                               <p className="text-sm text-muted-foreground mt-0.5">
                                 {s.providerName}
                                 {s.providerType === "PERSONAL" && s.professionTitle ? ` • ${s.professionTitle}` : ""}
                               </p>
-                              <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground flex-wrap">
                                 {(() => {
+                                  const total = s.totalReviews ?? s.reviewsCount ?? 0;
                                   const rating = s.providerRating ?? s.rating;
-                                  const total = s.totalReviews ?? s.reviewsCount;
-                                  if (rating == null) return null;
+                                  if (total > 0 && rating != null) {
+                                    return (
+                                      <span className="flex items-center gap-1">
+                                        <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                                        <span className="text-foreground font-medium">{Number(rating).toFixed(1)}</span>
+                                        <span>({total} {total === 1 ? "avaliação" : "avaliações"})</span>
+                                      </span>
+                                    );
+                                  }
                                   return (
-                                    <span className="flex items-center gap-1">
-                                      <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                                      <span className="text-foreground font-medium">{Number(rating).toFixed(1)}</span>
-                                      <span>({total ?? 0} {(total ?? 0) === 1 ? "avaliação" : "avaliações"})</span>
+                                    <span className="flex items-center gap-1 text-primary font-medium">
+                                      <Sparkles className="w-3.5 h-3.5 text-primary" />
+                                      <span>Novo no Finex</span>
                                     </span>
                                   );
                                 })()}
@@ -566,12 +602,12 @@ const Buscar = () => {
               ) : (
                 <div className="text-center py-10 text-muted-foreground bg-card/40 rounded-2xl border border-dashed border-border/80">
                   <Building2 className="w-8 h-8 mx-auto text-muted-foreground/50 mb-2" />
-                  <p className="font-semibold text-sm">Nenhum serviço credenciado encontrado com esses filtros.</p>
-                  <p className="text-xs text-muted-foreground mt-1">Veja abaixo as academias reais mapeadas nesta cidade e ajude a trazê-las para o Finex!</p>
+                  <p className="font-semibold text-sm">Nenhum serviço credenciado encontrado para {coords ? "esta localização" : selectedCity}.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Veja abaixo as academias reais mapeadas nesta região e ajude a trazê-las para o Finex!</p>
                 </div>
               )}
 
-              {/* SEÇÃO ESPECIAL: ACADEMIAS REAIS DA CIDADE (NÃO CREDENCIADAS) */}
+              {/* SEÇÃO ESPECIAL: ACADEMIAS REAIS (GOOGLE PLACES & PARCEIRAS FINEX) */}
               {(providerType === "" || providerType === "ACADEMIA") && (
                 <div className="pt-6 border-t border-border/60 space-y-4">
                   {realGyms.length > 0 ? (
@@ -580,14 +616,14 @@ const Buscar = () => {
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <h2 className="font-display text-xl font-bold text-foreground">
-                              Academias em {selectedCity}
+                              Academias {coords ? "Perto de Você" : `em ${selectedCity}`}
                             </h2>
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-500 text-[11px] font-bold">
-                              <AlertCircle className="w-3 h-3" /> Ainda não fazem parte do ecossistema
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] font-bold">
+                              <Building2 className="w-3 h-3" /> Mapeamento Real
                             </span>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Academias reais da sua região verificadas no Google Maps. Indique sua academia para que ela passe a aceitar Day Pass e planos pelo Conexão Finex!
+                            Academias parceiras credenciadas e locais verificados pelo Google Maps. Indique estabelecimentos que ainda não são parceiros para liberar Day Pass pelo aplicativo!
                           </p>
                         </div>
                       </div>
@@ -595,29 +631,43 @@ const Buscar = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {realGyms.map((gym) => (
                           <div
-                            key={gym.id}
-                            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/80 bg-card hover:border-amber-500/50 transition-all duration-300 shadow-sm hover:shadow-md"
+                            key={gym.id || gym.placeId}
+                            className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border transition-all duration-300 shadow-sm hover:shadow-md ${
+                              gym.isPartner
+                                ? "border-emerald-500/50 bg-card hover:border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.08)]"
+                                : "border-border/80 bg-card hover:border-amber-500/50"
+                            }`}
                           >
                             {/* Imagem do Google da Academia */}
                             <div className="relative h-44 w-full overflow-hidden bg-muted">
                               <img
-                                src={gym.photoUrl}
+                                src={gym.photoUrl || "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=600&auto=format&fit=crop"}
                                 alt={gym.name}
                                 className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                                 loading="lazy"
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
 
-                              {/* BADGE: AINDA NÃO FAZ PARTE DO ECOSSISTEMA */}
+                              {/* BADGES: PARCEIRA VS EXTERNA */}
                               <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1">
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500 text-black text-[10px] font-extrabold shadow-md backdrop-blur-md">
-                                  <AlertCircle className="w-3 h-3 shrink-0" />
-                                  Ainda não faz parte do ecossistema
-                                </span>
+                                {gym.isPartner ? (
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500 text-black text-[10px] font-extrabold shadow-md backdrop-blur-md">
+                                    <BadgeCheck className="w-3.5 h-3.5 shrink-0" />
+                                    Parceira Finex
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500 text-black text-[10px] font-extrabold shadow-md backdrop-blur-md">
+                                    <AlertCircle className="w-3 h-3 shrink-0" />
+                                    Ainda não faz parte do ecossistema
+                                  </span>
+                                )}
 
                                 <div className="flex items-center gap-1 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[11px] font-bold text-amber-400 border border-amber-400/20">
                                   <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
                                   {gym.googleRating}
+                                  {gym.googleReviewsCount > 0 && (
+                                    <span className="text-white/60 text-[9px] font-normal">({gym.googleReviewsCount})</span>
+                                  )}
                                 </div>
                               </div>
 
@@ -653,7 +703,16 @@ const Buscar = () => {
                                   </div>
                                 )}
 
-                                {gym.indicationCount && gym.indicationCount > 0 ? (
+                                {gym.isPartner && gym.partnerDayPassPrice && (
+                                  <div className="flex items-center justify-between bg-emerald-500/10 p-2 rounded-xl text-xs">
+                                    <span className="text-emerald-500 font-bold">Day Pass Disponível</span>
+                                    <span className="text-foreground font-black text-sm">
+                                      {formatBRL(gym.partnerDayPassPrice)}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {!gym.isPartner && gym.indicationCount && gym.indicationCount > 0 ? (
                                   <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold">
                                     <Sparkles className="w-3.5 h-3.5" />
                                     <span>{gym.indicationCount} alunos já indicaram esta academia</span>
@@ -662,15 +721,28 @@ const Buscar = () => {
                               </div>
 
                               <div className="pt-2 border-t border-border/50 flex items-center gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setSelectedGymForInvite(gym)}
-                                  className="w-full h-9 rounded-xl text-xs font-bold gap-1.5 border-amber-500/40 text-amber-500 hover:bg-amber-500/10 hover:text-amber-400"
-                                >
-                                  <Share2 className="w-3.5 h-3.5" />
-                                  Indicar para o Ecossistema Finex
-                                </Button>
+                                {gym.isPartner ? (
+                                  <Button
+                                    size="sm"
+                                    asChild
+                                    className="w-full h-9 rounded-xl text-xs font-bold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                                  >
+                                    <Link to={`/perfil/${gym.partnerId || gym.id}`}>
+                                      <BadgeCheck className="w-3.5 h-3.5" />
+                                      Ver Perfil & Comprar Day Pass
+                                    </Link>
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setSelectedGymForInvite(gym)}
+                                    className="w-full h-9 rounded-xl text-xs font-bold gap-1.5 border-amber-500/40 text-amber-500 hover:bg-amber-500/10 hover:text-amber-400"
+                                  >
+                                    <Share2 className="w-3.5 h-3.5" />
+                                    {gym.userAlreadyIndicated ? "Você já indicou • Indicar novamente" : "Indicar para o Ecossistema Finex"}
+                                  </Button>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -681,18 +753,18 @@ const Buscar = () => {
                     <div className="p-6 rounded-2xl bg-card border border-border/70 text-center space-y-3">
                       <Building2 className="w-10 h-10 text-primary mx-auto opacity-80" />
                       <h3 className="font-display font-bold text-base text-foreground">
-                        Nenhuma academia de {selectedCity} catalogada ainda
+                        Nenhuma academia de {selectedCity} cadastrada ainda
                       </h3>
                       <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                        Conhece ou frequenta uma academia em {selectedCity}? Indique pelo WhatsApp para nossa equipe entrar em contato e integrá-la ao ecossistema Finex!
+                        Conhece ou frequenta uma academia em {selectedCity}? Compartilhe o Finex com os gestores para liberarmos Day Pass e matrículas digitais!
                       </p>
                       <Button
                         size="sm"
                         onClick={() => {
                           const msg = encodeURIComponent(
-                            `Olá! Gostaria de indicar uma academia de ${selectedCity} para integrar o ecossistema Conexão Finex!`
+                            `Olá! Gostaria de indicar uma academia de ${selectedCity} para integrar o ecossistema Conexão Finex (https://finex.net.br)!`
                           );
-                          window.open(`https://wa.me/5555999999999?text=${msg}`, "_blank");
+                          window.open(`https://api.whatsapp.com/send?text=${msg}`, "_blank");
                         }}
                         className="rounded-xl text-xs font-bold gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
                       >

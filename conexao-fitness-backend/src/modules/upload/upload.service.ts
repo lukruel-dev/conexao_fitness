@@ -14,7 +14,7 @@ export class UploadService {
     this.logger.log(`Fazendo upload do arquivo ${file.originalname} para a pasta uploads/${folder}`);
     
     try {
-      const uploadsRoot = path.join(process.cwd(), 'uploads');
+      const uploadsRoot = process.env.UPLOADS_DIR || path.join(process.cwd(), 'uploads');
       const folderPath = path.join(uploadsRoot, folder);
       
       // Cria o diretório se não existir

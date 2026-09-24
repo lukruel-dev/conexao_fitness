@@ -51,7 +51,9 @@ export async function seedOfficialFinexAccounts(repos: SeederRepositories): Prom
     } else {
       user.name = data.name || user.name;
       user.role = data.role || user.role;
-      user.passwordHash = passwordHash;
+      if (!user.passwordHash) {
+        user.passwordHash = passwordHash;
+      }
       user.isEmailVerified = true;
       user.status = 'ATIVO';
       user.avatarUrl = data.avatarUrl || user.avatarUrl;
@@ -62,7 +64,7 @@ export async function seedOfficialFinexAccounts(repos: SeederRepositories): Prom
     return usersRepo.save(user);
   }
 
-  // Helper para garantir carteira com saldo
+  // Helper para garantir carteira com saldo inicial sem sobrescrever histórico
   async function ensureWallet(userId: string, balance: number = 0) {
     let wallet = await walletRepo.findOne({ where: { ownerId: userId, ownerType: 'USER' } });
     if (!wallet) {
@@ -74,12 +76,8 @@ export async function seedOfficialFinexAccounts(repos: SeederRepositories): Prom
         pendingBalance: '0.00',
         status: 'ACTIVE',
       });
-    } else {
-      if (balance > 0 && Number(wallet.currentBalance) < balance) {
-        wallet.currentBalance = balance.toFixed(2);
-      }
+      await walletRepo.save(wallet);
     }
-    await walletRepo.save(wallet);
   }
 
   // 1. ADMIN

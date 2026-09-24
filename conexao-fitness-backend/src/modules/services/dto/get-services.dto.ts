@@ -9,6 +9,16 @@ export class GetServicesDto {
   @IsString()
   q?: string;
 
+  @ApiPropertyOptional({ description: 'Filtrar por cidade (independente de GPS)' })
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @ApiPropertyOptional({ description: 'Filtrar por tipo de atendimento (PRESENCIAL, ONLINE, HIBRIDO)' })
+  @IsOptional()
+  @IsString()
+  attendanceType?: string;
+
   @ApiPropertyOptional({ description: 'Filtrar por modalidade (ex: Musculação)' })
   @IsOptional()
   @IsString()

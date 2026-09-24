@@ -130,8 +130,8 @@ export const TotemCatraca: React.FC = () => {
         }
       } else {
         // Negado ou Day Pass
-        if (res.isDayPass && res.hasEnoughBalance) {
-          // Se for Day Pass com saldo suficiente, debita automaticamente na hora!
+        if (res.isDayPass && res.hasEnoughBalance && !res.reason?.includes('outra academia')) {
+          // Se for Day Pass avulso com saldo suficiente, debita automaticamente na hora!
           if (res.student?.id) {
             try {
               setIsChargingDayPass(true);
@@ -149,6 +149,16 @@ export const TotemCatraca: React.FC = () => {
             } finally {
               setIsChargingDayPass(false);
             }
+          }
+        } else if (res.reason?.includes('outra academia')) {
+          if (soundEnabled) soundEffects.playErrorTone();
+          if (speechEnabled) {
+            soundEffects.speakText('Matrícula emitida para outra academia. Favor dirigir-se à recepção.');
+          }
+        } else if (res.reason?.includes('Anti-passback')) {
+          if (soundEnabled) soundEffects.playErrorTone();
+          if (speechEnabled) {
+            soundEffects.speakText('Código já utilizado recentemente. Entrada duplicada bloqueada.');
           }
         } else {
           if (soundEnabled) soundEffects.playErrorTone();

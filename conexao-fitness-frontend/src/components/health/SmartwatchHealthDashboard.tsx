@@ -48,6 +48,7 @@ import {
   getHealthConsent,
   updateHealthConsent,
   syncSmartwatchData,
+  disconnectHealthIntegration,
   publishHealthEvolutionToFeed,
   calculateDailyReadiness,
 } from '@/services/healthService';
@@ -61,6 +62,12 @@ export const SmartwatchHealthDashboard: React.FC = () => {
   const [healthData, setHealthData] = useState(() => getHealthData(studentId));
   const [consent, setConsent] = useState(() => getHealthConsent(studentId));
   const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleDisconnect = () => {
+    disconnectHealthIntegration(studentId);
+    setHealthData(getHealthData(studentId));
+    toast.info('Sincronização do relógio desconectada.');
+  };
 
   // Análise de Prontidão Diária do Relógio
   const readiness = calculateDailyReadiness(healthData);
@@ -76,9 +83,9 @@ export const SmartwatchHealthDashboard: React.FC = () => {
       const fresh = await syncSmartwatchData(studentId);
       setHealthData(fresh);
       sounds.playNotification();
-      toast.success('Dados biométricos sincronizados com seu relógio inteligente!');
-    } catch {
-      toast.error('Erro ao sincronizar com o smartwatch.');
+      toast.success('Dispositivo sincronizado com sucesso!');
+    } catch (err: any) {
+      toast.error('Erro na sincronização', { description: err?.message || 'Verifique as permissões do dispositivo.' });
     } finally {
       setIsSyncing(false);
     }
@@ -172,39 +179,54 @@ export const SmartwatchHealthDashboard: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
           <div className="flex items-start sm:items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 border border-primary/30 flex items-center justify-center text-primary shadow-inner shrink-0">
-              <Watch className="w-7 h-7 animate-pulse" />
+              <Watch className={`w-7 h-7 ${healthData.hasData && healthData.isPermissionGranted ? 'animate-pulse' : 'text-muted-foreground opacity-60'}`} />
             </div>
 
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <Badge className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  Sincronizado
-                </Badge>
+                {healthData.hasData && healthData.isPermissionGranted ? (
+                  <Badge className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    Sincronizado
+                  </Badge>
+                ) : (
+                  <Badge className="bg-muted text-muted-foreground border border-border text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1">
+                    Não Conectado
+                  </Badge>
+                )}
                 <span className="text-xs text-muted-foreground font-medium">
                   {healthData.platform === 'APPLE_HEALTH'
-                    ? 'Apple HealthKit'
+                    ? 'Apple HealthKit (iOS - Em breve)'
                     : healthData.platform === 'HEALTH_CONNECT'
-                    ? 'Google Health Connect'
-                    : 'Apple Watch / Health Connect'}
+                    ? 'Google Health Connect (Android)'
+                    : 'Web Bluetooth / Health Connect'}
                 </span>
               </div>
 
               <h2 className="text-lg sm:text-xl font-display font-black text-foreground">
-                {healthData.deviceModel}
+                {healthData.hasData ? healthData.deviceModel : 'Nenhum Smartwatch Pareado'}
               </h2>
 
               <p className="text-xs text-muted-foreground">
-                Última leitura dos sensores às{' '}
-                {new Date(healthData.lastSync).toLocaleTimeString('pt-BR', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+                {healthData.lastSync
+                  ? `Última leitura dos sensores às ${new Date(healthData.lastSync).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+                  : 'Nenhum dado biométrico importado ainda.'}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
+            {healthData.hasData && healthData.isPermissionGranted && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDisconnect}
+                className="rounded-2xl text-xs font-semibold text-muted-foreground hover:text-rose-400"
+              >
+                Desconectar
+              </Button>
+            )}
+
             <Button
               variant="outline"
               size="sm"
@@ -216,18 +238,82 @@ export const SmartwatchHealthDashboard: React.FC = () => {
               {isSyncing ? 'Lendo Sensores...' : 'Sincronizar Agora'}
             </Button>
 
-            <Button
-              variant="hero"
-              size="sm"
-              onClick={() => setIsShareModalOpen(true)}
-              className="rounded-2xl text-xs font-bold gap-2 shadow-glow flex-1 sm:flex-none"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              Postar no Feed
-            </Button>
+            {healthData.hasData && (
+              <Button
+                variant="hero"
+                size="sm"
+                onClick={() => setIsShareModalOpen(true)}
+                className="rounded-2xl text-xs font-bold gap-2 shadow-glow flex-1 sm:flex-none"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                Postar no Feed
+              </Button>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Aviso informativo de integração com Health Connect / Bluetooth */}
+      {!healthData.hasData && (
+        <div className="p-5 sm:p-6 rounded-3xl bg-card border border-border/80 shadow-sm space-y-4">
+          <div className="flex items-start gap-3">
+            <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-display font-bold text-base text-foreground">
+                Conecte seus Dispositivos de Saúde & Performance
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                O Finex conecta-se com suas ferramentas de treino reais para que você e seus profissionais acompanhem evolução autêntica:
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+            <div className="p-4 rounded-2xl bg-muted/40 border border-border/60 space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <h4 className="font-bold text-xs text-foreground">Android (Health Connect)</h4>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Compatível com relógios Wear OS (Galaxy Watch 4/5/6, Pixel Watch) e Samsung Health através da API oficial Health Connect do Google.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-muted/40 border border-border/60 space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-sky-400" />
+                <h4 className="font-bold text-xs text-foreground">Sensor Bluetooth BLE (Real)</h4>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Pareie fitas peitorais cardíacas (Polar, Garmin, Wahoo) diretamente na tela de treino ao vivo via Web Bluetooth padrão GATT.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-muted/40 border border-border/60 space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <h4 className="font-bold text-xs text-foreground">Apple HealthKit (iOS)</h4>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Planejado para o aplicativo nativo iOS. Disponível assim que o app for compilado para a plataforma da Apple.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-1">
+            <Button
+              variant="hero"
+              size="sm"
+              onClick={handleSync}
+              disabled={isSyncing}
+              className="rounded-2xl text-xs font-bold gap-2 shadow-glow"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? 'Conectando...' : 'Conectar e Ler Sensores'}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* 2. Card de Prontidão Diária & Recomendações de Treino (Daily Readiness Score) */}
       <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-card via-card to-primary/10 border border-border/80 shadow-md relative overflow-hidden">

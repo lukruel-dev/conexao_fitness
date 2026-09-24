@@ -130,6 +130,11 @@ export default function MeusServicos() {
   const [planRecurrence, setPlanRecurrence] = useState("MONTHLY");
   const [planMaxInstallments, setPlanMaxInstallments] = useState("1");
   const [planFormat, setPlanFormat] = useState("ONLINE");
+  const [planLocationType, setPlanLocationType] = useState<"ACADEMIA_PARCEIRA" | "ESTABELECIMENTO_EXTERNO" | "DOMICILIO" | "ONLINE">("ONLINE");
+  const [planLocationName, setPlanLocationName] = useState("");
+  const [planLocationAddress, setPlanLocationAddress] = useState("");
+  const [planLocationCity, setPlanLocationCity] = useState("");
+  const [planOnlineInstructions, setPlanOnlineInstructions] = useState("");
   const [planPrice, setPlanPrice] = useState("");
   const [planDescription, setPlanDescription] = useState("");
   const [planMaxStudents, setPlanMaxStudents] = useState("20");
@@ -373,6 +378,15 @@ export default function MeusServicos() {
       type: "PLANO_MENSAL",
       recurrence: planRecurrence,
       format: planFormat,
+      attendanceType: planFormat as any,
+      locationType: planFormat === "ONLINE" ? "ONLINE" : planLocationType,
+      locationName: planFormat === "ONLINE" ? "App Finex" : planLocationName || undefined,
+      locationAddress: planFormat === "ONLINE" ? undefined : planLocationAddress || undefined,
+      locationCity: planFormat === "ONLINE" ? undefined : planLocationCity || undefined,
+      onlineInstructions:
+        planFormat === "ONLINE"
+          ? planOnlineInstructions || "Acesso pelo chat e videoconferência nativa do Finex após confirmação."
+          : undefined,
       price: planPrice.replace(",", "."),
       durationMinutes: planRecurrence === "ANNUAL" ? 525600 : planRecurrence === "SEMIANNUAL" ? 259200 : planRecurrence === "QUARTERLY" ? 129600 : 43200,
       durationMonths: planRecurrence === "ANNUAL" ? 12 : planRecurrence === "SEMIANNUAL" ? 6 : planRecurrence === "QUARTERLY" ? 3 : 1,
@@ -660,6 +674,82 @@ export default function MeusServicos() {
                         </Select>
                       </div>
                     </div>
+
+                    {/* Bloco de Local de Atendimento / Instruções Online */}
+                    {planFormat === "ONLINE" ? (
+                      <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 space-y-2">
+                        <span className="text-xs font-bold text-blue-400 flex items-center gap-1.5">
+                          <Globe className="w-3.5 h-3.5" /> Atendimento 100% Online
+                        </span>
+                        <p className="text-[11px] text-muted-foreground">
+                          O aluno terá acompanhamento exclusivo, ficha digital e suporte no chat pelo App Finex.
+                        </p>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-medium text-muted-foreground">Instruções de Acesso ao Aluno (opcional)</label>
+                          <Input
+                            placeholder="Ex: Sessões semanais de alinhamento com chamada de vídeo no app após anamnese."
+                            value={planOnlineInstructions}
+                            onChange={(e) => setPlanOnlineInstructions(e.target.value)}
+                            className="rounded-xl text-xs h-9 bg-background/50"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-3.5 rounded-2xl bg-muted/60 border border-border/80 space-y-3">
+                        <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-primary" /> Local do Atendimento Presencial *
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-medium text-muted-foreground">Tipo de Estabelecimento</label>
+                            <Select value={planLocationType} onValueChange={(val: any) => setPlanLocationType(val)}>
+                              <SelectTrigger className="rounded-xl text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="ESTABELECIMENTO_EXTERNO">Academia, Estúdio ou Clínica</SelectItem>
+                                <SelectItem value="ACADEMIA_PARCEIRA">Academia Parceira Finex</SelectItem>
+                                <SelectItem value="DOMICILIO">A Domicílio / Condomínio do Aluno</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-medium text-muted-foreground">Nome do Local / Estabelecimento</label>
+                            <Input
+                              placeholder="Ex: Smart Fit Centro / Studio BioFit"
+                              value={planLocationName}
+                              onChange={(e) => setPlanLocationName(e.target.value)}
+                              className="rounded-xl text-xs h-9"
+                              required={planLocationType !== "DOMICILIO"}
+                            />
+                          </div>
+                        </div>
+
+                        {planLocationType !== "DOMICILIO" && (
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div className="sm:col-span-2 space-y-1">
+                              <label className="text-[11px] font-medium text-muted-foreground">Endereço Completo</label>
+                              <Input
+                                placeholder="Rua, Número, Bairro"
+                                value={planLocationAddress}
+                                onChange={(e) => setPlanLocationAddress(e.target.value)}
+                                className="rounded-xl text-xs h-9"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[11px] font-medium text-muted-foreground">Cidade / UF</label>
+                              <Input
+                                placeholder="Ex: Santa Maria - RS"
+                                value={planLocationCity}
+                                onChange={(e) => setPlanLocationCity(e.target.value)}
+                                className="rounded-xl text-xs h-9"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Recorrência & Preço */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

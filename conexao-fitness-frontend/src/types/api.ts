@@ -63,9 +63,21 @@ export interface Service {
   maxStudents?: number;
   maxInstallments?: number;
   durationMonths?: number;
+  attendanceType?: "ONLINE" | "PRESENCIAL" | "HIBRIDO";
+  locationType?: "ACADEMIA_PARCEIRA" | "ESTABELECIMENTO_EXTERNO" | "DOMICILIO" | "ONLINE";
+  partnerGymId?: string;
+  partnerGymName?: string;
+  partnerGymAddress?: string;
+  partnerGymCity?: string;
+  locationName?: string;
+  locationAddress?: string;
+  locationCity?: string;
+  locationState?: string;
+  locationPlaceId?: string;
+  onlineInstructions?: string;
   createdAt: string;
   updatedAt: string;
-  // Campos enriquecidos no frontend (futuro: endpoint que já entrega)
+  // Campos enriquecidos no frontend / backend query
   providerName?: string;
   providerAvatar?: string;
   professionTitle?: string | null;

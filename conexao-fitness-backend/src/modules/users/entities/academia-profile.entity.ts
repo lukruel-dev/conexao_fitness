@@ -80,6 +80,9 @@ export class AcademiaProfile {
   @Column({ type: 'uuid', nullable: true })
   subscriptionPlanId?: string;
 
+  @Column({ length: 150, nullable: true })
+  googlePlaceId?: string;
+
   @Column({ type: 'float', default: 5.0 })
   qualityScore: number;
 

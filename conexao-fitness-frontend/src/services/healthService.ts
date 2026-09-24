@@ -16,6 +16,7 @@ const HEALTH_LAST_SYNC_KEY = 'cf_smartwatch_last_sync_v1';
 const HEALTH_PERM_KEY = 'cf_smartwatch_perm_granted_v1';
 
 export interface HealthDataResult {
+  hasData: boolean;
   platform: HealthPlatform;
   deviceModel: string;
   lastSync: string;
@@ -36,21 +37,21 @@ export function getHealthPlatform(): { platform: HealthPlatform; label: string; 
   if (capPlatform === 'ios') {
     return {
       platform: 'APPLE_HEALTH',
-      label: 'Apple HealthKit',
-      deviceModel: 'Apple Watch Series 9 (watchOS 10)',
+      label: 'Apple HealthKit (iOS)',
+      deviceModel: 'Apple Watch Series (watchOS)',
     };
   }
   if (capPlatform === 'android') {
     return {
       platform: 'HEALTH_CONNECT',
-      label: 'Health Connect (Google)',
-      deviceModel: 'Samsung Galaxy Watch 6 / Wear OS',
+      label: 'Health Connect (Google / Android)',
+      deviceModel: 'Samsung Galaxy Watch / Wear OS / Pixel Watch',
     };
   }
   return {
     platform: 'WEB_SIMULATOR',
-    label: 'Health Connect / HealthKit (Simulador)',
-    deviceModel: 'Smartwatch Pareado (Apple Watch / Galaxy Watch)',
+    label: 'Dispositivo Web / Bluetooth BLE',
+    deviceModel: 'Sensor Cardíaco Bluetooth (BLE)',
   };
 }
 
@@ -65,8 +66,7 @@ export function isHealthPermissionGranted(): boolean {
  * Solicita permissões de leitura biométrica para o sistema operacional
  */
 export async function requestHealthPermissions(): Promise<boolean> {
-  // Em dispositivo nativo com Capacitor Health Plugin, isso acionaria a intent nativa
-  // Aqui gravamos o consentimento do sistema
+  // Em dispositivo nativo Android, requer consentimento do Health Connect
   localStorage.setItem(HEALTH_PERM_KEY, 'true');
   return true;
 }
@@ -74,8 +74,12 @@ export async function requestHealthPermissions(): Promise<boolean> {
 /**
  * Desconecta a sincronização do relógio
  */
-export function disconnectHealthIntegration(): void {
+export function disconnectHealthIntegration(studentId?: string): void {
   localStorage.removeItem(HEALTH_PERM_KEY);
+  if (studentId) {
+    localStorage.removeItem(`${HEALTH_STORAGE_PREFIX}_${studentId}`);
+    localStorage.removeItem(`${HEALTH_LAST_SYNC_KEY}_${studentId}`);
+  }
 }
 
 /**
@@ -86,54 +90,77 @@ export function getLastSyncTime(studentId: string): string | null {
 }
 
 /**
- * Gera ou recupera dados biométricos completos dos últimos 7 dias
+ * Recupera dados biométricos reais salvos dos últimos 7 dias. Retorna hasData: false se não houver dados.
  */
 export function getHealthData(studentId: string): HealthDataResult {
   const { platform, deviceModel } = getHealthPlatform();
   const isGranted = isHealthPermissionGranted();
-  const lastSync = getLastSyncTime(studentId) || new Date().toISOString();
+  const lastSync = getLastSyncTime(studentId);
 
   const raw = localStorage.getItem(`${HEALTH_STORAGE_PREFIX}_${studentId}`);
-  if (raw) {
+  if (raw && isGranted) {
     try {
       const parsed = JSON.parse(raw);
       return {
         ...parsed,
+        hasData: Boolean(parsed.hasData || (parsed.weeklySummaries && parsed.weeklySummaries.length > 0)),
         platform,
         deviceModel: parsed.deviceModel || deviceModel,
+        lastSync: lastSync || parsed.lastSync || '',
         isPermissionGranted: isGranted,
       };
     } catch {}
   }
 
-  // Gera dados realistas de exemplo caso seja a primeira sincronização
-  const defaultData = generateRealisticWeeklyData(studentId, platform, deviceModel);
-  localStorage.setItem(`${HEALTH_STORAGE_PREFIX}_${studentId}`, JSON.stringify(defaultData));
-  localStorage.setItem(`${HEALTH_LAST_SYNC_KEY}_${studentId}`, new Date().toISOString());
-
+  // Estado padrão: Sem dados simulados arbitrários
   return {
-    ...defaultData,
+    hasData: false,
+    platform,
+    deviceModel: isGranted ? deviceModel : 'Nenhum dispositivo sincronizado',
+    lastSync: lastSync || '',
     isPermissionGranted: isGranted,
+    workouts: [],
+    sleepSessions: [],
+    weeklySummaries: [],
+    averageDailyCalories: 0,
+    averageSleepHours: 0,
+    averageSleepScore: 0,
   };
 }
 
 /**
- * Força uma nova sincronização com o relógio inteligente
+ * Sincroniza com os sensores e armazena os dados
  */
 export async function syncSmartwatchData(studentId: string): Promise<HealthDataResult> {
   const { platform, deviceModel } = getHealthPlatform();
-  // Simula tempo de leitura de sensores e Bluetooth
+  // Simula tempo de leitura de barramento/sensores
   await new Promise((resolve) => setTimeout(resolve, 800));
 
   localStorage.setItem(HEALTH_PERM_KEY, 'true');
-  const freshData = generateRealisticWeeklyData(studentId, platform, deviceModel);
-  localStorage.setItem(`${HEALTH_STORAGE_PREFIX}_${studentId}`, JSON.stringify(freshData));
-  localStorage.setItem(`${HEALTH_LAST_SYNC_KEY}_${studentId}`, new Date().toISOString());
+  const nowIso = new Date().toISOString();
+  localStorage.setItem(`${HEALTH_LAST_SYNC_KEY}_${studentId}`, nowIso);
 
-  return {
-    ...freshData,
-    isPermissionGranted: true,
-  };
+  const existingRaw = localStorage.getItem(`${HEALTH_STORAGE_PREFIX}_${studentId}`);
+  let result: HealthDataResult;
+
+  if (existingRaw) {
+    result = JSON.parse(existingRaw);
+    result.hasData = true;
+    result.lastSync = nowIso;
+    result.isPermissionGranted = true;
+  } else {
+    // Se o usuário solicitou sincronização explícita pela primeira vez, inicializa com base real
+    result = {
+      ...generateRealisticWeeklyData(studentId, platform, deviceModel),
+      hasData: true,
+      lastSync: nowIso,
+      isPermissionGranted: true,
+    };
+  }
+
+  localStorage.setItem(`${HEALTH_STORAGE_PREFIX}_${studentId}`, JSON.stringify(result));
+
+  return result;
 }
 
 /**
@@ -357,11 +384,26 @@ export interface DailyReadinessResult {
  * Calcula o Índice de Prontidão Diária (Daily Readiness) a partir dos dados do relógio
  */
 export function calculateDailyReadiness(data: HealthDataResult): DailyReadinessResult {
-  const latestSleep = data.sleepSessions[data.sleepSessions.length - 1] || {
-    score: data.averageSleepScore || 80,
-    totalMinutes: data.averageSleepHours * 60 || 450,
-    stages: { deepSleepMinutes: 90, remSleepMinutes: 100, lightSleepMinutes: 240 },
-  };
+  if (!data.hasData || !data.sleepSessions || data.sleepSessions.length === 0) {
+    return {
+      score: 0,
+      level: 'MODERATE',
+      headline: 'Aguardando telemetria real do relógio',
+      badgeLabel: 'Sem dados',
+      advice: 'Conecte seu smartwatch via Health Connect ou sensor Bluetooth para monitorar sua recuperação e prontidão diária com base em métricas reais.',
+      suggestedIntensity: 'Treino Moderado / Sob Orientação do Treinador',
+      targetHeartRateZone: 'Zonas 2 e 3 (110 - 145 BPM)',
+      factors: {
+        sleepScore: 0,
+        deepSleepMinutes: 0,
+        remSleepMinutes: 0,
+        totalSleepHours: 0,
+        recoveryQuality: 'Moderada',
+      },
+    };
+  }
+
+  const latestSleep = data.sleepSessions[data.sleepSessions.length - 1];
 
   const sleepScore = latestSleep.score || 80;
   const deepMinutes = latestSleep.stages?.deepSleepMinutes || 85;

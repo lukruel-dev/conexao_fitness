@@ -4,10 +4,13 @@ import { PaymentsService } from './payments.service';
 import { BookingsService } from '../bookings/bookings.service';
 import { BadRequestException } from '@nestjs/common';
 
+import { WalletService } from '../wallet/wallet.service';
+
 describe('PaymentsWebhookController', () => {
   let controller: PaymentsWebhookController;
   let paymentsService: PaymentsService;
   let bookingsService: BookingsService;
+  let walletService: WalletService;
 
   const mockPaymentsService = {
     stripe: {
@@ -25,6 +28,10 @@ describe('PaymentsWebhookController', () => {
     cancelBooking: jest.fn(),
   };
 
+  const mockWalletService = {
+    handlePaymentIntentWebhook: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PaymentsWebhookController],
@@ -37,12 +44,17 @@ describe('PaymentsWebhookController', () => {
           provide: BookingsService,
           useValue: mockBookingsService,
         },
+        {
+          provide: WalletService,
+          useValue: mockWalletService,
+        },
       ],
     }).compile();
 
     controller = module.get<PaymentsWebhookController>(PaymentsWebhookController);
     paymentsService = module.get<PaymentsService>(PaymentsService);
     bookingsService = module.get<BookingsService>(BookingsService);
+    walletService = module.get<WalletService>(WalletService);
     jest.clearAllMocks();
   });
 
@@ -55,12 +67,12 @@ describe('PaymentsWebhookController', () => {
       await expect(controller.handleStripeWebhook('', {} as any)).rejects.toThrow(BadRequestException);
     });
 
-    it('should handle checkout.session.completed for booking', async () => {
+    it('should handle payment_intent.succeeded for booking', async () => {
       const event = {
-        type: 'checkout.session.completed',
+        type: 'payment_intent.succeeded',
         data: {
           object: {
-            metadata: { bookingId: 'booking-1' },
+            metadata: { purpose: 'BOOKING', bookingId: 'booking-1' },
           },
         },
       };
@@ -70,12 +82,12 @@ describe('PaymentsWebhookController', () => {
       expect(mockBookingsService.confirmBooking).toHaveBeenCalledWith('booking-1');
     });
 
-    it('should handle checkout.session.expired for booking', async () => {
+    it('should handle payment_intent.payment_failed for booking', async () => {
       const event = {
-        type: 'checkout.session.expired',
+        type: 'payment_intent.payment_failed',
         data: {
           object: {
-            metadata: { bookingId: 'booking-1' },
+            metadata: { purpose: 'BOOKING', bookingId: 'booking-1' },
           },
         },
       };
@@ -85,13 +97,15 @@ describe('PaymentsWebhookController', () => {
       expect(mockBookingsService.cancelBooking).toHaveBeenCalledWith('booking-1');
     });
 
-    it('should handle checkout.session.completed for subscription', async () => {
+    it('should handle invoice.paid for subscription', async () => {
+      (mockPaymentsService.stripe as any).subscriptions = {
+        retrieve: jest.fn().mockResolvedValue({ metadata: { userId: 'user-1' } }),
+      };
+
       const event = {
-        type: 'checkout.session.completed',
+        type: 'invoice.paid',
         data: {
           object: {
-            mode: 'subscription',
-            metadata: { userId: 'user-1' },
             subscription: 'sub-1',
           },
         },

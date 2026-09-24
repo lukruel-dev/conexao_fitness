@@ -24,6 +24,9 @@ import { Booking } from './modules/bookings/entities/booking.entity';
 import { Subscription } from './modules/payments/entities/subscription.entity';
 
 import { BookingsCancelledAtAndIndexes1713380000000 } from './database/migrations/1713380000000-BookingsCancelledAtAndIndexes';
+import { AddPlacesAndServiceLocations1727140000000 } from './database/migrations/1727140000000-AddPlacesAndServiceLocations';
+import { PlacesModule } from './modules/places/places.module';
+import { GymIndication } from './modules/places/entities/gym-indication.entity';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { Review } from './modules/reviews/entities/review.entity';
 import { ChatModule } from './modules/chat/chat.module';
@@ -97,6 +100,7 @@ const appEntities = [
   WorkoutRoutine,
   WorkoutExercise,
   WorkoutSessionLog,
+  GymIndication,
 ];
 
 @Module({
@@ -126,7 +130,10 @@ const appEntities = [
             entities: appEntities,
             synchronize: isDev,
             migrationsRun: !isDev,
-            migrations: [BookingsCancelledAtAndIndexes1713380000000],
+            migrations: [
+              BookingsCancelledAtAndIndexes1713380000000,
+              AddPlacesAndServiceLocations1727140000000,
+            ],
             logging: isDev ? ['query', 'error'] : ['error'],
           },
     ),
@@ -149,6 +156,7 @@ const appEntities = [
     MembershipsModule,
     GamificationModule,
     WorkoutsModule,
+    PlacesModule,
   ],
 })
 export class AppModule {}

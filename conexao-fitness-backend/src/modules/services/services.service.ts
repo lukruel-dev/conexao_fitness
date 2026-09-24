@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 
-import { Service } from './entities/service.entity';
+import { Service, AttendanceType } from './entities/service.entity';
 import { ScheduleSlot } from './entities/schedule-slot.entity';
 
 import { CreateServiceDto } from './dto/create-service.dto';
@@ -18,6 +18,7 @@ import { UpdateScheduleSlotDto } from './dto/update-schedule-slot.dto';
 import { ScheduleSlotStatus } from './enums/schedule-slot-status.enum';
 import { User } from '../users/entities/user.entity';
 import { PersonalProfile } from '../users/entities/personal-profile.entity';
+import { AcademiaProfile } from '../users/entities/academia-profile.entity';
 import { Subscription } from '../payments/entities/subscription.entity';
 import { AvailabilityService } from '../availability/availability.service';
 import { ServiceCatalogService } from '../service-catalog/service-catalog.service';
@@ -70,6 +71,15 @@ export class ServicesService {
       format: dto.format ?? 'PRESENCIAL',
       benefits: dto.benefits ?? null,
       maxStudents: dto.maxStudents ?? 20,
+      attendanceType: dto.attendanceType ?? AttendanceType.PRESENCIAL,
+      locationType: dto.locationType ?? null,
+      partnerGymId: dto.partnerGymId ?? null,
+      locationName: dto.locationName ?? null,
+      locationAddress: dto.locationAddress ?? null,
+      locationCity: dto.locationCity ?? null,
+      locationState: dto.locationState ?? null,
+      locationPlaceId: dto.locationPlaceId ?? null,
+      onlineInstructions: dto.onlineInstructions ?? null,
     });
 
     return this.servicesRepo.save(service);
@@ -79,13 +89,27 @@ export class ServicesService {
     const qb = this.servicesRepo.createQueryBuilder('service');
     qb.leftJoin(User, 'provider', 'provider.id = service.providerId');
     qb.leftJoin(PersonalProfile, 'personalProfile', 'personalProfile.userId = provider.id');
+    qb.leftJoin(AcademiaProfile, 'academiaProfile', 'academiaProfile.userId = provider.id');
+    qb.leftJoin(AcademiaProfile, 'partnerGymProfile', 'partnerGymProfile.userId = service.partnerGymId');
     qb.leftJoin(Subscription, 'subscription', "subscription.userId = provider.id AND subscription.status = 'ACTIVE'");
     
     if (query?.q) {
       qb.andWhere(
-        '(service.name ILIKE :q OR service.description ILIKE :q OR service.modality ILIKE :q OR provider.name ILIKE :q OR personalProfile.professionTitle ILIKE :q)',
+        '(service.name ILIKE :q OR service.description ILIKE :q OR service.modality ILIKE :q OR provider.name ILIKE :q OR personalProfile.professionTitle ILIKE :q OR academiaProfile.nomeFantasia ILIKE :q OR service.locationName ILIKE :q OR service.locationAddress ILIKE :q)',
         { q: `%${query.q}%` },
       );
+    }
+
+    if (query?.city) {
+      const cityPattern = `%${query.city.trim().toLowerCase()}%`;
+      qb.andWhere(
+        '(LOWER(service.locationCity) LIKE :city OR LOWER(provider.cityBase) LIKE :city OR LOWER(personalProfile.city) LIKE :city OR LOWER(academiaProfile.city) LIKE :city OR LOWER(partnerGymProfile.city) LIKE :city OR service.attendanceType = :onlineAttendance)',
+        { city: cityPattern, onlineAttendance: AttendanceType.ONLINE },
+      );
+    }
+
+    if (query?.attendanceType) {
+      qb.andWhere('service.attendanceType = :attendanceType', { attendanceType: query.attendanceType });
     }
     
     if (query?.modality) {
@@ -149,20 +173,23 @@ export class ServicesService {
     qb.addSelect('provider.name', 'providerName');
     qb.addSelect('provider.avatarUrl', 'providerAvatar');
     qb.addSelect('personalProfile.professionTitle', 'professionTitle');
+    qb.addSelect('academiaProfile.nomeFantasia', 'academiaNomeFantasia');
+    qb.addSelect('partnerGymProfile.nomeFantasia', 'partnerGymName');
+    qb.addSelect('partnerGymProfile.address', 'partnerGymAddress');
+    qb.addSelect('partnerGymProfile.city', 'partnerGymCity');
 
     if (query?.lat !== undefined && query?.lng !== undefined) {
-      const haversine = `(6371 * acos(cos(radians(:lat)) * cos(radians(COALESCE(provider.lastLat, -29.7578))) * cos(radians(COALESCE(provider.lastLng, -57.0872)) - radians(:lng)) + sin(radians(:lat)) * sin(radians(COALESCE(provider.lastLat, -29.7578)))))`;
+      const haversine = `CASE WHEN provider.lastLat IS NOT NULL AND provider.lastLng IS NOT NULL THEN (6371 * acos(LEAST(1.0, GREATEST(-1.0, cos(radians(:lat)) * cos(radians(provider.lastLat)) * cos(radians(provider.lastLng) - radians(:lng)) + sin(radians(:lat)) * sin(radians(provider.lastLat)))))) ELSE NULL END`;
       
       qb.addSelect(haversine, 'distance');
-      qb.addSelect(`CASE WHEN ${haversine} <= 10 THEN 1 WHEN ${haversine} <= 50 THEN 2 ELSE 3 END`, 'distanceZone');
+      qb.addSelect(`CASE WHEN ${haversine} <= 10 THEN 1 WHEN ${haversine} <= 50 THEN 2 WHEN ${haversine} IS NOT NULL THEN 3 ELSE 4 END`, 'distanceZone');
       qb.setParameter('lat', query.lat);
       qb.setParameter('lng', query.lng);
 
       if (query?.radiusKm !== undefined) {
-        qb.andWhere(`${haversine} <= :radiusKm`, { radiusKm: query.radiusKm });
+        qb.andWhere(`(${haversine} IS NOT NULL AND ${haversine} <= :radiusKm)`, { radiusKm: query.radiusKm });
       }
 
-      // Hack for raw orderBy alias issue in some TypeORM versions: wrap in quotes or use custom literal
       qb.orderBy('"distanceZone"', 'ASC');
       qb.addOrderBy('"premiumBoost"', 'DESC');
       qb.addOrderBy('"averageRating"', 'DESC');
@@ -178,17 +205,22 @@ export class ServicesService {
     return entities.map((entity, index) => {
       const rawData = raw[index];
       const premium = rawData.premiumBoost ? parseInt(rawData.premiumBoost, 10) : 0;
+      const totalReviews = rawData.totalReviews ? parseInt(rawData.totalReviews, 10) : 0;
+      const averageRating = totalReviews > 0 && rawData.averageRating ? parseFloat(rawData.averageRating) : null;
       
       return {
         ...entity,
-        providerName: rawData.providerName,
+        providerName: rawData.academiaNomeFantasia || rawData.providerName,
         providerAvatar: rawData.providerAvatar,
         professionTitle: rawData.professionTitle,
+        partnerGymName: rawData.partnerGymName,
+        partnerGymAddress: rawData.partnerGymAddress,
+        partnerGymCity: rawData.partnerGymCity,
         distance: rawData.distance !== undefined && rawData.distance !== null ? parseFloat(rawData.distance) : null,
         boostScore: premium,
         isPremium: premium > 0,
-        providerRating: rawData.averageRating ? parseFloat(rawData.averageRating) : 5.0,
-        totalReviews: rawData.totalReviews ? parseInt(rawData.totalReviews, 10) : 0,
+        providerRating: averageRating,
+        totalReviews,
       };
     });
   }
@@ -229,6 +261,15 @@ export class ServicesService {
     if (dto.format !== undefined) service.format = dto.format;
     if (dto.benefits !== undefined) service.benefits = dto.benefits;
     if (dto.maxStudents !== undefined) service.maxStudents = dto.maxStudents;
+    if (dto.attendanceType !== undefined) service.attendanceType = dto.attendanceType;
+    if (dto.locationType !== undefined) service.locationType = dto.locationType;
+    if (dto.partnerGymId !== undefined) service.partnerGymId = dto.partnerGymId;
+    if (dto.locationName !== undefined) service.locationName = dto.locationName;
+    if (dto.locationAddress !== undefined) service.locationAddress = dto.locationAddress;
+    if (dto.locationCity !== undefined) service.locationCity = dto.locationCity;
+    if (dto.locationState !== undefined) service.locationState = dto.locationState;
+    if (dto.locationPlaceId !== undefined) service.locationPlaceId = dto.locationPlaceId;
+    if (dto.onlineInstructions !== undefined) service.onlineInstructions = dto.onlineInstructions;
 
     return await this.servicesRepo.save(service);
   }

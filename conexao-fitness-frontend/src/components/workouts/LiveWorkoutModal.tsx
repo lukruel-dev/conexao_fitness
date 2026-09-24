@@ -68,10 +68,10 @@ export const LiveWorkoutModal: React.FC<LiveWorkoutModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [finishSummary, setFinishSummary] = useState<any | null>(null);
 
-  // Telemetria Cardíaca e Smartwatch ao Vivo
-  const [currentBpm, setCurrentBpm] = useState<number>(124);
-  const [heartRateHistory, setHeartRateHistory] = useState<number[]>([124]);
-  const [heartRateSource, setHeartRateSource] = useState<'BLUETOOTH' | 'SMARTWATCH_SIMULATED'>('SMARTWATCH_SIMULATED');
+  // Telemetria Cardíaca e Smartwatch ao Vivo (BLE Real)
+  const [currentBpm, setCurrentBpm] = useState<number | null>(null);
+  const [heartRateHistory, setHeartRateHistory] = useState<number[]>([]);
+  const [heartRateSource, setHeartRateSource] = useState<'BLUETOOTH' | 'NONE'>('NONE');
   const [bluetoothDeviceName, setBluetoothDeviceName] = useState<string | null>(null);
   const [isConnectingBluetooth, setIsConnectingBluetooth] = useState<boolean>(false);
   const [activeCalories, setActiveCalories] = useState<number>(0);
@@ -83,8 +83,8 @@ export const LiveWorkoutModal: React.FC<LiveWorkoutModalProps> = ({
       setElapsedSeconds(0);
       setFinishSummary(null);
       setActiveCalories(0);
-      setCurrentBpm(120);
-      setHeartRateHistory([120]);
+      setCurrentBpm(null);
+      setHeartRateHistory([]);
 
       const mapped: ExerciseExecutionState[] = (routine.exercises || []).map((ex, idx) => ({
         exerciseId: ex.id || `temp-${idx}`,
@@ -103,41 +103,31 @@ export const LiveWorkoutModal: React.FC<LiveWorkoutModalProps> = ({
       // Desconecta Bluetooth se o modal for fechado
       disconnectBluetoothHeartRate();
       setBluetoothDeviceName(null);
-      setHeartRateSource('SMARTWATCH_SIMULATED');
+      setHeartRateSource('NONE');
+      setCurrentBpm(null);
     }
   }, [open, routine]);
 
-  // Cronômetro, Calorias e Dinâmica de Frequência Cardíaca
+  // Cronômetro e Gasto Calórico (baseado em FC real quando pareado ou por duração)
   useEffect(() => {
     let interval: any = null;
     if (open && !finishSummary) {
       interval = setInterval(() => {
         setElapsedSeconds((sec) => sec + 1);
 
-        // Dinâmica Cardíaca e Gasto Calórico
-        setCurrentBpm((prevBpm) => {
-          let nextBpm = prevBpm;
-
-          if (heartRateSource === 'SMARTWATCH_SIMULATED') {
-            // Em descanso cardíaco o BPM cai suavemente; em exercício o BPM sobe
-            const targetBpm = isRestTimerOpen ? 112 : 142;
-            const diff = targetBpm - prevBpm;
-            const step = Math.sign(diff) * Math.min(Math.abs(diff), 2);
-            const jitter = Math.round((Math.random() - 0.5) * 2);
-            nextBpm = Math.max(88, Math.min(182, prevBpm + step + jitter));
-          }
-
-          // Queima de calorias ativa dinâmica (base fisiológica)
-          const calSec = (nextBpm / 140) * 0.14;
+        // Se houver batimento real medido via BLE, calcula queima fisiológica dinâmica
+        if (currentBpm && currentBpm > 0) {
+          const calSec = (currentBpm / 140) * 0.14;
           setActiveCalories((cals) => cals + calSec);
-          setHeartRateHistory((hist) => [...hist, nextBpm]);
-
-          return nextBpm;
-        });
+          setHeartRateHistory((hist) => [...hist, currentBpm]);
+        } else {
+          // Estimativa fisiológica média para musculação por tempo (~0.10 kcal/s)
+          setActiveCalories((cals) => cals + 0.10);
+        }
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [open, finishSummary, isRestTimerOpen, heartRateSource]);
+  }, [open, finishSummary, currentBpm]);
 
   const formatElapsed = (totalSec: number) => {
     const m = Math.floor(totalSec / 60);
@@ -146,7 +136,10 @@ export const LiveWorkoutModal: React.FC<LiveWorkoutModalProps> = ({
   };
 
   // Cálculo da Zona de Frequência Cardíaca Atual (Z1 a Z5)
-  const getHeartRateZone = (bpm: number) => {
+  const getHeartRateZone = (bpm: number | null) => {
+    if (!bpm || bpm <= 0) {
+      return { name: 'Sensor inativo', color: 'text-muted-foreground bg-muted/40 border-border', desc: 'Parear BLE' };
+    }
     if (bpm < 114) {
       return { name: 'Z1 Aquecimento', color: 'text-sky-400 bg-sky-500/15 border-sky-500/30', desc: '50-60%' };
     }
@@ -178,7 +171,8 @@ export const LiveWorkoutModal: React.FC<LiveWorkoutModalProps> = ({
         },
         () => {
           setBluetoothDeviceName(null);
-          setHeartRateSource('SMARTWATCH_SIMULATED');
+          setHeartRateSource('NONE');
+          setCurrentBpm(null);
           toast.info('Sensor Bluetooth desconectado.');
         }
       );
@@ -197,7 +191,8 @@ export const LiveWorkoutModal: React.FC<LiveWorkoutModalProps> = ({
   const handleDisconnectBluetooth = () => {
     disconnectBluetoothHeartRate();
     setBluetoothDeviceName(null);
-    setHeartRateSource('SMARTWATCH_SIMULATED');
+    setHeartRateSource('NONE');
+    setCurrentBpm(null);
     toast.info('Sensor desconectado.');
   };
 
@@ -240,10 +235,11 @@ export const LiveWorkoutModal: React.FC<LiveWorkoutModalProps> = ({
         0
       );
 
-      const avgBpm = Math.round(
-        heartRateHistory.reduce((acc, v) => acc + v, 0) / (heartRateHistory.length || 1)
-      );
-      const maxBpm = Math.max(...heartRateHistory, currentBpm);
+      const hasHeartData = heartRateHistory.length > 0;
+      const avgBpm = hasHeartData
+        ? Math.round(heartRateHistory.reduce((acc, v) => acc + v, 0) / heartRateHistory.length)
+        : null;
+      const maxBpm = hasHeartData ? Math.max(...heartRateHistory) : null;
       const totalKcal = Math.max(1, Math.round(activeCalories));
 
       const res = await completeWorkoutSession({
@@ -254,9 +250,9 @@ export const LiveWorkoutModal: React.FC<LiveWorkoutModalProps> = ({
         durationSeconds: elapsedSeconds,
         completedExercisesCount: totalExercisesCompleted || exercisesState.length,
         totalWeightLiftedKg: totalWeightKg,
-        notes: `Smartwatch Telemetry: FC Média ${avgBpm} bpm, FC Máx ${maxBpm} bpm, ${totalKcal} kcal gastas. Sensor: ${
-          heartRateSource === 'BLUETOOTH' ? bluetoothDeviceName : 'Apple/Galaxy Watch Sync'
-        }.`,
+        notes: hasHeartData
+          ? `Telemetria Cardíaca BLE: FC Média ${avgBpm} bpm, FC Máx ${maxBpm} bpm, ${totalKcal} kcal. Sensor: ${bluetoothDeviceName || 'BLE Heart Rate'}.`
+          : `Treino de musculação finalizado. Duração: ${formatElapsed(elapsedSeconds)}, ~${totalKcal} kcal (estimativa por tempo sem sensor pareado).`,
       });
 
       soundEffects.playSuccessChime();
@@ -271,7 +267,7 @@ export const LiveWorkoutModal: React.FC<LiveWorkoutModalProps> = ({
         avgHeartRate: avgBpm,
         maxHeartRate: maxBpm,
         caloriesBurned: totalKcal,
-        sourceLabel: heartRateSource === 'BLUETOOTH' ? (bluetoothDeviceName || 'Sensor BLE') : 'Smartwatch Health Sync',
+        sourceLabel: heartRateSource === 'BLUETOOTH' ? (bluetoothDeviceName || 'Sensor BLE') : 'Sem sensor conectado (Estimativa)',
       });
 
       onFinished?.();
@@ -328,9 +324,9 @@ export const LiveWorkoutModal: React.FC<LiveWorkoutModalProps> = ({
               <div className="flex items-center gap-2.5 flex-wrap">
                 {/* BPM ao vivo */}
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-card border border-border shadow-xs">
-                  <HeartPulse className="w-4 h-4 text-rose-500 animate-pulse" />
+                  <HeartPulse className={`w-4 h-4 ${currentBpm && currentBpm > 0 ? 'text-rose-500 animate-pulse' : 'text-muted-foreground'}`} />
                   <span className="font-display font-black text-sm text-foreground tracking-tight">
-                    {currentBpm}
+                    {currentBpm !== null && currentBpm > 0 ? currentBpm : '--'}
                   </span>
                   <span className="text-[10px] text-muted-foreground font-semibold">BPM</span>
                 </div>
@@ -348,6 +344,9 @@ export const LiveWorkoutModal: React.FC<LiveWorkoutModalProps> = ({
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-500 font-bold">
                   <Flame className="w-3.5 h-3.5 fill-current" />
                   <span>{Math.round(activeCalories)} kcal</span>
+                  {heartRateSource !== 'BLUETOOTH' && (
+                    <span className="text-[9px] opacity-75 font-normal hidden sm:inline">(est.)</span>
+                  )}
                 </div>
               </div>
 

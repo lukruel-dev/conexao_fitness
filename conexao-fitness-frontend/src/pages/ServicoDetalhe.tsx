@@ -10,7 +10,7 @@ import { listSlotsByService } from "@/services/slots";
 import { createBooking, simulateBookingSuccess } from "@/services/bookings";
 import { formatBRL, formatDateLong, formatTime } from "@/lib/format";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Clock, MapPin, Star } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Star, Globe, Building2, ShieldCheck, Sparkles } from "lucide-react";
 import { CheckoutModal } from "@/components/CheckoutModal";
 import { openGuestLoginModal } from "@/components/GuestLoginInductionModal";
 
@@ -219,6 +219,36 @@ const ServicoDetalhe = () => {
                     <p className="mt-4 text-foreground/90 leading-relaxed text-sm md:text-base">{service.description}</p>
                   )}
 
+                  {/* Formato & Local de Atendimento */}
+                  {service.attendanceType === "ONLINE" ? (
+                    <div className="mt-4 p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-xs space-y-1.5">
+                      <div className="font-bold text-blue-400 flex items-center gap-1.5 text-sm">
+                        <Globe className="w-4 h-4" /> Atendimento 100% Online
+                      </div>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {service.onlineInstructions ||
+                          "Esta consultoria/sessão é realizada remotamente via chat e videoconferência nativa do Finex após confirmação."}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-4 p-4 rounded-2xl bg-muted/60 border border-border/80 text-xs space-y-1.5">
+                      <div className="font-bold text-foreground flex items-center gap-1.5 text-sm">
+                        <MapPin className="w-4 h-4 text-primary" /> Atendimento Presencial
+                      </div>
+                      <p className="text-foreground font-semibold text-sm">
+                        {service.partnerGymName || service.locationName || service.city || "Local informado pelo profissional"}
+                      </p>
+                      {(service.locationAddress || service.city) && (
+                        <p className="text-muted-foreground">
+                          {service.locationAddress ? service.locationAddress : ""}
+                          {service.locationCity || service.city
+                            ? ` – ${service.locationCity || service.city}`
+                            : ""}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {service.providerType === "ACADEMIA" ? (
                     <div className="mt-5 pt-4 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 bg-primary/5 p-3.5 rounded-xl border border-primary/20">
                       <div>
@@ -352,10 +382,10 @@ const ServicoDetalhe = () => {
 
             {/* Sidebar */}
             <aside className="lg:col-span-1">
-              <div className="bg-card border border-border rounded-2xl p-6 lg:sticky lg:top-24">
-                <div className="text-center mb-4">
+              <div className="bg-card border border-border rounded-2xl p-6 lg:sticky lg:top-24 space-y-4">
+                <div className="text-center">
                   <div className="text-3xl font-bold text-secondary">{formatBRL(service.price)}</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-xs text-muted-foreground mt-0.5">
                     {service.type === "PLANO_MENSAL"
                       ? "por mês"
                       : isDayPass
@@ -363,17 +393,46 @@ const ServicoDetalhe = () => {
                         : "por sessão"}
                   </div>
                 </div>
+
+                {/* Resumo do Local e Modalidade */}
+                <div className="p-3.5 rounded-xl bg-muted/40 border border-border/70 text-xs space-y-2">
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span>Modalidade:</span>
+                    <span className="font-semibold text-foreground">{service.modality}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span>Formato:</span>
+                    <span className="font-semibold text-foreground">
+                      {service.attendanceType === "ONLINE" ? "100% Online" : "Presencial"}
+                    </span>
+                  </div>
+                  {service.attendanceType !== "ONLINE" && (
+                    <div className="flex items-start justify-between text-muted-foreground gap-2 pt-1 border-t border-border/40">
+                      <span>Local:</span>
+                      <span className="font-semibold text-foreground text-right text-[11px]">
+                        {service.partnerGymName || service.locationName || service.locationCity || service.city || "A combinar"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
                 <Button
                   variant="hero"
-                  className="w-full mb-2"
+                  className="w-full"
                   onClick={handleReserve}
                   disabled={bookingMutation.isPending}
                 >
                   {bookingMutation.isPending ? "Processando..." : isDayPass ? "Garantir Day Pass" : "Reservar e pagar"}
                 </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  Pagamento seguro via Pix ou cartão
-                </p>
+
+                <div className="space-y-1 text-center">
+                  <p className="text-[11px] text-muted-foreground flex items-center justify-center gap-1 font-medium">
+                    <ShieldCheck className="w-3.5 h-3.5 text-primary" /> Pagamento seguro e garantido
+                  </p>
+                  <p className="text-[10px] text-muted-foreground/80 leading-tight">
+                    Cancelamento gratuito com reembolso integral até 24h antes do início da sessão.
+                  </p>
+                </div>
               </div>
             </aside>
           </div>

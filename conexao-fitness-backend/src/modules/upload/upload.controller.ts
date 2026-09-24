@@ -10,6 +10,7 @@ export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('document')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async uploadDocument(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
@@ -71,7 +72,8 @@ export class UploadController {
   ) {
     const safeFolder = folder.replace(/[^a-zA-Z0-9_-]/g, '');
     const safeFilename = filename.replace(/[^a-zA-Z0-9_.-]/g, '');
-    const filePath = path.join(process.cwd(), 'uploads', safeFolder, safeFilename);
+    const uploadsRoot = process.env.UPLOADS_DIR || path.join(process.cwd(), 'uploads');
+    const filePath = path.join(uploadsRoot, safeFolder, safeFilename);
 
     const ext = path.extname(safeFilename).toLowerCase();
     if (!fs.existsSync(filePath)) {

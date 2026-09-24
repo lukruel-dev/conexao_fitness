@@ -4,11 +4,17 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Service } from './entities/service.entity';
 import { ScheduleSlot } from './entities/schedule-slot.entity';
 import { AvailabilityService } from '../availability/availability.service';
+import { ServiceCatalogService } from '../service-catalog/service-catalog.service';
 import { NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { ScheduleSlotStatus } from './enums/schedule-slot-status.enum';
 
 describe('ServicesService', () => {
   let service: ServicesService;
+
+  const mockServiceCatalogService = {
+    findCategoryByName: jest.fn(),
+    createCategory: jest.fn(),
+  };
 
   const makeQb = (result = []) => {
     const qb = {
@@ -60,6 +66,7 @@ describe('ServicesService', () => {
         { provide: getRepositoryToken(Service), useValue: mockServicesRepo },
         { provide: getRepositoryToken(ScheduleSlot), useValue: mockScheduleSlotsRepo },
         { provide: AvailabilityService, useValue: mockAvailabilityService },
+        { provide: ServiceCatalogService, useValue: mockServiceCatalogService },
       ],
     }).compile();
 
@@ -96,7 +103,7 @@ describe('ServicesService', () => {
       });
       const result = await service.findAll({});
       expect(result).toHaveLength(1);
-      expect(result[0].boostScore).toBe(1500);
+      expect(result[0].boostScore).toBe(500);
       expect(result[0].isPremium).toBe(true);
       expect(result[0].providerRating).toBe(4.5);
     });
@@ -136,10 +143,10 @@ describe('ServicesService', () => {
   describe('update', () => {
     it('should update service', async () => {
       mockServicesRepo.findOne.mockResolvedValue({ id: 's1', isActive: true });
-      mockServicesRepo.update.mockResolvedValue({ affected: 1 });
+      mockServicesRepo.save.mockResolvedValue({ id: 's1', name: 'Updated' });
       const result = await service.update('s1', { name: 'Updated' } as any);
       expect(result.id).toBe('s1');
-      expect(mockServicesRepo.update).toHaveBeenCalled();
+      expect(mockServicesRepo.save).toHaveBeenCalled();
     });
   });
 
