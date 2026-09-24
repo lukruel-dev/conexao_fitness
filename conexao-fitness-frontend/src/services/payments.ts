@@ -5,10 +5,11 @@ export interface OnboardResponse {
 }
 
 export async function onboardProvider(returnPath?: string): Promise<OnboardResponse> {
-  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/perfil';
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/carteira';
+  const cleanPath = typeof returnPath === 'string' && returnPath.trim().length > 0 ? returnPath : currentPath;
   return apiRequest<OnboardResponse>("/payments/onboard", {
     method: "POST",
-    body: { returnPath: returnPath || currentPath },
+    body: { returnPath: cleanPath },
   });
 }
 

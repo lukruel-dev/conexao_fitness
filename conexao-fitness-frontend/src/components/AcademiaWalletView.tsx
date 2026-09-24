@@ -138,6 +138,16 @@ export function AcademiaWalletView() {
     }
   };
 
+  const handleOpenWithdraw = () => {
+    setActiveTab("withdraw");
+    setTimeout(() => {
+      const el = document.getElementById("withdraw-section");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 60);
+  };
+
   // Filtragem do Extrato
   const transactions = statementData?.transactions || [];
   const filteredTransactions = transactions.filter((tx) => {
@@ -188,7 +198,7 @@ export function AcademiaWalletView() {
             <Button
               type="button"
               variant="hero"
-              onClick={() => setActiveTab("withdraw")}
+              onClick={handleOpenWithdraw}
               className="rounded-2xl gap-2 font-bold px-5 py-3 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform"
             >
               <Send className="w-4 h-4" /> Solicitar Saque PIX
@@ -511,7 +521,7 @@ export function AcademiaWalletView() {
 
       {/* ABA 2: FORMULÁRIO DE SAQUE VIA PIX */}
       {activeTab === "withdraw" && (
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div id="withdraw-section" className="max-w-2xl mx-auto space-y-6 scroll-mt-8 animate-in fade-in duration-300">
           <div className="bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border/60">
               <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">

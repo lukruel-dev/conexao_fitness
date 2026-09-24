@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import {
@@ -22,6 +22,7 @@ import {
   User,
   Dumbbell,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { sounds } from "@/lib/soundEffects";
@@ -121,6 +122,34 @@ export const StripeSubscriptionModal: React.FC<StripeSubscriptionModalProps> = (
 
   const isMock = !import.meta.env.VITE_STRIPE_PUBLIC_KEY || import.meta.env.VITE_STRIPE_PUBLIC_KEY.includes("mock");
 
+  useEffect(() => {
+    let isMounted = true;
+    if (isOpen && plan?.priceId && !isMock) {
+      setIsLoadingSecret(true);
+      createSubscription(plan.priceId)
+        .then((res) => {
+          if (isMounted && res.clientSecret) {
+            setClientSecret(res.clientSecret);
+          }
+        })
+        .catch((err) => {
+          console.error("Erro ao iniciar assinatura Stripe:", err);
+          toast.error("Não foi possível carregar o checkout Stripe.", {
+            description: "Alternando para modo de simulação.",
+          });
+        })
+        .finally(() => {
+          if (isMounted) setIsLoadingSecret(false);
+        });
+    } else {
+      setClientSecret(null);
+      setIsLoadingSecret(false);
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, plan?.priceId, isMock]);
+
   const handleCompleteSubscription = () => {
     setIsProcessingMock(true);
 
@@ -206,7 +235,21 @@ export const StripeSubscriptionModal: React.FC<StripeSubscriptionModalProps> = (
             )}
 
             {/* Cartão de Pagamento Stripe */}
-            {isMock ? (
+            {isLoadingSecret ? (
+              <div className="py-12 flex flex-col items-center justify-center space-y-3">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <p className="text-xs text-muted-foreground font-semibold">Iniciando checkout seguro com a Stripe...</p>
+              </div>
+            ) : (!isMock && clientSecret) ? (
+              <Elements stripe={stripePromise} options={{ clientSecret }}>
+                <CheckoutForm
+                  planName={plan.name}
+                  planPrice={plan.price}
+                  onSuccess={handleCompleteSubscription}
+                  onCancel={onClose}
+                />
+              </Elements>
+            ) : (
               <div className="space-y-4">
                 <div className="p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl border border-border/80 text-white shadow-lg relative overflow-hidden">
                   <div className="flex items-center justify-between mb-4">
@@ -258,17 +301,6 @@ export const StripeSubscriptionModal: React.FC<StripeSubscriptionModalProps> = (
                   </Button>
                 </div>
               </div>
-            ) : (
-              clientSecret && (
-                <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <CheckoutForm
-                    planName={plan.name}
-                    planPrice={plan.price}
-                    onSuccess={handleCompleteSubscription}
-                    onCancel={onClose}
-                  />
-                </Elements>
-              )
             )}
           </div>
         </DialogContent>

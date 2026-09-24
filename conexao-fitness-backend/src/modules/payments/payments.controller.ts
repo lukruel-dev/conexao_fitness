@@ -1,4 +1,4 @@
-import { Controller, Post, Get, UseGuards, Body } from '@nestjs/common';
+import { Controller, Post, Get, UseGuards, Body, ForbiddenException } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -15,13 +15,11 @@ export class PaymentsController {
     return this.paymentsService.getAccountStatus(user.id);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('PERSONAL', 'ACADEMIA')
+  @UseGuards(JwtAuthGuard)
   @Post('onboard')
   async onboardProvider(@CurrentUser() user: any, @Body('returnPath') returnPath?: string) {
-    // Apenas PERSONAL ou ACADEMIA
     if (user.role === 'STUDENT') {
-      return { error: 'Only providers can onboard' };
+      throw new ForbiddenException('Apenas profissionais (personal) e academias podem conectar conta de recebimento.');
     }
     const url = await this.paymentsService.getOnboardingLink(user.id, returnPath);
     return { url };

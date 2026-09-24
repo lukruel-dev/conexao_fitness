@@ -25,6 +25,7 @@ interface PlanItem {
   features: string[];
   highlight: boolean;
   cta: string;
+  priceId?: string;
 }
 
 const userPlans: PlanItem[] = [
@@ -46,6 +47,7 @@ const userPlans: PlanItem[] = [
     price: "R$ 99,90",
     period: "/mês",
     description: "Ideal para começar sua rotina",
+    priceId: "price_1UJJ4bR8Zsp2ACDID6CShQkQ",
     features: [
       "~6 treinos (R$15)",
       "~3 treinos (R$30)",
@@ -60,6 +62,7 @@ const userPlans: PlanItem[] = [
     price: "R$ 179,90",
     period: "/mês",
     description: "Para quem quer mais opções",
+    priceId: "price_1UJJ4bR8Zsp2ACDIlxaxOjef",
     features: [
       "~10 treinos (R$15)",
       "~5 treinos (R$30)",
@@ -104,6 +107,7 @@ const personalPlans: PlanItem[] = [
     price: "R$ 49,90",
     period: "/mês",
     description: "Fluidez, constância, equilíbrio",
+    priceId: "price_1UJJ4XR8Zsp2ACDI97eyRHAb",
     features: [
       "Taxa de intermediação de 10%",
       "Perfil verificado",
@@ -118,6 +122,7 @@ const personalPlans: PlanItem[] = [
     price: "R$ 149,90",
     period: "/mês",
     description: "Consistência, estilo próprio",
+    priceId: "price_1UJJ4YR8Zsp2ACDIerF6xq6u",
     features: [
       "Taxa de intermediação reduzida para 8%",
       "Leads ilimitados",
@@ -132,6 +137,7 @@ const personalPlans: PlanItem[] = [
     price: "R$ 299,90",
     period: "/mês",
     description: "Experiência completa com Ferramentas Inteligentes",
+    priceId: "price_1UJJ4YR8Zsp2ACDIcMJgEK0f",
     features: [
       "✨ Prescritor Inteligente de Treinos & Dietas",
       "📲 Envio Direto para o App do Aluno",
@@ -162,8 +168,8 @@ const gymPlans: PlanItem[] = [
     name: "Essencial",
     price: "R$ 99,90",
     period: "/mês",
-
     description: "Sistema de Matrícula & Catraca Digital",
+    priceId: "price_1UJJ4ZR8Zsp2ACDIwKQtzTIj",
     features: [
       "Taxa de intermediação de 10%",
       "Matrícula Online de Alunos",
@@ -180,6 +186,7 @@ const gymPlans: PlanItem[] = [
     price: "R$ 249,90",
     period: "/mês",
     description: "Para atrair mais alunos e crescer",
+    priceId: "price_1UJJ4ZR8Zsp2ACDINeUO38V3",
     features: [
       "Taxa de intermediação reduzida para 8%",
       "Tudo do Essencial",
@@ -196,6 +203,7 @@ const gymPlans: PlanItem[] = [
     price: "R$ 449,90",
     period: "/mês",
     description: "Para grandes academias e redes",
+    priceId: "price_1UJJ4aR8Zsp2ACDIy4WDUp8T",
     features: [
       "Menor taxa de intermediação: apenas 6%",
       "Tudo do Destaque",
@@ -219,6 +227,7 @@ const PlansSection = () => {
     period?: string;
     description?: string;
     features?: string[];
+    priceId?: string;
     roleCategory?: "STUDENT" | "PERSONAL" | "ACADEMIA";
   } | null>(null);
 
@@ -245,6 +254,7 @@ const PlansSection = () => {
       period: plan.period,
       description: plan.description,
       features: plan.features,
+      priceId: plan.priceId,
       roleCategory,
     });
   };
