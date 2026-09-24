@@ -407,13 +407,54 @@ export async function listBookingsByStudent(
     return status ? demoList.filter((b) => b.status === status) : demoList;
   }
 
+  const studentPlansKey = `cf_student_plans_${studentId}`;
+  let localPlans: any[] = [];
   try {
-    return await apiRequest<Booking[]>(`/bookings/students/${studentId}`, { query: { status } });
+    localPlans = JSON.parse(localStorage.getItem(studentPlansKey) || '[]');
+  } catch {}
+
+  const mappedLocalPlans: any[] = localPlans.map((plan) => ({
+    id: plan.id,
+    studentId,
+    providerId: plan.professionalId,
+    serviceId: plan.planId,
+    status: plan.status === 'CANCELLED' ? 'CANCELLED' : 'CONFIRMED',
+    createdAt: plan.hiredAt || new Date().toISOString(),
+    updatedAt: plan.hiredAt || new Date().toISOString(),
+    service: {
+      id: plan.planId,
+      name: plan.planName,
+      providerName: plan.professionalName,
+      price: plan.price,
+      type: 'PLANO_MENSAL',
+    },
+    providerName: plan.professionalName,
+  }));
+
+  try {
+    const realBookings = await apiRequest<Booking[]>(`/bookings/students/${studentId}`, { query: { status } });
+    const combined: any[] = [...(realBookings || [])];
+
+    for (const local of mappedLocalPlans) {
+      const alreadyInList = combined.some(
+        (b) =>
+          b.id === local.id ||
+          (b.serviceId && local.serviceId && b.serviceId === local.serviceId) ||
+          (b.service?.name && local.service?.name && b.service.name.toLowerCase() === local.service.name.toLowerCase())
+      );
+
+      if (!alreadyInList) {
+        combined.unshift(local);
+      }
+    }
+
+    return status ? combined.filter((b) => b.status === status) : combined;
   } catch (err) {
     const demoList = getDemoBookings().filter(
       (b) => b.studentId === studentId || b.student?.id === studentId || studentId === "demo-student-id-003"
     );
-    return status ? demoList.filter((b) => b.status === status) : demoList;
+    const combined = [...mappedLocalPlans, ...demoList];
+    return status ? combined.filter((b) => b.status === status) : combined;
   }
 }
 

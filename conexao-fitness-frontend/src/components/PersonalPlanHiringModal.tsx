@@ -40,7 +40,7 @@ interface PersonalPlanHiringModalProps {
   onOpenChange: (open: boolean) => void;
   plan: Service | null;
   professional: PublicUserProfile;
-  onOpenChat: () => void;
+  onOpenChat: (isAlreadyHired?: boolean) => void;
   onHiringSuccess?: (plan: Service) => void;
 }
 
@@ -551,7 +551,7 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
                   size="sm"
                   onClick={() => {
                     onOpenChange(false);
-                    onOpenChat();
+                    onOpenChat(false);
                   }}
                   className="rounded-xl text-xs font-bold gap-1.5 border-border/80 hover:bg-muted"
                 >
@@ -685,7 +685,7 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
               variant="hero"
               onClick={() => {
                 handleCloseSuccess();
-                onOpenChat();
+                onOpenChat(true);
               }}
               className="rounded-xl font-black text-xs bg-gradient-to-r from-primary to-secondary text-black gap-1.5 shadow-md"
             >

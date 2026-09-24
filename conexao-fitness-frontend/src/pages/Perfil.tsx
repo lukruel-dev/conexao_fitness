@@ -272,8 +272,7 @@ const Perfil = () => {
     return <Navigate to="/admin" replace />;
   }
 
-  const isProvider = user.role === "PERSONAL" || user.role === "ACADEMIA";
-  const planName = user.planName || "Gratuito";
+  const planName = user.planName || (user as any).plan || localStorage.getItem("cf_user_plan") || "Gratuito";
   const isMaxPlan = planName === getMaxPlan(user.role);
 
   return (

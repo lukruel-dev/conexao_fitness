@@ -244,11 +244,11 @@ const MeusAgendamentos = () => {
                         </span>
                       </div>
                       <h3 className="font-display font-bold text-foreground">
-                        {service?.providerName ?? "Profissional não identificado"}
+                        {service?.providerName ?? (b as any).providerName ?? (b as any).service?.providerName ?? "Profissional Finex"}
                       </h3>
-                      <p className="text-sm text-muted-foreground">{service?.name ?? "Serviço"}</p>
+                      <p className="text-sm text-muted-foreground">{service?.name ?? (b as any).service?.name ?? (b as any).planName ?? "Plano de Treino"}</p>
                       <div className="flex flex-wrap items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        {slot && (
+                        {slot ? (
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5" />
                             {formatBookingSchedule(
@@ -259,11 +259,16 @@ const MeusAgendamentos = () => {
                               service?.name?.toLowerCase().includes("passe diário")
                             )}
                           </span>
+                        ) : (
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5" />
+                            Início: {new Date(b.createdAt).toLocaleDateString()} (Mensal)
+                          </span>
                         )}
-                        {service?.city && (
+                        {(service?.city || (b as any).city) && (
                           <span className="flex items-center gap-1">
                             <MapPin className="w-3.5 h-3.5" />
-                            {service.city}
+                            {service?.city || (b as any).city}
                           </span>
                         )}
                       </div>

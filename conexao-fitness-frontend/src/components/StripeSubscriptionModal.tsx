@@ -24,10 +24,11 @@ import {
   ArrowRight,
   Loader2,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { sounds } from "@/lib/soundEffects";
 import { toast } from "sonner";
-import { createSubscription } from "@/services/payments";
+import { createSubscription, confirmSaaSSubscription } from "@/services/payments";
 import { useQueryClient } from "@tanstack/react-query";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || "pk_test_mock");
@@ -105,7 +106,8 @@ export const StripeSubscriptionModal: React.FC<StripeSubscriptionModalProps> = (
   plan,
   onSuccess,
 }) => {
-  const { user, setUser } = useAuth();
+  const { user, setUser, refreshUser } = useAuth();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoadingSecret, setIsLoadingSecret] = useState(false);
@@ -124,7 +126,7 @@ export const StripeSubscriptionModal: React.FC<StripeSubscriptionModalProps> = (
     let isMounted = true;
     if (isOpen && plan?.priceId && !isMock) {
       setIsLoadingSecret(true);
-      createSubscription(plan.priceId)
+      createSubscription(plan.priceId, plan.name)
         .then((res) => {
           if (isMounted && res.clientSecret) {
             setClientSecret(res.clientSecret);
@@ -150,38 +152,50 @@ export const StripeSubscriptionModal: React.FC<StripeSubscriptionModalProps> = (
 
   if (!plan || !isOpen) return null;
 
-  const handleCompleteSubscription = () => {
+  const handleCompleteSubscription = async () => {
     setIsProcessingMock(true);
 
-    setTimeout(() => {
-      setIsProcessingMock(false);
-      sounds.playAccessGranted();
-      sounds.playAchievement();
+    try {
+      // 1. Confirma e ativa o plano no backend
+      await confirmSaaSSubscription(plan.name, clientSecret || undefined);
+    } catch (backendErr) {
+      console.warn("Aviso ao ativar assinatura no backend:", backendErr);
+    }
 
-      // Atualiza plano ativo no cache local e no context de autenticação
+    try {
+      // 2. Recarrega os dados completos do usuário autenticado
+      await refreshUser();
+    } catch (e) {
       if (user) {
         setUser({
           ...user,
+          planName: plan.name,
           plan: plan.name,
         } as any);
       }
-      localStorage.setItem("cf_user_plan", plan.name);
+    }
 
-      // Invalida queries
-      qc.invalidateQueries({ queryKey: ["admin-subscriptions"] });
-      qc.invalidateQueries({ queryKey: ["my-personal-profile"] });
-      qc.invalidateQueries({ queryKey: ["user-profile"] });
-      qc.invalidateQueries({ queryKey: ["wallet-balance"] });
+    localStorage.setItem("cf_user_plan", plan.name);
 
-      setIsSuccessModalOpen(true);
-      toast.success(`Assinatura do ${plan.name} ativada com sucesso! 💳✨`);
-      onSuccess?.();
-    }, 1200);
+    // Invalida queries
+    qc.invalidateQueries({ queryKey: ["admin-subscriptions"] });
+    qc.invalidateQueries({ queryKey: ["my-personal-profile"] });
+    qc.invalidateQueries({ queryKey: ["user-profile"] });
+    qc.invalidateQueries({ queryKey: ["wallet-balance"] });
+
+    setIsProcessingMock(false);
+    sounds.playAccessGranted();
+    sounds.playAchievement();
+
+    setIsSuccessModalOpen(true);
+    toast.success(`Assinatura do ${plan.name} ativada com sucesso! 💳✨`);
+    onSuccess?.();
   };
 
   const handleFinalizeAndClose = () => {
     setIsSuccessModalOpen(false);
     onClose();
+    navigate('/perfil');
   };
 
   return (

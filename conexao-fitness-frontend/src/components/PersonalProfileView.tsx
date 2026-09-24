@@ -311,17 +311,21 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
     }, 60);
   };
 
-  const handleStartInAppChatHiring = (customPlan?: Service) => {
+  const handleStartInAppChatHiring = (customPlan?: Service, isAlreadyHired?: boolean) => {
     const plan = customPlan || selectedPlanForContact;
     if (!plan) return;
     setSelectedPlanForChat(plan);
-    const initialText = `Olá, ${profile.name}! Gostaria de tirar algumas dúvidas sobre o plano "${plan.name}" (${formatBRL(plan.price)}) pelo app Finex.`;
+    const initialText = isAlreadyHired
+      ? `Olá, ${profile.name}! Acabei de assinar o seu plano "${plan.name}" pelo app Finex. Podemos começar o meu acompanhamento?`
+      : `Olá, ${profile.name}! Gostaria de tirar algumas dúvidas sobre o plano "${plan.name}" (${formatBRL(plan.price)}) pelo app Finex.`;
     setChatInitialMessage(initialText);
     setSelectedPlanForContact(null);
     setIsDirectChatOpen(true);
     toast({
-      title: 'Chat Seguro Iniciado!',
-      description: 'Converse com o profissional e alinhe os detalhes do seu treino diretamente no app.',
+      title: isAlreadyHired ? 'Chat com seu Treinador!' : 'Chat Seguro Iniciado!',
+      description: isAlreadyHired
+        ? 'Converse diretamente com o profissional sobre o início do acompanhamento.'
+        : 'Converse com o profissional e alinhe os detalhes do seu treino diretamente no app.',
     });
   };
 
@@ -978,7 +982,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
         onOpenChange={(open) => !open && setSelectedPlanForContact(null)}
         plan={selectedPlanForContact}
         professional={profile}
-        onOpenChat={() => handleStartInAppChatHiring(selectedPlanForContact!)}
+        onOpenChat={(isAlreadyHired?: boolean) => handleStartInAppChatHiring(selectedPlanForContact!, isAlreadyHired)}
         onHiringSuccess={() => {
           setSelectedPlanForContact(null);
         }}

@@ -231,7 +231,7 @@ export class PaymentsService {
   /**
    * Cria uma assinatura incompleta para retornar client_secret
    */
-  async createSubscriptionPaymentIntent(userId: string, priceId: string) {
+  async createSubscriptionPaymentIntent(userId: string, priceId: string, planName?: string) {
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new NotFoundException('User not found');
 
@@ -239,7 +239,7 @@ export class PaymentsService {
 
     const subscription = this.subscriptionRepo.create({
       userId,
-      planName: 'Premium Plan',
+      planName: planName || 'Plano Finex',
       status: SubscriptionStatus.PENDING,
     });
     await this.subscriptionRepo.save(subscription);
@@ -250,7 +250,7 @@ export class PaymentsService {
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
       expand: ['latest_invoice.payment_intent'],
-      metadata: { userId },
+      metadata: { userId, planName: planName || '' },
     });
     
     const invoice = stripeSub.latest_invoice as any;
@@ -294,6 +294,54 @@ export class PaymentsService {
         paymentIntentId: `pi_mock_${topupIntentId}`,
       };
     }
+  }
+
+  /**
+   * Confirma ou ativa uma assinatura de plano SaaS para o usuário
+   */
+  async confirmSubscription(userId: string, planName: string, subscriptionId?: string) {
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) throw new NotFoundException('Usuário não encontrado');
+
+    const cleanPlanName = (planName || 'Gratuito').trim();
+
+    // 1. Marca quaisquer assinaturas ativas anteriores como canceladas/substituídas
+    const existingActive = await this.subscriptionRepo.find({
+      where: { userId, status: SubscriptionStatus.ACTIVE },
+    });
+    for (const sub of existingActive) {
+      sub.status = SubscriptionStatus.CANCELED;
+      await this.subscriptionRepo.save(sub);
+    }
+
+    if (cleanPlanName.toLowerCase() === 'gratuito') {
+      this.logger.log(`[Stripe SaaS] Plano revertido para Gratuito para o usuário ${user.email} (${userId})`);
+      return {
+        success: true,
+        planName: 'Gratuito',
+        message: 'Plano Gratuito ativo.',
+      };
+    }
+
+    // 2. Cria a nova assinatura ACTIVE
+    const newSub = this.subscriptionRepo.create({
+      userId,
+      planName: cleanPlanName,
+      status: SubscriptionStatus.ACTIVE,
+      externalSubscriptionId: subscriptionId || `sub_manual_${Date.now()}`,
+      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 3600 * 1000), // 30 dias de vigência
+    });
+    const saved = await this.subscriptionRepo.save(newSub);
+
+    this.logger.log(`[Stripe SaaS] Plano "${cleanPlanName}" ativado com sucesso para o usuário ${user.email} (${userId})`);
+
+    return {
+      success: true,
+      subscriptionId: saved.id,
+      planName: cleanPlanName,
+      status: SubscriptionStatus.ACTIVE,
+      currentPeriodEnd: saved.currentPeriodEnd,
+    };
   }
 
   async activateSubscription(userId: string, subscriptionId: string) {

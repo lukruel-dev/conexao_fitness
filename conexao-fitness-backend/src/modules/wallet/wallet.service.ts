@@ -14,7 +14,7 @@ import { User } from '../users/entities/user.entity';
 import { GymAccessLog } from '../memberships/entities/gym-access-log.entity';
 import { GymEnrollment } from '../memberships/entities/gym-enrollment.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
-import { Service } from '../services/entities/service.entity';
+import { Service, ServiceType } from '../services/entities/service.entity';
 import { ScheduleSlot } from '../services/entities/schedule-slot.entity';
 import { ScheduleSlotStatus } from '../services/enums/schedule-slot-status.enum';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -728,24 +728,35 @@ export class WalletService {
         });
       }
 
-      if (service) {
-        const slot = this.slotsRepo.create({
-          serviceId: service.id,
-          startsAt: new Date(),
-          endsAt: new Date(Date.now() + 30 * 24 * 3600 * 1000),
-          status: ScheduleSlotStatus.BOOKED,
-          studentId: studentId,
+      if (!service) {
+        service = this.servicesRepo.create({
+          providerId: dto.providerId,
+          name: dto.planName,
+          type: ServiceType.PLANO_MENSAL,
+          price: amount.toFixed(2),
+          durationMinutes: 60,
+          description: `Plano de Treinamento e Acompanhamento: ${dto.planName}`,
         });
-        const savedSlot = await this.slotsRepo.save(slot);
-
-        const booking = this.bookingRepo.create({
-          serviceId: service.id,
-          slotId: savedSlot.id,
-          studentId: studentId,
-          status: BookingStatus.CONFIRMED,
-        });
-        await this.bookingRepo.save(booking);
+        service = await this.servicesRepo.save(service);
       }
+
+      const slot = this.slotsRepo.create({
+        serviceId: service.id,
+        startsAt: new Date(),
+        endsAt: new Date(Date.now() + 30 * 24 * 3600 * 1000),
+        status: ScheduleSlotStatus.BOOKED,
+        studentId: studentId,
+      });
+      const savedSlot = await this.slotsRepo.save(slot);
+
+      const booking = this.bookingRepo.create({
+        serviceId: service.id,
+        slotId: savedSlot.id,
+        studentId: studentId,
+        status: BookingStatus.CONFIRMED,
+      });
+      await this.bookingRepo.save(booking);
+      this.logger.log(`[Booking] Agendamento do plano "${dto.planName}" registrado com sucesso para aluno ${studentId}`);
     } catch (bookingErr: any) {
       this.logger.warn(`Não foi possível criar Booking automático: ${bookingErr?.message}`);
     }

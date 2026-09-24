@@ -27,11 +27,25 @@ export class PaymentsController {
 
   @UseGuards(JwtAuthGuard)
   @Post('subscriptions')
-  async createSubscription(@Body('priceId') priceId: string, @Body('planName') planName: string, @CurrentUser() user: any) {
+  async createSubscription(
+    @Body('priceId') priceId: string,
+    @Body('planName') planName: string,
+    @CurrentUser() user: any,
+  ) {
     if (!priceId) {
       return { error: 'priceId is required' };
     }
-    return this.paymentsService.createSubscriptionPaymentIntent(user?.id, priceId);
+    return this.paymentsService.createSubscriptionPaymentIntent(user?.id, priceId, planName);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('subscriptions/confirm')
+  async confirmSubscription(
+    @CurrentUser() user: any,
+    @Body('planName') planName: string,
+    @Body('subscriptionId') subscriptionId?: string,
+  ) {
+    return this.paymentsService.confirmSubscription(user.id, planName, subscriptionId);
   }
 
   @UseGuards(JwtAuthGuard)

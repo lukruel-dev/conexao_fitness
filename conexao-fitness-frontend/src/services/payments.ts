@@ -17,10 +17,17 @@ export interface CreateSubscriptionResponse {
   clientSecret: string;
 }
 
-export async function createSubscription(priceId: string): Promise<CreateSubscriptionResponse> {
+export async function createSubscription(priceId: string, planName?: string): Promise<CreateSubscriptionResponse> {
   return apiRequest<CreateSubscriptionResponse>("/payments/subscriptions", {
     method: "POST",
-    body: { priceId },
+    body: { priceId, planName },
+  });
+}
+
+export async function confirmSaaSSubscription(planName: string, subscriptionId?: string): Promise<any> {
+  return apiRequest<any>("/payments/subscriptions/confirm", {
+    method: "POST",
+    body: { planName, subscriptionId },
   });
 }
 

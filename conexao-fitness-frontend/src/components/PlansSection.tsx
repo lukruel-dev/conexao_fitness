@@ -16,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { StripeSubscriptionModal } from "./StripeSubscriptionModal";
 import { openGuestLoginModal } from "./GuestLoginInductionModal";
+import { confirmSaaSSubscription } from "@/services/payments";
 
 interface PlanItem {
   name: string;
@@ -239,8 +240,11 @@ const PlansSection = () => {
     }
 
     if (plan.name === "Gratuito") {
+      try {
+        confirmSaaSSubscription("Gratuito");
+      } catch (e) {}
       if (user) {
-        setUser({ ...user, plan: "Gratuito" } as any);
+        setUser({ ...user, plan: "Gratuito", planName: "Gratuito" } as any);
       }
       localStorage.setItem("cf_user_plan", "Gratuito");
       toast.success("Plano Gratuito ativo!", {

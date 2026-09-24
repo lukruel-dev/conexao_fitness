@@ -4,6 +4,7 @@ import {
   Send,
   MessageCircle,
   CheckCheck,
+  CheckCircle2,
   ShieldCheck,
   ShieldAlert,
   AlertTriangle,
@@ -209,41 +210,66 @@ const ChatModal = ({
           </div>
         </div>
 
-        {/* Banner de Contratação do Plano (se acessado a partir de um plano) */}
-        {plan && onHirePlan && (
-          <div className="px-4 py-2.5 bg-gradient-to-r from-primary/15 via-card to-secondary/15 border-b border-primary/30 flex items-center justify-between gap-3 shrink-0 shadow-sm">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center shrink-0">
-                <CreditCard className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-foreground truncate">
-                  {plan.name}
-                </p>
-                <p className="text-[11px] font-extrabold text-secondary">
-                  {formatBRL(plan.price)}
-                  <span className="text-[10px] text-muted-foreground font-normal ml-1">
-                    /{plan.recurrence === 'ANNUAL' ? 'ano' : plan.recurrence === 'SEMIANNUAL' ? 'semestre' : plan.recurrence === 'QUARTERLY' ? 'trimestre' : 'mês'}
-                  </span>
-                  {(plan.maxInstallments || (plan.recurrence === 'ANNUAL' ? 12 : plan.recurrence === 'QUARTERLY' ? 3 : 1)) > 1 && (
-                    <span className="text-[10px] text-emerald-500 font-bold ml-1.5">
-                      (até {plan.maxInstallments || (plan.recurrence === 'ANNUAL' ? 12 : 3)}x sem juros)
+        {/* Banner do Plano (se acessado a partir de um plano) */}
+        {plan && (() => {
+          let isPlanHired = false;
+          try {
+            const studentPlansKey = `cf_student_plans_${user?.id || 'me'}`;
+            const localPlans: any[] = JSON.parse(localStorage.getItem(studentPlansKey) || '[]');
+            isPlanHired = localPlans.some(
+              (p) =>
+                (p.planId && plan.id && p.planId === plan.id) ||
+                (p.planName && plan.name && p.planName.toLowerCase() === plan.name.toLowerCase())
+            );
+          } catch {}
+
+          return (
+            <div className="px-4 py-2.5 bg-gradient-to-r from-primary/15 via-card to-secondary/15 border-b border-primary/30 flex items-center justify-between gap-3 shrink-0 shadow-sm">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center shrink-0">
+                  <CreditCard className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-foreground truncate flex items-center gap-1.5">
+                    <span>{plan.name}</span>
+                    {isPlanHired && (
+                      <span className="text-[10px] text-emerald-400 font-extrabold bg-emerald-500/10 px-1.5 py-0.2 rounded-full border border-emerald-500/30">
+                        Plano Ativo
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-[11px] font-extrabold text-secondary">
+                    {formatBRL(plan.price)}
+                    <span className="text-[10px] text-muted-foreground font-normal ml-1">
+                      /{plan.recurrence === 'ANNUAL' ? 'ano' : plan.recurrence === 'SEMIANNUAL' ? 'semestre' : plan.recurrence === 'QUARTERLY' ? 'trimestre' : 'mês'}
                     </span>
-                  )}
-                </p>
+                    {(plan.maxInstallments || (plan.recurrence === 'ANNUAL' ? 12 : plan.recurrence === 'QUARTERLY' ? 3 : 1)) > 1 && (
+                      <span className="text-[10px] text-emerald-500 font-bold ml-1.5">
+                        (até {plan.maxInstallments || (plan.recurrence === 'ANNUAL' ? 12 : 3)}x sem juros)
+                      </span>
+                    )}
+                  </p>
+                </div>
               </div>
+              {isPlanHired ? (
+                <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold shrink-0 shadow-sm">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Contratado</span>
+                </div>
+              ) : onHirePlan ? (
+                <Button
+                  size="sm"
+                  variant="hero"
+                  type="button"
+                  onClick={() => onHirePlan(plan)}
+                  className="rounded-xl text-xs font-black bg-gradient-to-r from-primary to-secondary text-black shrink-0 shadow-sm h-8 px-3"
+                >
+                  Contratar Agora
+                </Button>
+              ) : null}
             </div>
-            <Button
-              size="sm"
-              variant="hero"
-              type="button"
-              onClick={() => onHirePlan(plan)}
-              className="rounded-xl text-xs font-black bg-gradient-to-r from-primary to-secondary text-black shrink-0 shadow-sm h-8 px-3"
-            >
-              Contratar Agora
-            </Button>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Área de Mensagens */}
         <ScrollArea className="flex-1 p-4 bg-background/50">
