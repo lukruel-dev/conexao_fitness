@@ -118,8 +118,6 @@ export const StripeSubscriptionModal: React.FC<StripeSubscriptionModalProps> = (
   const [cardExpiry, setCardExpiry] = useState("12/28");
   const [cardCvv, setCardCvv] = useState("•••");
 
-  if (!plan || !isOpen) return null;
-
   const isMock = !import.meta.env.VITE_STRIPE_PUBLIC_KEY || import.meta.env.VITE_STRIPE_PUBLIC_KEY.includes("mock");
 
   useEffect(() => {
@@ -149,6 +147,8 @@ export const StripeSubscriptionModal: React.FC<StripeSubscriptionModalProps> = (
       isMounted = false;
     };
   }, [isOpen, plan?.priceId, isMock]);
+
+  if (!plan || !isOpen) return null;
 
   const handleCompleteSubscription = () => {
     setIsProcessingMock(true);

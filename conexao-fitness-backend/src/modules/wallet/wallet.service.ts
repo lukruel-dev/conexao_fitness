@@ -769,4 +769,64 @@ export class WalletService {
       installments,
     };
   }
+
+  /**
+   * Processa o estorno financeiro completo decorrente do cancelamento de uma reserva ou plano
+   */
+  async processBookingRefund(params: {
+    studentId: string;
+    providerId: string;
+    amount: number;
+    bookingId: string;
+    serviceName: string;
+  }) {
+    const { studentId, providerId, amount, bookingId, serviceName } = params;
+    if (amount <= 0) return;
+
+    // 1. Debita do profissional (tenta primeiro pending, depois available)
+    try {
+      const providerWallet = await this.walletRepo.findOne({
+        where: { ownerId: providerId, ownerType: 'USER' },
+      });
+      if (providerWallet) {
+        const pending = Number(providerWallet.pendingBalance);
+        if (pending >= amount) {
+          providerWallet.pendingBalance = (pending - amount).toFixed(2);
+        } else {
+          const avail = Number(providerWallet.currentBalance);
+          providerWallet.currentBalance = Math.max(0, avail - amount).toFixed(2);
+        }
+        await this.walletRepo.save(providerWallet);
+
+        await this.recordTransaction({
+          userId: providerId,
+          type: 'DEBIT',
+          amount: amount,
+          description: `Estorno por cancelamento: ${serviceName}`,
+          referenceType: 'BOOKING',
+          referenceId: bookingId,
+          paymentMethod: 'FINEX_WALLET',
+        });
+      }
+    } catch (err: any) {
+      this.logger.warn(`Erro ao debitar estorno do provider: ${err?.message}`);
+    }
+
+    // 2. Credita de volta no saldo disponível do aluno
+    try {
+      await this.addBalance(studentId, amount, { type: 'AVAILABLE' });
+      await this.recordTransaction({
+        userId: studentId,
+        type: 'CREDIT',
+        amount: amount,
+        description: `Estorno de saldo - Cancelamento: ${serviceName}`,
+        referenceType: 'BOOKING',
+        referenceId: bookingId,
+        paymentMethod: 'FINEX_WALLET',
+      });
+      this.logger.log(`Estorno de R$ ${amount.toFixed(2)} creditado para aluno ${studentId}`);
+    } catch (err: any) {
+      this.logger.error(`Erro ao creditar estorno para aluno: ${err?.message}`);
+    }
+  }
 }

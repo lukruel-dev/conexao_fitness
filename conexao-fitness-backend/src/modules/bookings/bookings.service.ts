@@ -277,13 +277,16 @@ export class BookingsService {
       await manager.save(Booking, booking);
 
       // Refund process se a reserva já estava paga (CONFIRMED)
-      if (previousStatus === BookingStatus.CONFIRMED) {
+      if (previousStatus === BookingStatus.CONFIRMED && booking.service) {
         const price = Number(booking.service.price);
         try {
-          // Estorna do pending balance do provider
-          await this.walletService.refundPendingBalance(booking.service.providerId, price);
-          // Adiciona credito no available balance do aluno
-          await this.walletService.addBalance(booking.studentId, price);
+          await this.walletService.processBookingRefund({
+            studentId: booking.studentId,
+            providerId: booking.service.providerId,
+            amount: price,
+            bookingId: booking.id,
+            serviceName: booking.service.name || 'Serviço / Plano',
+          });
         } catch (err) {
           console.error('Erro ao processar estorno de saldo:', err);
         }

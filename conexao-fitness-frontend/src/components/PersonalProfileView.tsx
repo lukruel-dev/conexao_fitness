@@ -301,6 +301,16 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
     setSelectedPlanForContact(plan);
   };
 
+  const handleScrollToPlans = () => {
+    setActiveTab('plans');
+    setTimeout(() => {
+      const el = document.getElementById('plans-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 60);
+  };
+
   const handleStartInAppChatHiring = (customPlan?: Service) => {
     const plan = customPlan || selectedPlanForContact;
     if (!plan) return;
@@ -446,8 +456,8 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setActiveTab('plans')}
-                  className="h-10 px-5 rounded-xl font-bold border-primary/40 text-primary hover:bg-primary/10"
+                  onClick={handleScrollToPlans}
+                  className="h-10 px-5 rounded-xl font-bold border-primary/40 text-primary hover:bg-primary/10 transition-transform active:scale-95"
                 >
                   <CreditCard className="w-4 h-4 mr-1.5" /> Ver Planos
                 </Button>
@@ -553,7 +563,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
 
       {/* ABA 1: PLANOS & CONSULTORIAS MENSAIS */}
       {activeTab === 'plans' && (
-        <div className="space-y-6">
+        <div id="plans-section" className="space-y-6 scroll-mt-8 animate-in fade-in duration-300">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
               <h2 className="font-display font-extrabold text-xl sm:text-2xl text-foreground">

@@ -180,11 +180,12 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
         console.warn('Sound effect error:', e);
       }
 
+      toast.success('Plano contratado com sucesso! 🎉', {
+        description: `Seu plano "${plan!.name}" foi ativado. Fichas e acompanhamento liberados!`,
+        duration: 5000,
+      });
+
       setIsSuccessModalOpen(true);
-      onOpenChange(false);
-      if (onHiringSuccess && plan) {
-        onHiringSuccess(plan);
-      }
     },
     onError: (err: any) => {
       sounds.playWarning();
@@ -194,7 +195,25 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
     },
   });
 
+  const handleCloseSuccess = () => {
+    setIsSuccessModalOpen(false);
+    onOpenChange(false);
+    if (onHiringSuccess && plan) {
+      onHiringSuccess(plan);
+    }
+  };
+
   if (!plan) return null;
+
+  const planBenefits =
+    plan.benefits && plan.benefits.length > 0
+      ? plan.benefits
+      : [
+          'Ficha de Treino Personalizada no App Finex',
+          'Ajustes Periódicos de Volume e Carga',
+          'Suporte e Dúvidas pelo Chat do App Finex',
+          'Vídeos demonstrativos de execução dos exercícios',
+        ];
 
   const recurrenceLabel =
     plan.recurrence === 'ANNUAL'
@@ -277,10 +296,10 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
                     <ShieldCheck className="w-3 h-3" /> Verificado
                   </span>
                 </div>
-                <DialogTitle className="font-display text-xl font-black text-foreground truncate">
+                <DialogTitle className="font-display text-lg sm:text-xl font-black text-foreground leading-snug break-words">
                   {plan.name}
                 </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground truncate">
+                <DialogDescription className="text-xs text-muted-foreground">
                   Acompanhamento com {professional.name}
                 </DialogDescription>
               </div>
@@ -320,13 +339,13 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
                 </p>
               )}
 
-              {plan.benefits && plan.benefits.length > 0 && (
+              {planBenefits && planBenefits.length > 0 && (
                 <div className="space-y-1.5 pt-1">
                   <span className="text-[11px] font-bold text-foreground block uppercase tracking-wider">
                     O que você recebe:
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                    {plan.benefits.map((b, i) => (
+                    {planBenefits.map((b, i) => (
                       <div key={i} className="flex items-start gap-1.5 text-xs text-muted-foreground">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
                         <span className="leading-tight">{b}</span>
@@ -653,7 +672,7 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
               type="button"
               variant="outline"
               onClick={() => {
-                setIsSuccessModalOpen(false);
+                handleCloseSuccess();
                 navigate('/treinos');
               }}
               className="rounded-xl font-bold text-xs"
@@ -665,7 +684,7 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
               type="button"
               variant="hero"
               onClick={() => {
-                setIsSuccessModalOpen(false);
+                handleCloseSuccess();
                 onOpenChat();
               }}
               className="rounded-xl font-black text-xs bg-gradient-to-r from-primary to-secondary text-black gap-1.5 shadow-md"

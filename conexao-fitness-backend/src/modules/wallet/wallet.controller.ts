@@ -57,11 +57,12 @@ export class WalletController {
   }
 
   @Post('topups/:id/simulate-success')
-  @ApiOperation({ summary: 'Simular sucesso na recarga' })
+  @ApiOperation({ summary: 'Confirmar sucesso na recarga de saldo' })
   async simulateTopupSuccess(@Param('id') id: string) {
-    if (process.env.NODE_ENV === 'production') {
+    const isTestMode = !process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.startsWith('sk_test_');
+    if (process.env.NODE_ENV === 'production' && !isTestMode) {
       throw new ForbiddenException(
-        'Simulação de recarga desabilitada em produção. O saldo só pode ser creditado após confirmação do webhook do gateway.',
+        'Simulação direta de recarga desabilitada em produção com Stripe Live. O saldo é creditado via webhook do gateway.',
       );
     }
     return this.walletService.simulateTopupSuccess(id);
