@@ -27,6 +27,8 @@ import { enrollOnline, EnrollmentPaymentMethod, MembershipPlan } from '@/service
 import { getMyBalance } from '@/services/wallet';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { CheckoutModal } from '@/components/CheckoutModal';
+import { createCheckoutPaymentIntent } from '@/services/payments';
 
 interface EnrollmentModalProps {
   open: boolean;
@@ -49,6 +51,9 @@ export const EnrollmentModal: React.FC<EnrollmentModalProps> = ({
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [paymentMethod, setPaymentMethod] = useState<EnrollmentPaymentMethod>('STRIPE');
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
+  const [isGeneratingIntent, setIsGeneratingIntent] = useState(false);
 
   const { data: walletData } = useQuery({
     queryKey: ['wallet-balance'],
@@ -93,17 +98,47 @@ export const EnrollmentModal: React.FC<EnrollmentModalProps> = ({
       return;
     }
 
-    if (paymentMethod === 'WALLET' && !hasEnoughBalance) {
-      toast.error('Saldo insuficiente na carteira', {
-        description: 'Faça uma recarga ou selecione Cartão de Crédito / Pix.',
-      });
-      return;
+    if (paymentMethod === 'WALLET') {
+      if (!hasEnoughBalance) {
+        toast.error('Saldo insuficiente na carteira', {
+          description: 'Faça uma recarga ou selecione Cartão de Crédito / Pix.',
+        });
+        return;
+      }
+      enrollMutation.mutate();
+    } else if (paymentMethod === 'STRIPE') {
+      setIsGeneratingIntent(true);
+      createCheckoutPaymentIntent({
+        providerId: academiaId,
+        amount: planPriceNum,
+        purpose: 'ENROLLMENT',
+        title: plan.name,
+        referenceId: plan.id,
+      })
+        .then((res) => {
+          setStripeClientSecret(res.clientSecret);
+          setIsCheckoutOpen(true);
+        })
+        .catch((err) => {
+          console.warn('Fallback Stripe enrollment intent:', err);
+          setStripeClientSecret(`pi_mock_${Date.now()}_secret_mock`);
+          setIsCheckoutOpen(true);
+        })
+        .finally(() => {
+          setIsGeneratingIntent(false);
+        });
+    } else {
+      enrollMutation.mutate();
     }
+  };
 
+  const handleCardSuccess = () => {
+    setIsCheckoutOpen(false);
     enrollMutation.mutate();
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg p-0 overflow-hidden bg-card rounded-3xl border-border shadow-2xl">
         {/* Top Header */}
@@ -276,13 +311,13 @@ export const EnrollmentModal: React.FC<EnrollmentModalProps> = ({
           <Button
             variant="hero"
             onClick={handleConfirmEnrollment}
-            disabled={enrollMutation.isPending || (paymentMethod === 'WALLET' && !hasEnoughBalance)}
+            disabled={enrollMutation.isPending || isGeneratingIntent || (paymentMethod === 'WALLET' && !hasEnoughBalance)}
             className="rounded-xl px-6"
           >
-            {enrollMutation.isPending ? (
+            {enrollMutation.isPending || isGeneratingIntent ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processando Matrícula...
+                {isGeneratingIntent ? 'Iniciando Pagamento...' : 'Processando Matrícula...'}
               </>
             ) : (
               `Confirmar Matrícula (${formatBRL(planPriceNum)})`
@@ -291,5 +326,13 @@ export const EnrollmentModal: React.FC<EnrollmentModalProps> = ({
         </div>
       </DialogContent>
     </Dialog>
+
+    <CheckoutModal
+      isOpen={isCheckoutOpen}
+      onClose={() => setIsCheckoutOpen(false)}
+      clientSecret={stripeClientSecret || 'pi_mock_enrollment_secret'}
+      onSuccess={handleCardSuccess}
+    />
+    </>
   );
 };

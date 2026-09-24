@@ -18,12 +18,12 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('PERSONAL', 'ACADEMIA')
   @Post('onboard')
-  async onboardProvider(@CurrentUser() user: any) {
+  async onboardProvider(@CurrentUser() user: any, @Body('returnPath') returnPath?: string) {
     // Apenas PERSONAL ou ACADEMIA
     if (user.role === 'STUDENT') {
       return { error: 'Only providers can onboard' };
     }
-    const url = await this.paymentsService.getOnboardingLink(user.id);
+    const url = await this.paymentsService.getOnboardingLink(user.id, returnPath);
     return { url };
   }
 
@@ -34,6 +34,28 @@ export class PaymentsController {
       return { error: 'priceId is required' };
     }
     return this.paymentsService.createSubscriptionPaymentIntent(user?.id, priceId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('create-intent')
+  async createIntent(
+    @CurrentUser() user: any,
+    @Body() dto: {
+      providerId: string;
+      amount: number;
+      purpose: 'PLAN_HIRING' | 'ENROLLMENT';
+      title: string;
+      referenceId: string;
+    },
+  ) {
+    return this.paymentsService.createPaymentIntentForCheckout({
+      studentId: user.id,
+      providerId: dto.providerId,
+      amount: Number(dto.amount),
+      purpose: dto.purpose,
+      title: dto.title,
+      referenceId: dto.referenceId,
+    });
   }
 }
 

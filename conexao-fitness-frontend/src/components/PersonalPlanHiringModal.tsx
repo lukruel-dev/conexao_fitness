@@ -33,6 +33,7 @@ import { useNavigate } from 'react-router-dom';
 import { CheckoutModal } from '@/components/CheckoutModal';
 import { sounds } from '@/lib/soundEffects';
 import { addDemoBooking } from '@/services/bookings';
+import { createCheckoutPaymentIntent } from '@/services/payments';
 
 interface PersonalPlanHiringModalProps {
   open: boolean;
@@ -57,6 +58,8 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
 
   const [paymentMethod, setPaymentMethod] = useState<'WALLET' | 'STRIPE' | 'PIX'>('WALLET');
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(null);
+  const [isGeneratingIntent, setIsGeneratingIntent] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isPixCopied, setIsPixCopied] = useState(false);
   const [showPixQr, setShowPixQr] = useState(false);
@@ -218,7 +221,26 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
       }
       hireMutation.mutate();
     } else if (paymentMethod === 'STRIPE') {
-      setIsCheckoutModalOpen(true);
+      setIsGeneratingIntent(true);
+      createCheckoutPaymentIntent({
+        providerId: professional.id,
+        amount: planPriceNum,
+        purpose: 'PLAN_HIRING',
+        title: plan.name,
+        referenceId: plan.id,
+      })
+        .then((res) => {
+          setStripeClientSecret(res.clientSecret);
+          setIsCheckoutModalOpen(true);
+        })
+        .catch((err) => {
+          console.warn('Fallback Stripe intent:', err);
+          setStripeClientSecret(`pi_mock_${Date.now()}_secret_mock`);
+          setIsCheckoutModalOpen(true);
+        })
+        .finally(() => {
+          setIsGeneratingIntent(false);
+        });
     } else if (paymentMethod === 'PIX') {
       setShowPixQr(true);
     }
@@ -526,7 +548,7 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
       <CheckoutModal
         isOpen={isCheckoutModalOpen}
         onClose={() => setIsCheckoutModalOpen(false)}
-        clientSecret="pi_mock_hiring_plan_secret"
+        clientSecret={stripeClientSecret || "pi_mock_hiring_plan_secret"}
         onSuccess={handleCardSuccess}
       />
 

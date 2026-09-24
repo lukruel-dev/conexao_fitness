@@ -104,6 +104,7 @@ export class PaymentsService {
     const intentConfig: Stripe.PaymentIntentCreateParams = {
       amount: amountInCents,
       currency: 'brl',
+      automatic_payment_methods: { enabled: true },
       metadata: {
         bookingId: bookingId,
         purpose: 'BOOKING',
@@ -129,9 +130,68 @@ export class PaymentsService {
   }
 
   /**
+   * Cria uma intenção de pagamento no Stripe para contratação de planos ou matrículas (Split Payment)
+   */
+  async createPaymentIntentForCheckout(params: {
+    studentId: string;
+    providerId: string;
+    amount: number;
+    purpose: 'PLAN_HIRING' | 'ENROLLMENT';
+    title: string;
+    referenceId: string;
+  }) {
+    this.logger.log(`Criando PaymentIntent Stripe para ${params.purpose} (ref: ${params.referenceId})`);
+    
+    const provider = await this.userRepo.findOneBy({ id: params.providerId });
+    if (!provider) {
+      throw new NotFoundException('Prestador/Academia não encontrado');
+    }
+
+    // Determina a taxa de comissão de acordo com o plano ativo do prestador
+    const activeSub = await this.subscriptionRepo.findOne({
+      where: { userId: provider.id, status: SubscriptionStatus.ACTIVE },
+      order: { createdAt: 'DESC' },
+    });
+    const commissionRate = this.getCommissionRate(provider.role, activeSub?.planName);
+    const { platformFee } = this.calculateSplit(params.amount, commissionRate);
+    
+    const amountInCents = Math.round(params.amount * 100);
+    const platformFeeInCents = Math.round(platformFee * 100);
+
+    const intentConfig: Stripe.PaymentIntentCreateParams = {
+      amount: amountInCents,
+      currency: 'brl',
+      automatic_payment_methods: { enabled: true },
+      metadata: {
+        studentId: params.studentId,
+        providerId: params.providerId,
+        purpose: params.purpose,
+        referenceId: params.referenceId,
+        title: params.title,
+        commissionRate: `${commissionRate * 100}%`,
+        providerPlan: activeSub?.planName || 'Gratuito',
+      },
+    };
+
+    if (provider.stripeAccountId && provider.stripeAccountId.startsWith('acct_')) {
+      intentConfig.application_fee_amount = platformFeeInCents;
+      intentConfig.transfer_data = {
+        destination: provider.stripeAccountId,
+      };
+    }
+
+    const paymentIntent = await this.stripe.paymentIntents.create(intentConfig);
+
+    return {
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+    };
+  }
+
+  /**
    * Gera um link de onboarding do Stripe Connect para o profissional
    */
-  async getOnboardingLink(userId: string): Promise<string> {
+  async getOnboardingLink(userId: string, returnPath: string = '/perfil'): Promise<string> {
     let user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new NotFoundException('User not found');
 
@@ -149,10 +209,14 @@ export class PaymentsService {
       await this.userRepo.save(user);
     }
 
+    const frontendBase = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/+$/, '');
+    const cleanPath = returnPath.startsWith('/') ? returnPath : `/${returnPath}`;
+    const separator = cleanPath.includes('?') ? '&' : '?';
+
     const accountLink = await this.stripe.accountLinks.create({
       account: user.stripeAccountId,
-      refresh_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/perfil?stripe=refresh`,
-      return_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/perfil?stripe=success`,
+      refresh_url: `${frontendBase}${cleanPath}${separator}stripe=refresh`,
+      return_url: `${frontendBase}${cleanPath}${separator}stripe=success`,
       type: 'account_onboarding',
     });
 
@@ -211,6 +275,7 @@ export class PaymentsService {
       const paymentIntent = await this.stripe.paymentIntents.create({
         amount: amountInCents,
         currency: 'brl',
+        automatic_payment_methods: { enabled: true },
         metadata: {
           paymentIntentId: topupIntentId,
           userId,

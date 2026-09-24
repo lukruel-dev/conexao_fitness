@@ -4,8 +4,12 @@ export interface OnboardResponse {
   url: string;
 }
 
-export async function onboardProvider(): Promise<OnboardResponse> {
-  return apiRequest<OnboardResponse>("/payments/onboard", { method: "POST" });
+export async function onboardProvider(returnPath?: string): Promise<OnboardResponse> {
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/perfil';
+  return apiRequest<OnboardResponse>("/payments/onboard", {
+    method: "POST",
+    body: { returnPath: returnPath || currentPath },
+  });
 }
 
 export interface CreateSubscriptionResponse {
@@ -30,5 +34,25 @@ export interface PaymentAccountStatus {
 
 export async function getPaymentAccountStatus(): Promise<PaymentAccountStatus> {
   return apiRequest<PaymentAccountStatus>("/payments/status", { method: "GET" });
+}
+
+export interface CreateCheckoutIntentParams {
+  providerId: string;
+  amount: number;
+  purpose: 'PLAN_HIRING' | 'ENROLLMENT';
+  title: string;
+  referenceId: string;
+}
+
+export interface CreateCheckoutIntentResponse {
+  clientSecret: string;
+  paymentIntentId: string;
+}
+
+export async function createCheckoutPaymentIntent(params: CreateCheckoutIntentParams): Promise<CreateCheckoutIntentResponse> {
+  return apiRequest<CreateCheckoutIntentResponse>('/payments/create-intent', {
+    method: 'POST',
+    body: params,
+  });
 }
 
