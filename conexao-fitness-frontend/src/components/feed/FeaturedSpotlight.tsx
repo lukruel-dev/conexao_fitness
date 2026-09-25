@@ -18,7 +18,12 @@ import { listServices } from "@/services/services";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
 import { formatBRL } from "@/lib/format";
 
-export const FeaturedSpotlight: React.FC = () => {
+interface FeaturedSpotlightProps {
+  searchQuery?: string;
+  onClearSearch?: () => void;
+}
+
+export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuery = "", onClearSearch }) => {
   const { data: services, isLoading } = useQuery({
     queryKey: ["featured-services"],
     queryFn: () => listServices(),
@@ -26,11 +31,56 @@ export const FeaturedSpotlight: React.FC = () => {
   });
 
   const allServices = services || [];
-  const gymServices = allServices.filter((s) => s.providerType === "ACADEMIA").slice(0, 3);
-  const proServices = allServices.filter((s) => s.providerType === "PERSONAL").slice(0, 3);
+  const cleanQuery = searchQuery.trim().toLowerCase();
+
+  const filteredServices = cleanQuery
+    ? allServices.filter((s) => {
+        return (
+          s.name?.toLowerCase().includes(cleanQuery) ||
+          s.description?.toLowerCase().includes(cleanQuery) ||
+          s.providerName?.toLowerCase().includes(cleanQuery) ||
+          s.city?.toLowerCase().includes(cleanQuery) ||
+          s.locationCity?.toLowerCase().includes(cleanQuery) ||
+          s.locationName?.toLowerCase().includes(cleanQuery) ||
+          s.modality?.toLowerCase().includes(cleanQuery) ||
+          s.professionTitle?.toLowerCase().includes(cleanQuery)
+        );
+      })
+    : allServices;
+
+  const gymServices = filteredServices.filter((s) => s.providerType === "ACADEMIA").slice(0, 6);
+  const proServices = filteredServices.filter((s) => s.providerType === "PERSONAL").slice(0, 6);
 
   return (
     <div className="space-y-8 mb-8">
+      {/* AVISO DE FILTRO ATIVO SE ESTIVER BUSCANDO */}
+      {cleanQuery && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3.5 px-4 rounded-2xl bg-primary/10 border border-primary/25 text-xs text-foreground shadow-sm">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary shrink-0" />
+            <span>
+              Filtrando destaques por: <strong className="text-primary font-bold">"{searchQuery}"</strong> ({filteredServices.length} {filteredServices.length === 1 ? "resultado encontrado" : "resultados encontrados"})
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              to={`/buscar?q=${encodeURIComponent(searchQuery)}`}
+              className="text-primary hover:underline font-bold text-xs flex items-center gap-1"
+            >
+              Ver no catálogo completo <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+            {onClearSearch && (
+              <button
+                onClick={onClearSearch}
+                className="text-muted-foreground hover:text-foreground text-xs font-semibold underline ml-2"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* SEÇÃO 1: ACADEMIAS EM DESTAQUE */}
       <div className="rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-card/90 via-card/50 to-primary/5 border border-primary/20 shadow-sm">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -124,6 +174,23 @@ export const FeaturedSpotlight: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        ) : cleanQuery ? (
+          <div className="rounded-xl border border-dashed border-border/80 p-6 text-center space-y-2.5 bg-card/40">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto">
+              <Building2 className="h-5 w-5" />
+            </div>
+            <p className="text-xs font-semibold text-foreground">
+              Nenhuma academia em destaque encontrada para "{searchQuery}"
+            </p>
+            <p className="text-[11px] text-muted-foreground max-w-sm mx-auto">
+              Tente buscar por cidade ou consulte o catálogo completo de academias credenciadas.
+            </p>
+            <Button size="sm" variant="default" className="h-8 text-xs font-bold gap-1 mt-1 rounded-xl" asChild>
+              <Link to={`/buscar?providerType=ACADEMIA&q=${encodeURIComponent(searchQuery)}`}>
+                Buscar Academias no Catálogo <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
           </div>
         ) : (
           <div className="rounded-xl border border-dashed border-border/80 p-6 text-center space-y-2.5 bg-card/40">
@@ -252,6 +319,23 @@ export const FeaturedSpotlight: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        ) : cleanQuery ? (
+          <div className="rounded-xl border border-dashed border-border/80 p-6 text-center space-y-2.5 bg-card/40">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto">
+              <Dumbbell className="h-5 w-5" />
+            </div>
+            <p className="text-xs font-semibold text-foreground">
+              Nenhum profissional em destaque encontrado para "{searchQuery}"
+            </p>
+            <p className="text-[11px] text-muted-foreground max-w-sm mx-auto">
+              Tente buscar por especialidade (ex: Personal, Nutri, Fisio) ou consulte o catálogo completo.
+            </p>
+            <Button size="sm" variant="default" className="h-8 text-xs font-bold gap-1 mt-1 rounded-xl" asChild>
+              <Link to={`/buscar?providerType=PERSONAL&q=${encodeURIComponent(searchQuery)}`}>
+                Buscar Profissionais no Catálogo <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
           </div>
         ) : (
           <div className="rounded-xl border border-dashed border-border/80 p-6 text-center space-y-2.5 bg-card/40">

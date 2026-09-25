@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -26,6 +26,7 @@ import {
   Map as MapIcon,
   List as ListIcon,
   Navigation,
+  X,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Capacitor } from "@capacitor/core";
@@ -81,19 +82,48 @@ const radiusOptions: { value: number | undefined; label: string }[] = [
 ];
 
 const Buscar = () => {
-  const [q, setQ] = useState("");
-  const [modality, setModality] = useState("Todos");
-  const [providerType, setProviderType] = useState<"" | "PERSONAL" | "ACADEMIA">("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialQ = searchParams.get("q") || "";
+  const initialProviderType = (searchParams.get("providerType") as "" | "PERSONAL" | "ACADEMIA") || "";
+  const initialModality = searchParams.get("modality") || "Todos";
+  const initialCity = searchParams.get("city") || "";
+
+  const [q, setQ] = useState(initialQ);
+  const [modality, setModality] = useState(initialModality);
+  const [providerType, setProviderType] = useState<"" | "PERSONAL" | "ACADEMIA">(initialProviderType);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [radiusKm, setRadiusKm] = useState<number | undefined>(undefined);
   const [geoLoading, setGeoLoading] = useState(false);
 
   // Controle de Cidade Selecionada para Resultados
-  const [selectedCity, setSelectedCity] = useState("São Paulo - SP");
+  const [selectedCity, setSelectedCity] = useState(initialCity || "São Paulo - SP");
   const [customCityInput, setCustomCityInput] = useState("");
   const [gymFilterTab, setGymFilterTab] = useState<"ALL" | "PARTNER" | "EXTERNAL">("ALL");
   const [selectedGymForInvite, setSelectedGymForInvite] = useState<ExternalGym | null>(null);
   const [gymViewMode, setGymViewMode] = useState<"both" | "list" | "map">("both");
+
+  // Sincroniza estado se a URL mudar (ex: navegação vinda do banner principal ou botões de categoria)
+  useEffect(() => {
+    const qParam = searchParams.get("q");
+    if (qParam !== null && qParam !== q) {
+      setQ(qParam);
+    }
+    const typeParam = searchParams.get("providerType") as "" | "PERSONAL" | "ACADEMIA";
+    if (typeParam !== null && typeParam !== providerType) {
+      setProviderType(typeParam || "");
+    }
+    const modParam = searchParams.get("modality");
+    if (modParam !== null && modParam !== modality) {
+      setModality(modParam || "Todos");
+    }
+    const cityParam = searchParams.get("city");
+    if (cityParam && cityParam !== selectedCity) {
+      setSelectedCity(cityParam);
+    }
+    if (searchParams.get("near") === "me") {
+      requestGeolocation(false);
+    }
+  }, [searchParams]);
 
   const CITIES_PRESETS = [
     "São Paulo - SP",
@@ -358,15 +388,29 @@ const Buscar = () => {
           {/* Search bar */}
           <div className="bg-card border border-border rounded-2xl p-3 sm:p-4 mb-6 shadow-card">
             <div className="flex flex-col md:flex-row gap-3">
-              <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
+              <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-muted rounded-lg relative">
                 <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <Input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   aria-label="Buscar academia, profissional ou modalidade"
                   placeholder="Buscar academia, profissional, modalidade..."
-                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 text-xs sm:text-sm placeholder:text-xs placeholder:sm:text-sm min-w-0 flex-1"
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 text-xs sm:text-sm placeholder:text-xs placeholder:sm:text-sm min-w-0 flex-1 pr-6"
                 />
+                {q && (
+                  <button
+                    onClick={() => {
+                      setQ("");
+                      const newParams = new URLSearchParams(searchParams);
+                      newParams.delete("q");
+                      setSearchParams(newParams, { replace: true });
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded-full"
+                    aria-label="Limpar busca"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
               <Button
                 type="button"
