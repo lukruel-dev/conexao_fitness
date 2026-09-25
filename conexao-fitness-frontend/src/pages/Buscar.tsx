@@ -621,14 +621,14 @@ const Buscar = () => {
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <h2 className="font-display text-xl font-bold text-foreground">
-                              Academias {coords ? "Perto de Você" : `em ${selectedCity}`}
+                              Academias Parceiras {coords ? "Perto de Você" : `em ${selectedCity}`}
                             </h2>
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] font-bold">
-                              <Building2 className="w-3 h-3" /> Mapeamento Real
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold">
+                              <BadgeCheck className="w-3 h-3" /> Credenciadas Finex
                             </span>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Academias parceiras credenciadas e locais mapeados via OpenStreetMap com rotas de navegação.
+                            Academias credenciadas no Finex para treinar com Day Pass e planos digitais.
                           </p>
                         </div>
 
@@ -689,13 +689,9 @@ const Buscar = () => {
                         {realGyms.map((gym) => (
                           <div
                             key={gym.id || gym.placeId}
-                            className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border transition-all duration-300 shadow-sm hover:shadow-md ${
-                              gym.isPartner
-                                ? "border-emerald-500/50 bg-card hover:border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.08)]"
-                                : "border-border/80 bg-card hover:border-amber-500/50"
-                            }`}
+                            className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-emerald-500/40 bg-card hover:border-emerald-500 shadow-sm hover:shadow-md transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.06)]"
                           >
-                            {/* Imagem do Google da Academia */}
+                            {/* Imagem da Academia */}
                             <div className="relative h-44 w-full overflow-hidden bg-muted">
                               <img
                                 src={gym.photoUrl || "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=600&auto=format&fit=crop"}
@@ -705,26 +701,16 @@ const Buscar = () => {
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
 
-                              {/* BADGES: PARCEIRA VS EXTERNA */}
+                              {/* BADGES: PARCEIRA FINEX */}
                               <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1">
-                                {gym.isPartner ? (
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500 text-black text-[10px] font-extrabold shadow-md backdrop-blur-md">
-                                    <BadgeCheck className="w-3.5 h-3.5 shrink-0" />
-                                    Parceira Finex
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500 text-black text-[10px] font-extrabold shadow-md backdrop-blur-md">
-                                    <AlertCircle className="w-3 h-3 shrink-0" />
-                                    Ainda não faz parte do ecossistema
-                                  </span>
-                                )}
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500 text-black text-[10px] font-extrabold shadow-md backdrop-blur-md">
+                                  <BadgeCheck className="w-3.5 h-3.5 shrink-0" />
+                                  Parceira Finex
+                                </span>
 
                                 <div className="flex items-center gap-1 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[11px] font-bold text-amber-400 border border-amber-400/20">
                                   <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                                  {gym.googleRating}
-                                  {gym.googleReviewsCount > 0 && (
-                                    <span className="text-white/60 text-[9px] font-normal">({gym.googleReviewsCount})</span>
-                                  )}
+                                  {gym.googleRating || "5.0"}
                                 </div>
                               </div>
 
@@ -769,7 +755,7 @@ const Buscar = () => {
                                   </div>
                                 )}
 
-                                {gym.isPartner && gym.partnerDayPassPrice && (
+                                {gym.partnerDayPassPrice && (
                                   <div className="flex items-center justify-between bg-emerald-500/10 p-2 rounded-xl text-xs">
                                     <span className="text-emerald-500 font-bold">Day Pass Disponível</span>
                                     <span className="text-foreground font-black text-sm">
@@ -777,38 +763,19 @@ const Buscar = () => {
                                     </span>
                                   </div>
                                 )}
-
-                                {!gym.isPartner && gym.indicationCount && gym.indicationCount > 0 ? (
-                                  <div className="flex items-center gap-1.5 text-[11px] text-primary font-semibold">
-                                    <Sparkles className="w-3.5 h-3.5" />
-                                    <span>{gym.indicationCount} alunos já indicaram esta academia</span>
-                                  </div>
-                                ) : null}
                               </div>
 
                               <div className="pt-2 border-t border-border/50 flex items-center gap-2">
-                                {gym.isPartner ? (
-                                  <Button
-                                    size="sm"
-                                    asChild
-                                    className="w-full h-9 rounded-xl text-xs font-bold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
-                                  >
-                                    <Link to={`/perfil/${gym.partnerId || gym.id}`}>
-                                      <BadgeCheck className="w-3.5 h-3.5" />
-                                      Ver Perfil & Comprar Day Pass
-                                    </Link>
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setSelectedGymForInvite(gym)}
-                                    className="w-full h-9 rounded-xl text-xs font-bold gap-1.5 border-amber-500/40 text-amber-500 hover:bg-amber-500/10 hover:text-amber-400"
-                                  >
-                                    <Share2 className="w-3.5 h-3.5" />
-                                    {gym.userAlreadyIndicated ? "Você já indicou • Indicar novamente" : "Indicar para o Ecossistema Finex"}
-                                  </Button>
-                                )}
+                                <Button
+                                  size="sm"
+                                  asChild
+                                  className="w-full h-9 rounded-xl text-xs font-bold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                                >
+                                  <Link to={`/perfil/${gym.partnerId || gym.id}`}>
+                                    <BadgeCheck className="w-3.5 h-3.5" />
+                                    Ver Perfil & Comprar Day Pass
+                                  </Link>
+                                </Button>
                               </div>
                             </div>
                           </div>
@@ -817,27 +784,14 @@ const Buscar = () => {
                     )}
                     </>
                   ) : (
-                    <div className="p-6 rounded-2xl bg-card border border-border/70 text-center space-y-3">
+                    <div className="p-8 rounded-2xl bg-card border border-dashed border-border/80 text-center space-y-3">
                       <Building2 className="w-10 h-10 text-primary mx-auto opacity-80" />
                       <h3 className="font-display font-bold text-base text-foreground">
-                        Nenhuma academia de {selectedCity} cadastrada ainda
+                        Nenhuma academia parceira credenciada em {coords ? "sua localização" : selectedCity} ainda
                       </h3>
                       <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                        Conhece ou frequenta uma academia em {selectedCity}? Compartilhe o Finex com os gestores para liberarmos Day Pass e matrículas digitais!
+                        Conhece ou frequenta uma academia em {selectedCity}? Indique a academia para liberarmos Day Pass e matrículas digitais!
                       </p>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          const msg = encodeURIComponent(
-                            `Olá! Gostaria de indicar uma academia de ${selectedCity} para integrar o ecossistema Conexão Finex (https://finex.net.br)!`
-                          );
-                          window.open(`https://api.whatsapp.com/send?text=${msg}`, "_blank");
-                        }}
-                        className="rounded-xl text-xs font-bold gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
-                      >
-                        <Share2 className="w-3.5 h-3.5" />
-                        Indicar Academia de {selectedCity} no WhatsApp
-                      </Button>
                     </div>
                   )}
                 </div>

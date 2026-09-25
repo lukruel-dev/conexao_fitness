@@ -366,10 +366,6 @@ export const GymsMap: React.FC<GymsMapProps> = ({
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
             Parceiras Finex
           </span>
-          <span className="flex items-center gap-1 font-semibold text-foreground">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-            Mapeadas
-          </span>
           {userCoords && (
             <span className="flex items-center gap-1 font-semibold text-cyan-600 dark:text-cyan-400">
               <span className="w-2.5 h-2.5 rounded-full bg-cyan-500"></span>
