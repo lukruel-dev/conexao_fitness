@@ -237,7 +237,7 @@ export class PaymentsService {
   }
 
   /**
-   * Cria uma assinatura incompleta para retornar client_secret
+   * Cria ou atualiza uma assinatura (com cálculo proporcional/proration ao migrar de plano)
    */
   async createSubscriptionPaymentIntent(userId: string, priceId: string, planName?: string) {
     const user = await this.userRepo.findOneBy({ id: userId });
@@ -245,6 +245,53 @@ export class PaymentsService {
 
     const customerId = await this.getOrCreateCustomer(user);
 
+    // 1. Verifica se o usuário já possui assinatura ativa na Stripe para aplicar o cálculo da diferença (Proration)
+    const existingActiveSub = await this.subscriptionRepo.findOne({
+      where: { userId, status: SubscriptionStatus.ACTIVE },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (
+      existingActiveSub?.externalSubscriptionId &&
+      existingActiveSub.externalSubscriptionId.startsWith('sub_') &&
+      !existingActiveSub.externalSubscriptionId.startsWith('sub_manual_')
+    ) {
+      try {
+        const currentSub = await this.stripe.subscriptions.retrieve(existingActiveSub.externalSubscriptionId);
+        if (currentSub && (currentSub.status === 'active' || currentSub.status === 'trialing')) {
+          const currentItemId = currentSub.items.data[0]?.id;
+          if (currentItemId) {
+            this.logger.log(`[Stripe Proration] Migrando assinatura ${currentSub.id} para priceId ${priceId} com cálculo proporcional`);
+            const updatedSub = await this.stripe.subscriptions.update(currentSub.id, {
+              items: [{
+                id: currentItemId,
+                price: priceId,
+              }],
+              proration_behavior: 'always_invoice',
+              payment_behavior: 'default_incomplete',
+              expand: ['latest_invoice.payment_intent'],
+              metadata: { userId, planName: planName || '' },
+            });
+
+            const invoice = updatedSub.latest_invoice as any;
+            const paymentIntent = invoice?.payment_intent as Stripe.PaymentIntent | undefined;
+
+            if (paymentIntent?.client_secret) {
+              return {
+                clientSecret: paymentIntent.client_secret,
+                subscriptionId: updatedSub.id,
+                isUpgrade: true,
+                differenceAmount: invoice.amount_due ? invoice.amount_due / 100 : undefined,
+              };
+            }
+          }
+        }
+      } catch (stripeErr: any) {
+        this.logger.warn(`[Stripe Proration] Não foi possível atualizar com prorateamento direto: ${stripeErr.message}. Prosseguindo com nova assinatura.`);
+      }
+    }
+
+    // 2. Fluxo Padrão: Primeira contratação ou assinatura a partir do plano Gratuito
     const subscription = this.subscriptionRepo.create({
       userId,
       planName: planName || 'Plano Finex',
@@ -252,22 +299,30 @@ export class PaymentsService {
     });
     await this.subscriptionRepo.save(subscription);
     
-    const stripeSub = await this.stripe.subscriptions.create({
-      customer: customerId,
-      items: [{ price: priceId }],
-      payment_behavior: 'default_incomplete',
-      payment_settings: { save_default_payment_method: 'on_subscription' },
-      expand: ['latest_invoice.payment_intent'],
-      metadata: { userId, planName: planName || '' },
-    });
-    
-    const invoice = stripeSub.latest_invoice as any;
-    const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
+    try {
+      const stripeSub = await this.stripe.subscriptions.create({
+        customer: customerId,
+        items: [{ price: priceId }],
+        payment_behavior: 'default_incomplete',
+        payment_settings: { save_default_payment_method: 'on_subscription' },
+        expand: ['latest_invoice.payment_intent'],
+        metadata: { userId, planName: planName || '' },
+      });
+      
+      const invoice = stripeSub.latest_invoice as any;
+      const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
 
-    return {
-      clientSecret: paymentIntent.client_secret,
-      subscriptionId: stripeSub.id,
-    };
+      return {
+        clientSecret: paymentIntent.client_secret,
+        subscriptionId: stripeSub.id,
+      };
+    } catch (createErr: any) {
+      this.logger.error(`[Stripe SaaS] Erro ao criar subscription: ${createErr.message}`);
+      if (createErr.message && createErr.message.includes('Invalid API Key')) {
+        throw new BadRequestException('Chave da Stripe inválida ou não configurada no servidor.');
+      }
+      throw new BadRequestException(`Erro ao processar assinatura na Stripe: ${createErr.message}`);
+    }
   }
 
   /**
