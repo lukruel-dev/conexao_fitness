@@ -49,6 +49,12 @@ export class PaymentsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('subscriptions/cancel')
+  async cancelSubscription(@CurrentUser() user: any) {
+    return this.paymentsService.confirmSubscription(user.id, 'Gratuito');
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('create-intent')
   async createIntent(
     @CurrentUser() user: any,

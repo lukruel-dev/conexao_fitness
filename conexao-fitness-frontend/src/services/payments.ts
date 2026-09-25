@@ -31,6 +31,12 @@ export async function confirmSaaSSubscription(planName: string, subscriptionId?:
   });
 }
 
+export async function cancelSaaSSubscription(): Promise<any> {
+  return apiRequest<any>("/payments/subscriptions/cancel", {
+    method: "POST",
+  });
+}
+
 export interface PaymentAccountStatus {
   isConnected: boolean;
   accountId: string | null;

@@ -56,6 +56,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { cancelSaaSSubscription } from "@/services/payments";
 
 const getMaxPlan = (role: string) => {
   if (role === 'STUDENT') return 'Premium';
@@ -78,6 +89,31 @@ const Perfil = () => {
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [postsLoading, setPostsLoading] = useState(false);
   const [avatarLoadError, setAvatarLoadError] = useState(false);
+
+  // Estado e ação de Cancelamento de Plano
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isCancellingPlan, setIsCancellingPlan] = useState(false);
+
+  const handleCancelPlan = async () => {
+    setIsCancellingPlan(true);
+    try {
+      await cancelSaaSSubscription();
+      localStorage.setItem("cf_user_plan", "Gratuito");
+      if (user) {
+        setUser({ ...user, planName: "Gratuito" });
+      }
+      toast.success("Plano cancelado com sucesso!", {
+        description: "Sua conta retornou ao plano Gratuito.",
+      });
+      setIsCancelModalOpen(false);
+    } catch (err: any) {
+      toast.error("Erro ao cancelar plano", {
+        description: err.message || "Tente novamente mais tarde.",
+      });
+    } finally {
+      setIsCancellingPlan(false);
+    }
+  };
 
   useEffect(() => {
     setAvatarLoadError(false);
@@ -392,6 +428,16 @@ const Perfil = () => {
                   {!isMaxPlan && (
                     <Button variant="outline" size="sm" className="h-6 text-[11px] font-bold border-primary text-primary hover:bg-primary hover:text-white transition-colors" asChild>
                       <Link to="/planos">Fazer Upgrade</Link>
+                    </Button>
+                  )}
+                  {planName && planName.toLowerCase() !== "gratuito" && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsCancelModalOpen(true)}
+                      className="h-6 text-[11px] font-bold border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors"
+                    >
+                      Cancelar Plano
                     </Button>
                   )}
                 </div>
@@ -800,6 +846,45 @@ const Perfil = () => {
         </div>
       </main>
       <BadgesModal open={isBadgesOpen} onOpenChange={setIsBadgesOpen} />
+
+      {/* Modal de Confirmação para Cancelar Plano */}
+      <AlertDialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <ShieldAlert className="w-5 h-5" /> Cancelar Assinatura do Plano
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-muted-foreground pt-2 space-y-2">
+              <p>
+                Tem certeza que deseja cancelar sua assinatura do plano <strong className="text-foreground">{planName}</strong>?
+              </p>
+              <p>
+                Ao confirmar o cancelamento, seu perfil retornará ao plano <strong>Gratuito</strong> e eventuais cobranças recorrentes na Stripe serão canceladas.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCancellingPlan}>Manter Plano</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleCancelPlan();
+              }}
+              disabled={isCancellingPlan}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold"
+            >
+              {isCancellingPlan ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Cancelando...
+                </>
+              ) : (
+                "Sim, Cancelar Plano"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Footer />
     </div>
   );

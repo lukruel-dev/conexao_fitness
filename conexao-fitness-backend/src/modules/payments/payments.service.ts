@@ -195,32 +195,40 @@ export class PaymentsService {
     let user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new NotFoundException('User not found');
 
-    if (!user.stripeAccountId) {
-      const account = await this.stripe.accounts.create({
-        type: 'express',
-        country: 'BR',
-        email: user.email,
-        capabilities: {
-          card_payments: { requested: true },
-          transfers: { requested: true },
-        },
+    try {
+      if (!user.stripeAccountId) {
+        const account = await this.stripe.accounts.create({
+          type: 'express',
+          country: 'BR',
+          email: user.email,
+          capabilities: {
+            card_payments: { requested: true },
+            transfers: { requested: true },
+          },
+        });
+        user.stripeAccountId = account.id;
+        await this.userRepo.save(user);
+      }
+
+      const frontendBase = (process.env.FRONTEND_URL || 'https://finex.net.br').replace(/\/+$/, '');
+      const cleanPath = returnPath.startsWith('/') ? returnPath : `/${returnPath}`;
+      const separator = cleanPath.includes('?') ? '&' : '?';
+
+      const accountLink = await this.stripe.accountLinks.create({
+        account: user.stripeAccountId,
+        refresh_url: `${frontendBase}${cleanPath}${separator}stripe=refresh`,
+        return_url: `${frontendBase}${cleanPath}${separator}stripe=success`,
+        type: 'account_onboarding',
       });
-      user.stripeAccountId = account.id;
-      await this.userRepo.save(user);
+
+      return accountLink.url;
+    } catch (err: any) {
+      this.logger.error(`[Stripe Connect] Erro ao gerar link de onboarding para user ${userId}: ${err.message}`);
+      if (err.message && err.message.includes('Invalid API Key')) {
+        throw new BadRequestException('A chave de API da Stripe não está configurada no servidor. Por favor, adicione a STRIPE_SECRET_KEY nas variáveis de ambiente da hospedagem.');
+      }
+      throw new BadRequestException(`Não foi possível conectar com a Stripe Connect: ${err.message}`);
     }
-
-    const frontendBase = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/+$/, '');
-    const cleanPath = returnPath.startsWith('/') ? returnPath : `/${returnPath}`;
-    const separator = cleanPath.includes('?') ? '&' : '?';
-
-    const accountLink = await this.stripe.accountLinks.create({
-      account: user.stripeAccountId,
-      refresh_url: `${frontendBase}${cleanPath}${separator}stripe=refresh`,
-      return_url: `${frontendBase}${cleanPath}${separator}stripe=success`,
-      type: 'account_onboarding',
-    });
-
-    return accountLink.url;
   }
 
   async handleWebhook(event: any) {
@@ -312,6 +320,14 @@ export class PaymentsService {
     for (const sub of existingActive) {
       sub.status = SubscriptionStatus.CANCELED;
       await this.subscriptionRepo.save(sub);
+      if (sub.externalSubscriptionId && sub.externalSubscriptionId.startsWith('sub_') && !sub.externalSubscriptionId.startsWith('sub_manual_')) {
+        try {
+          await this.stripe.subscriptions.cancel(sub.externalSubscriptionId);
+          this.logger.log(`[Stripe SaaS] Assinatura externa ${sub.externalSubscriptionId} cancelada na Stripe.`);
+        } catch (stripeErr: any) {
+          this.logger.warn(`[Stripe SaaS] Aviso ao cancelar sub na Stripe: ${stripeErr.message}`);
+        }
+      }
     }
 
     if (cleanPlanName.toLowerCase() === 'gratuito') {

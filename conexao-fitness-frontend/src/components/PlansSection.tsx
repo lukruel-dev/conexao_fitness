@@ -147,7 +147,7 @@ const personalPlans: PlanItem[] = [
       "Prioridade máxima nas buscas",
       "Página personalizada e suporte prioritário",
     ],
-    highlight: true,
+    highlight: false,
     cta: "Assinar Elite",
   },
 ];
@@ -438,16 +438,18 @@ const PlansSection = () => {
                         : "bg-card border border-border hover:border-purple-500/30"
                     }`}
                   >
-                    {plan.highlight && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-xs font-semibold text-white">
-                        Mais Popular
-                      </div>
-                    )}
-                    {active && (
-                      <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow">
-                        Seu Plano Atual
-                      </div>
-                    )}
+                    <div className="absolute -top-3.5 inset-x-0 flex items-center justify-center gap-1.5 px-3 pointer-events-none z-10 flex-wrap">
+                      {plan.highlight && (
+                        <span className="px-3 py-0.5 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-xs font-semibold text-white shadow">
+                          Mais Popular
+                        </span>
+                      )}
+                      {active && (
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow flex items-center gap-1">
+                          <Check className="w-3 h-3 stroke-[3]" /> Seu Plano Atual
+                        </span>
+                      )}
+                    </div>
                     <div>
                       <div className="text-center mb-6">
                         <h4 className="font-display font-bold text-lg text-foreground">{plan.name}</h4>
@@ -506,16 +508,18 @@ const PlansSection = () => {
                         : "bg-card border border-border hover:border-primary/30"
                     }`}
                   >
-                    {plan.highlight && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full gradient-primary text-xs font-semibold text-primary-foreground">
-                        Mais Popular
-                      </div>
-                    )}
-                    {active && (
-                      <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow">
-                        Seu Plano Atual
-                      </div>
-                    )}
+                    <div className="absolute -top-3.5 inset-x-0 flex items-center justify-center gap-1.5 px-3 pointer-events-none z-10 flex-wrap">
+                      {plan.highlight && (
+                        <span className="px-3 py-0.5 rounded-full gradient-primary text-xs font-semibold text-primary-foreground shadow">
+                          Mais Popular
+                        </span>
+                      )}
+                      {active && (
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow flex items-center gap-1">
+                          <Check className="w-3 h-3 stroke-[3]" /> Seu Plano Atual
+                        </span>
+                      )}
+                    </div>
                     <div>
                       <div className="text-center mb-6">
                         <h4 className="font-display font-bold text-lg text-foreground">{plan.name}</h4>
@@ -572,16 +576,18 @@ const PlansSection = () => {
                         : "bg-card border border-border hover:border-secondary/30"
                     }`}
                   >
-                    {plan.highlight && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full gradient-secondary text-xs font-semibold text-secondary-foreground">
-                        Recomendado
-                      </div>
-                    )}
-                    {active && (
-                      <div className="absolute -top-3 right-4 px-3 py-0.5 rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow">
-                        Seu Plano Atual
-                      </div>
-                    )}
+                    <div className="absolute -top-3.5 inset-x-0 flex items-center justify-center gap-1.5 px-3 pointer-events-none z-10 flex-wrap">
+                      {plan.highlight && (
+                        <span className="px-3 py-0.5 rounded-full gradient-secondary text-xs font-semibold text-secondary-foreground shadow">
+                          Recomendado
+                        </span>
+                      )}
+                      {active && (
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-[10px] font-bold text-white shadow flex items-center gap-1">
+                          <Check className="w-3 h-3 stroke-[3]" /> Seu Plano Atual
+                        </span>
+                      )}
+                    </div>
                     <div>
                       <div className="text-center mb-6">
                         <h4 className="font-display font-bold text-lg text-foreground">{plan.name}</h4>

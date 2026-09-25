@@ -49,8 +49,8 @@ export async function apiRequest<T>(path: string, opts: RequestOptions = {}): Pr
     throw new ApiError(0, "Falha de rede ao conectar com a API", err);
   }
 
-  // 401 -> limpa sessão local (interceptor simples)
-  if (res.status === 401) {
+  // 401 -> limpa sessão local apenas se for autenticação do usuário (não desloga em erros de gateway de pagamento/Stripe)
+  if (res.status === 401 && !path.startsWith("/payments/") && !path.startsWith("payments/")) {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     window.dispatchEvent(new CustomEvent("cf:unauthorized"));
   }
