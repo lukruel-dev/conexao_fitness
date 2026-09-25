@@ -19,6 +19,8 @@ export interface ExternalGym {
   userAlreadyIndicated?: boolean;
   phone?: string;
   openingHours?: string;
+  lat?: number;
+  lng?: number;
 }
 
 interface GymsApiResponse {

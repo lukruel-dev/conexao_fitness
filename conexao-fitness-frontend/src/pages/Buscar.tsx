@@ -23,12 +23,16 @@ import {
   Sparkles,
   ChevronRight,
   PlusCircle,
+  Map as MapIcon,
+  List as ListIcon,
+  Navigation,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Capacitor } from "@capacitor/core";
 import { Geolocation } from "@capacitor/geolocation";
 import { ExternalGym, getRealGymsByCity } from "@/services/externalGyms";
 import { InviteGymModal } from "@/components/InviteGymModal";
+import { GymsMap } from "@/components/GymsMap";
 
 const typeOptions: { value: "" | "PERSONAL" | "ACADEMIA"; label: string }[] = [
   { value: "", label: "Todos" },
@@ -89,6 +93,7 @@ const Buscar = () => {
   const [customCityInput, setCustomCityInput] = useState("");
   const [gymFilterTab, setGymFilterTab] = useState<"ALL" | "PARTNER" | "EXTERNAL">("ALL");
   const [selectedGymForInvite, setSelectedGymForInvite] = useState<ExternalGym | null>(null);
+  const [gymViewMode, setGymViewMode] = useState<"both" | "list" | "map">("both");
 
   const CITIES_PRESETS = [
     "São Paulo - SP",
@@ -612,7 +617,7 @@ const Buscar = () => {
                 <div className="pt-6 border-t border-border/60 space-y-4">
                   {realGyms.length > 0 ? (
                     <>
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <h2 className="font-display text-xl font-bold text-foreground">
@@ -623,12 +628,64 @@ const Buscar = () => {
                             </span>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Academias parceiras credenciadas e locais verificados pelo Google Maps. Indique estabelecimentos que ainda não são parceiros para liberar Day Pass pelo aplicativo!
+                            Academias parceiras credenciadas e locais mapeados via OpenStreetMap com rotas de navegação.
                           </p>
+                        </div>
+
+                        {/* Alternador de visualização: Lista / Mapa / Ambos */}
+                        <div className="flex items-center gap-1 bg-muted p-1 rounded-xl self-start sm:self-auto shrink-0 border border-border/60">
+                          <button
+                            type="button"
+                            onClick={() => setGymViewMode("both")}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                              gymViewMode === "both"
+                                ? "bg-card text-foreground shadow-sm scale-[1.02]"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            Ambos
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setGymViewMode("map")}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                              gymViewMode === "map"
+                                ? "bg-card text-foreground shadow-sm scale-[1.02]"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            <MapIcon className="w-3.5 h-3.5 text-primary" />
+                            Mapa
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setGymViewMode("list")}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                              gymViewMode === "list"
+                                ? "bg-card text-foreground shadow-sm scale-[1.02]"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            <ListIcon className="w-3.5 h-3.5" />
+                            Lista
+                          </button>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {/* MAPA INTERATIVO LEAFLET / OSM */}
+                      {(gymViewMode === "map" || gymViewMode === "both") && (
+                        <GymsMap
+                          gyms={realGyms}
+                          userCoords={coords}
+                          selectedCity={selectedCity}
+                          onInviteGym={setSelectedGymForInvite}
+                          className="my-3"
+                        />
+                      )}
+
+                      {/* LISTA DE CARDS */}
+                      {(gymViewMode === "list" || gymViewMode === "both") && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {realGyms.map((gym) => (
                           <div
                             key={gym.id || gym.placeId}
@@ -688,12 +745,16 @@ const Buscar = () => {
                                 <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                                   <span>Horários: {gym.openingHours || "Seg a Sex"}</span>
                                   <a
-                                    href={gym.mapsUrl}
+                                    href={
+                                      gym.lat && gym.lng
+                                        ? `https://www.google.com/maps/dir/?api=1&destination=${gym.lat},${gym.lng}`
+                                        : gym.mapsUrl
+                                    }
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-primary hover:underline font-semibold flex items-center gap-1"
                                   >
-                                    Google Maps <ExternalLink className="w-3 h-3" />
+                                    Como Chegar <Navigation className="w-3 h-3" />
                                   </a>
                                 </div>
 
@@ -748,6 +809,7 @@ const Buscar = () => {
                           </div>
                         ))}
                       </div>
+                    )}
                     </>
                   ) : (
                     <div className="p-6 rounded-2xl bg-card border border-border/70 text-center space-y-3">
