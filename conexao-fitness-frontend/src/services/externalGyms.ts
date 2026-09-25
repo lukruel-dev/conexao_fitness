@@ -21,6 +21,7 @@ export interface ExternalGym {
   openingHours?: string;
   lat?: number;
   lng?: number;
+  distanceKm?: number;
 }
 
 interface GymsApiResponse {

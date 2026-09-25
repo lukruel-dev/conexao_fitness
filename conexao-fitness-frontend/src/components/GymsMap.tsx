@@ -174,6 +174,9 @@ export const GymsMap: React.FC<GymsMapProps> = ({
 
       // Conteúdo formatado do Popup
       const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${gym.lat},${gym.lng}`;
+      const distanceBadge = typeof gym.distanceKm === 'number'
+        ? `<span class="inline-flex items-center text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">${gym.distanceKm} km</span>`
+        : '';
       const partnerBadgeHtml = isPartner
         ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-extrabold text-[10px]">
             ✓ Parceira Finex
@@ -185,7 +188,10 @@ export const GymsMap: React.FC<GymsMapProps> = ({
       const popupContent = `
         <div class="p-2.5 font-sans min-w-[220px] max-w-[270px] text-foreground">
           <div class="flex items-center justify-between gap-1 mb-1.5">
-            ${partnerBadgeHtml}
+            <div class="flex items-center gap-1.5 flex-wrap">
+              ${partnerBadgeHtml}
+              ${distanceBadge}
+            </div>
             <div class="flex items-center gap-1 text-[11px] font-bold text-amber-500">
               ★ ${gym.googleRating || "4.8"}
             </div>

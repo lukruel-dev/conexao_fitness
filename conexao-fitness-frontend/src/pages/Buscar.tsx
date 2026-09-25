@@ -732,9 +732,14 @@ const Buscar = () => {
                                 <h3 className="font-bold text-base leading-snug drop-shadow-sm line-clamp-1">
                                   {gym.name}
                                 </h3>
-                                <div className="flex items-center gap-1 text-[11px] text-white/85 mt-0.5 truncate">
+                                <div className="flex items-center gap-1.5 text-[11px] text-white/85 mt-0.5 truncate">
                                   <MapPin className="h-3 w-3 text-primary shrink-0" />
-                                  <span className="truncate">{gym.address}</span>
+                                  <span className="truncate">{gym.address && gym.address !== '- – ,' ? gym.address : gym.city || 'Local sob consulta'}</span>
+                                  {typeof gym.distanceKm === 'number' && (
+                                    <span className="shrink-0 bg-primary text-primary-foreground font-extrabold px-1.5 py-0.2 rounded text-[10px]">
+                                      {gym.distanceKm} km
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </div>
