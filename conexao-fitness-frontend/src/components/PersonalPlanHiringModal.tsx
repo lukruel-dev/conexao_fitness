@@ -155,22 +155,6 @@ export const PersonalPlanHiringModal: React.FC<PersonalPlanHiringModalProps> = (
         localStorage.setItem(studentPlansKey, JSON.stringify(current));
       } catch (e) {}
 
-      // Registra a contratação também para o profissional visualizar imediatamente na agenda/painel
-      try {
-        addDemoBooking({
-          name: user?.name || 'Lucas Atleta (Aluno)',
-          email: user?.email,
-          avatarUrl: user?.avatarUrl,
-          phone: user?.phone,
-          serviceName: plan!.name,
-          goal: 'Acompanhamento & Evolução',
-          providerId: professional.id,
-          studentId: user?.id,
-          price: planPriceNum,
-          status: 'CONFIRMED',
-        });
-      } catch (e) {}
-
       qc.invalidateQueries({ queryKey: ['provider-bookings'] });
       qc.invalidateQueries({ queryKey: ['notifications'] });
 

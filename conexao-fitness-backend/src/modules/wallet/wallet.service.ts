@@ -740,23 +740,36 @@ export class WalletService {
         service = await this.servicesRepo.save(service);
       }
 
-      const slot = this.slotsRepo.create({
-        serviceId: service.id,
-        startsAt: new Date(),
-        endsAt: new Date(Date.now() + 30 * 24 * 3600 * 1000),
-        status: ScheduleSlotStatus.BOOKED,
-        studentId: studentId,
+      // Evita criar múltiplos bookings confirmados idênticos para o mesmo serviço e aluno
+      let booking = await this.bookingRepo.findOne({
+        where: {
+          serviceId: service.id,
+          studentId: studentId,
+          status: BookingStatus.CONFIRMED,
+        },
       });
-      const savedSlot = await this.slotsRepo.save(slot);
 
-      const booking = this.bookingRepo.create({
-        serviceId: service.id,
-        slotId: savedSlot.id,
-        studentId: studentId,
-        status: BookingStatus.CONFIRMED,
-      });
-      await this.bookingRepo.save(booking);
-      this.logger.log(`[Booking] Agendamento do plano "${dto.planName}" registrado com sucesso para aluno ${studentId}`);
+      if (!booking) {
+        const slot = this.slotsRepo.create({
+          serviceId: service.id,
+          startsAt: new Date(),
+          endsAt: new Date(Date.now() + 30 * 24 * 3600 * 1000),
+          status: ScheduleSlotStatus.BOOKED,
+          studentId: studentId,
+        });
+        const savedSlot = await this.slotsRepo.save(slot);
+
+        booking = this.bookingRepo.create({
+          serviceId: service.id,
+          slotId: savedSlot.id,
+          studentId: studentId,
+          status: BookingStatus.CONFIRMED,
+        });
+        await this.bookingRepo.save(booking);
+        this.logger.log(`[Booking] Agendamento do plano "${dto.planName}" registrado com sucesso para aluno ${studentId}`);
+      } else {
+        this.logger.log(`[Booking] Aluno ${studentId} já possui agendamento confirmado para o serviço ${service.id}. Atualizado sem duplicar.`);
+      }
     } catch (bookingErr: any) {
       this.logger.warn(`Não foi possível criar Booking automático: ${bookingErr?.message}`);
     }

@@ -187,8 +187,27 @@ export default function AgendaProfissional() {
 
   const sortedBookings = useMemo(() => {
     if (!bookings) return [];
+
+    // Deduplica registros idênticos (mesmo aluno + mesmo serviço + status)
+    const uniqueMap = new Map<string, any>();
+    for (const b of bookings) {
+      const studentKey = b.studentId || b.student?.name || (b as any).name || b.id;
+      const serviceKey = b.serviceId || b.service?.name || (b as any).serviceName || 'service';
+      const key = `${studentKey}_${serviceKey}_${b.status}`;
+
+      if (!uniqueMap.has(key)) {
+        uniqueMap.set(key, b);
+      } else {
+        const existing = uniqueMap.get(key);
+        if (b.id && !b.id.startsWith('booking-') && existing?.id?.startsWith('booking-')) {
+          uniqueMap.set(key, b);
+        }
+      }
+    }
+
+    const deduplicated = Array.from(uniqueMap.values());
     
-    return [...bookings].sort((a: any, b: any) => {
+    return deduplicated.sort((a: any, b: any) => {
       const getPriority = (booking: any) => {
         if (booking.status === "CONFIRMED") {
           const hasUnreadChat = notifications?.some(n => !n.isRead && n.type === "CHAT" && n.referenceId === booking.id);

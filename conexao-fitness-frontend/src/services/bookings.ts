@@ -486,18 +486,44 @@ export async function listBookingsByProvider(
 
   try {
     const realBookings = await apiRequest<Booking[]>(`/bookings/providers/${providerId}`, { query: { status } });
-    const localBookings = getDemoBookings().filter((b) => b.providerId === providerId);
-    const combined = [...(realBookings || [])];
-    for (const local of localBookings) {
-      if (!combined.some((b: any) => b.id === local.id)) {
-        combined.unshift(local);
+
+    // Limpeza de cópias locais salvas em DEMO_BOOKINGS_STORAGE_KEY que sejam idênticas aos bookings reais da API
+    const allDemo = getDemoBookings();
+    const cleanedDemo = allDemo.filter((demo: any) => {
+      if (demo.providerId !== providerId) return true;
+      const isDuplicate = (realBookings || []).some((real: any) => {
+        const sameStudent =
+          (real.studentId && demo.studentId && real.studentId === demo.studentId) ||
+          (real.student?.name && (demo.student?.name === real.student.name || demo.name === real.student.name));
+        const sameService =
+          (real.serviceId && demo.serviceId && real.serviceId === demo.serviceId) ||
+          (real.service?.name && (demo.service?.name === real.service.name || demo.serviceName === real.service.name));
+        return sameStudent && sameService;
+      });
+      return !isDuplicate;
+    });
+
+    if (cleanedDemo.length !== allDemo.length) {
+      try {
+        localStorage.setItem(DEMO_BOOKINGS_STORAGE_KEY, JSON.stringify(cleanedDemo));
+      } catch {}
+    }
+
+    const combined: any[] = [...(realBookings || [])];
+
+    // Deduplica internamente qualquer duplicidade por aluno e serviço
+    const uniqueMap = new Map<string, any>();
+    for (const b of combined) {
+      const studentKey = b.studentId || b.student?.name || (b as any).name || b.id;
+      const serviceKey = b.serviceId || b.service?.name || (b as any).serviceName || 'service';
+      const key = `${studentKey}_${serviceKey}_${b.status}`;
+      if (!uniqueMap.has(key)) {
+        uniqueMap.set(key, b);
       }
     }
-    if (combined.length === 0) {
-      const defaultDemo = getDemoBookings().filter((b) => b.providerId === providerId);
-      return status ? defaultDemo.filter((b) => b.status === status) : (defaultDemo.length > 0 ? defaultDemo : getDemoBookings());
-    }
-    return status ? combined.filter((b: any) => b.status === status) : combined;
+
+    const result = Array.from(uniqueMap.values());
+    return status ? result.filter((b: any) => b.status === status) : result;
   } catch (err) {
     console.warn("[Bookings] Fallback to demo bookings for provider:", err);
     const localBookings = getDemoBookings().filter((b) => b.providerId === providerId);
