@@ -294,7 +294,7 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
                       )}
                     </div>
                     <p className="text-xs font-medium text-primary line-clamp-1">
-                      {pro.professionTitle || pro.modality || "Personal Trainer"}
+                      {pro.professionTitle || pro.modality || "Profissional"}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
                       {pro.city || "Uruguaiana - RS"}
@@ -303,9 +303,15 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
                 </Link>
 
                 <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between">
-                  <span className="text-xs font-bold text-foreground">
-                    {formatBRL(pro.price)} / sessão
-                  </span>
+                  {pro.price && pro.price > 0 ? (
+                    <span className="text-xs font-bold text-foreground">
+                      {formatBRL(pro.price)} / sessão
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground font-medium">
+                      Planos no perfil
+                    </span>
+                  )}
                   <Button
                     size="sm"
                     variant="outline"

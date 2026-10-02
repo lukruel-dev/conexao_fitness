@@ -228,7 +228,7 @@ const Index: React.FC = () => {
                   <Button
                     type="submit"
                     form="hero-search-form"
-                    className="h-11 sm:h-12 min-w-[130px] sm:min-w-[145px] px-6 sm:px-7 text-sm font-bold gap-2 rounded-xl shadow-md bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 cursor-pointer transition-all hover:scale-[1.03]"
+                    className="h-11 sm:h-12 min-w-[130px] sm:min-w-[145px] px-6 sm:px-7 text-sm sm:text-base font-bold tracking-normal gap-2 rounded-xl shadow-md bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 cursor-pointer transition-all hover:scale-[1.03]"
                   >
                     <Search className="h-4 w-4" /> Buscar
                   </Button>
@@ -335,13 +335,19 @@ const Index: React.FC = () => {
                                       {pro.providerName || pro.name}
                                     </p>
                                     <p className="text-[11px] text-muted-foreground truncate">
-                                      {pro.professionTitle || pro.modality || "Personal Trainer"} • {pro.city || "Uruguaiana - RS"}
+                                      {pro.professionTitle || pro.modality || "Profissional"} • {pro.city || "Uruguaiana - RS"}
                                     </p>
                                   </div>
                                 </div>
-                                <span className="text-foreground font-semibold text-xs shrink-0 pl-2">
-                                  {formatBRL(pro.price)} / sessão
-                                </span>
+                                {pro.price && pro.price > 0 ? (
+                                  <span className="text-foreground font-semibold text-xs shrink-0 pl-2">
+                                    {formatBRL(pro.price)} / sessão
+                                  </span>
+                                ) : (
+                                  <span className="text-primary font-semibold text-xs shrink-0 pl-2">
+                                    Ver perfil
+                                  </span>
+                                )}
                               </Link>
                             ))}
                           </div>
@@ -473,7 +479,7 @@ const Index: React.FC = () => {
                   <Button
                     type="button"
                     onClick={handleConnectSocial}
-                    className="h-11 sm:h-12 min-w-[130px] sm:min-w-[145px] px-6 sm:px-7 text-sm font-bold gap-2 rounded-xl shadow-lg bg-gradient-to-r from-cyan-500 via-sky-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-white font-display border border-cyan-300/40 transition-all hover:scale-[1.03] cursor-pointer"
+                    className="h-11 sm:h-12 min-w-[130px] sm:min-w-[145px] px-6 sm:px-7 text-sm sm:text-base font-bold tracking-normal gap-2 rounded-xl shadow-lg bg-gradient-to-r from-cyan-500 via-sky-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-white border border-cyan-300/40 transition-all hover:scale-[1.03] cursor-pointer"
                   >
                     <Users className="h-4 w-4" /> Conectar
                   </Button>

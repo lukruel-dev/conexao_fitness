@@ -258,7 +258,7 @@ export class ServicesService {
             providerId: u.id,
             name: u.role === 'ACADEMIA' ? (u.academiaProfile?.nomeFantasia || u.name) : (u.personalProfile?.publicName || u.name),
             description: u.personalProfile?.bio || u.academiaProfile?.bio || 'Profissional credenciado no Conexão Fitness',
-            modality: u.personalProfile?.professionTitle || (u.role === 'ACADEMIA' ? 'Academia' : 'Personal Trainer'),
+            modality: u.personalProfile?.professionTitle || (u.role === 'ACADEMIA' ? 'Academia' : 'Profissional'),
             type: 'SESSION',
             price: u.personalProfile?.baseHourlyPrice ? Number(u.personalProfile.baseHourlyPrice) : 0,
             currency: 'BRL',

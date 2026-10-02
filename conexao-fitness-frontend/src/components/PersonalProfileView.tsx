@@ -306,7 +306,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
               </div>
 
               <p className="text-sm sm:text-base font-bold text-primary">
-                {profile.professionTitle || 'Personal Trainer & Consultor'}
+                {profile.professionTitle || 'Profissional da Saúde & Fitness'}
               </p>
 
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-xs text-muted-foreground pt-1">

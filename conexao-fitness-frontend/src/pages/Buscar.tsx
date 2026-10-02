@@ -576,7 +576,7 @@ const Buscar = () => {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <span
-                                  className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                  className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${
                                     s.providerType === "ACADEMIA"
                                       ? "bg-primary/10 text-primary"
                                       : "bg-secondary/10 text-secondary"
@@ -584,9 +584,12 @@ const Buscar = () => {
                                 >
                                   {s.providerType === "ACADEMIA"
                                     ? "Academia Parceira"
-                                    : s.professionTitle || "Profissional"}
+                                    : s.professionTitle || s.modality || "Profissional"}
                                 </span>
-                                <span className="text-xs text-muted-foreground">{s.modality}</span>
+
+                                {s.modality && s.professionTitle && s.modality.trim().toLowerCase() !== s.professionTitle.trim().toLowerCase() && (
+                                  <span className="text-xs text-muted-foreground">{s.modality}</span>
+                                )}
 
                                 {s.attendanceType === "ONLINE" ? (
                                   <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center gap-1">
@@ -604,10 +607,11 @@ const Buscar = () => {
                                 )}
                               </div>
                               <h3 className="font-display font-bold text-lg text-foreground">{s.name}</h3>
-                              <p className="text-sm text-muted-foreground mt-0.5">
-                                {s.providerName}
-                                {s.providerType === "PERSONAL" && s.professionTitle ? ` • ${s.professionTitle}` : ""}
-                              </p>
+                              {s.providerName && s.providerName.trim().toLowerCase() !== s.name.trim().toLowerCase() && (
+                                <p className="text-sm text-muted-foreground mt-0.5">
+                                  {s.providerName}
+                                </p>
+                              )}
                               <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground flex-wrap">
                                 {(() => {
                                   const total = s.totalReviews ?? s.reviewsCount ?? 0;
@@ -645,12 +649,14 @@ const Buscar = () => {
                             </div>
                           </div>
                           <div className="flex md:flex-col items-end justify-between md:justify-center gap-2">
-                            <div className="text-right">
-                              <div className="text-2xl font-bold text-secondary">{formatBRL(s.price)}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {s.type === "PLANO_MENSAL" ? "por mês" : s.type === "DAY_PASS" ? "day pass" : "por sessão"}
+                            {s.price && s.price > 0 ? (
+                              <div className="text-right">
+                                <div className="text-2xl font-bold text-secondary">{formatBRL(s.price)}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {s.type === "PLANO_MENSAL" ? "por mês" : s.type === "DAY_PASS" ? "day pass" : "por sessão"}
+                                </div>
                               </div>
-                            </div>
+                            ) : null}
                             <span className="inline-flex items-center justify-center rounded-xl text-xs font-bold px-3.5 py-2 bg-primary text-primary-foreground shadow-sm hover:opacity-95 transition-opacity pointer-events-none">
                               {s.providerType === "ACADEMIA" ? "Conhecer Academia & Planos" : "Ver Perfil & Planos"}
                             </span>
