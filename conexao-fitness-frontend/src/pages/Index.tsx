@@ -671,20 +671,20 @@ const Index: React.FC = () => {
               <div className="absolute -right-8 -bottom-8 w-44 h-44 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
             </div>
 
-            {/* CARD 2: SOCIAL FINEX (REDE SOCIAL FITNESS) - CORES SUAVES & HARMONIOSAS */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card/95 to-teal-500/[0.05] border border-border/80 hover:border-teal-500/30 p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 shadow-sm group">
+            {/* CARD 2: SOCIAL FINEX (REDE SOCIAL FITNESS) - TOM ÂMBAR DOURADO SUAVE (AMARELO QUINDIM) */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card/95 to-amber-500/[0.06] border border-border/80 hover:border-amber-500/40 p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 shadow-sm group">
               <div className="relative z-10 flex flex-col h-full space-y-3.5">
                 {/* 1. PARTE SUPERIOR DO CARD: BADGE E BOTÃO CONECTAR */}
                 <div className="flex items-center justify-between gap-3">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-bold tracking-wide shadow-xs">
-                    <Flame className="h-3.5 w-3.5 text-teal-500" />
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold tracking-wide shadow-xs">
+                    <Flame className="h-3.5 w-3.5 text-amber-500" />
                     <span>REDE SOCIAL FITNESS</span>
                   </div>
 
                   <Button
                     type="button"
                     onClick={handleConnectSocial}
-                    className="h-9 sm:h-10 px-5 sm:px-6 text-xs sm:text-sm font-bold tracking-normal gap-2 rounded-xl shadow-xs bg-teal-600 hover:bg-teal-700 text-white transition-all cursor-pointer"
+                    className="h-9 sm:h-10 px-5 sm:px-6 text-xs sm:text-sm font-bold tracking-normal gap-2 rounded-xl shadow-xs bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white transition-all cursor-pointer border-0"
                   >
                     <Users className="h-3.5 w-3.5" /> Conectar
                   </Button>
@@ -693,18 +693,18 @@ const Index: React.FC = () => {
                 {/* 2. TÍTULO E APRESENTAÇÃO DO SOCIAL FINEX */}
                 <div className="space-y-1.5">
                   <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-foreground leading-tight">
-                    Social <span className="text-teal-600 dark:text-teal-400">FINEX</span>
+                    Social <span className="text-amber-500 dark:text-amber-400">FINEX</span>
                   </h2>
                   <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                     A rede social fitness feita para quem vive o estilo de vida saudável. Compartilhe sua evolução, tire dúvidas, curta treinos e conecte-se com alunos e profissionais.
                   </p>
                 </div>
 
-                {/* 3. RECURSOS EM DESTAQUE (PILLS SUAVES) */}
+                {/* 3. RECURSOS EM DESTAQUE (PILLS SUAVES COM TOQUE DOURADO) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
                   <div className="p-2.5 sm:p-3 rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center">
                     <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5">
-                      <MessageSquare className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                      <MessageSquare className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
                       <span>Feed ao Vivo</span>
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-tight">Postagens de treinos, fotos e rotinas</p>
@@ -712,7 +712,7 @@ const Index: React.FC = () => {
 
                   <div className="p-2.5 sm:p-3 rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center">
                     <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5">
-                      <Flame className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <Flame className="h-3.5 w-3.5 text-orange-500" />
                       <span>Comunidade</span>
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-tight">Interação diária com alunos e personais</p>
@@ -722,7 +722,7 @@ const Index: React.FC = () => {
                 {/* 4. RODAPÉ COM REDIRECIONAMENTO */}
                 <div className="pt-2.5 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 text-xs mt-auto">
                   <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                    <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
                     <span className="font-medium text-foreground">
                       {isAuthenticated ? "Sua conta está conectada!" : "Acesse com sua conta ou cadastre-se"}
                     </span>
@@ -731,7 +731,7 @@ const Index: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleConnectSocial}
-                    className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+                    className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer transition-colors"
                   >
                     <span>{isAuthenticated ? "Ir para o Feed da Comunidade" : "Acessar Comunidade Fitness"}</span>
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -740,7 +740,7 @@ const Index: React.FC = () => {
               </div>
 
               {/* ELEMENTO DECORATIVO SUAVE NO FUNDO */}
-              <div className="absolute -right-8 -bottom-8 w-44 h-44 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -right-8 -bottom-8 w-44 h-44 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
             </div>
           </section>
 
