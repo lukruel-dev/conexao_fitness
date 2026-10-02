@@ -1,9 +1,10 @@
-import { Link, useLocation } from "react-router-dom";
-import { Home, Search, User, ShieldCheck, Dumbbell } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Home, ArrowLeft, Search, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const BottomNav = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   // Hide BottomNav on fullscreen / auth screens
@@ -22,15 +23,21 @@ const BottomNav = () => {
         <span className="text-[10px] font-medium">Início</span>
       </Link>
 
-      <Link
-        to="/treinos"
-        className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
-          location.pathname === "/treinos" ? "text-primary font-bold" : "text-muted-foreground hover:text-foreground"
-        }`}
+      <button
+        type="button"
+        onClick={() => {
+          if (window.history.length > 1) {
+            navigate(-1);
+          } else {
+            navigate("/");
+          }
+        }}
+        className="flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors text-muted-foreground hover:text-foreground active:scale-95 cursor-pointer"
+        aria-label="Voltar"
       >
-        <Dumbbell className="w-5 h-5" />
-        <span className="text-[10px] font-medium">Treinos</span>
-      </Link>
+        <ArrowLeft className="w-5 h-5" />
+        <span className="text-[10px] font-medium">Voltar</span>
+      </button>
 
       <Link
         to="/buscar"
@@ -42,29 +49,17 @@ const BottomNav = () => {
         <span className="text-[10px] font-medium">Buscar</span>
       </Link>
 
-      {user?.role === "ADMIN" ? (
-        <Link
-          to="/admin"
-          className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
-            location.pathname.startsWith("/admin")
-              ? "text-secondary font-bold"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <ShieldCheck className="w-5 h-5 text-secondary" />
-          <span className="text-[10px] font-medium">Admin</span>
-        </Link>
-      ) : (
-        <Link
-          to="/perfil"
-          className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
-            location.pathname === "/perfil" ? "text-primary font-bold" : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <User className="w-5 h-5" />
-          <span className="text-[10px] font-medium">Perfil</span>
-        </Link>
-      )}
+      <Link
+        to="/perfil"
+        className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
+          location.pathname === "/perfil" || location.pathname.startsWith("/admin")
+            ? "text-primary font-bold"
+            : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        <User className="w-5 h-5" />
+        <span className="text-[10px] font-medium">Perfil</span>
+      </Link>
     </div>
   );
 };

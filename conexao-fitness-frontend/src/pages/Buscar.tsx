@@ -339,49 +339,95 @@ const Buscar = () => {
             </div>
 
             {/* SELETOR RÁPIDO DE CIDADES BRASILEIRAS */}
-            <div className="mt-4 p-3.5 rounded-2xl bg-card border border-border/70 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-foreground shrink-0 flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-primary" />
-                  Cidade Selecionada:
-                </span>
-                <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-full">
-                  {CITIES_PRESETS.map((city) => (
-                    <button
-                      key={city}
-                      onClick={() => {
-                        setSelectedCity(city);
-                        setCoords(null);
-                        setCustomCityInput("");
-                      }}
-                      className={`px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                        selectedCity === city && !coords
-                          ? "bg-primary text-primary-foreground shadow-sm scale-[1.02]"
-                          : "bg-muted text-muted-foreground hover:bg-muted/80"
-                      }`}
-                    >
-                      {city}
-                    </button>
-                  ))}
+            <div className="mt-4 p-3.5 sm:p-4 rounded-2xl bg-card border border-border/70 shadow-sm space-y-3">
+              {/* Linha 1: Indicador de Cidade Atual e Botão Ver Todas */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <Building2 className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-semibold text-muted-foreground block leading-tight">
+                      Cidade Selecionada:
+                    </span>
+                    <span className="text-xs sm:text-sm font-bold text-foreground truncate block">
+                      {coords ? "Localização GPS (Perto de mim)" : selectedCity}
+                    </span>
+                  </div>
+                </div>
+
+                {(!isAllCities || coords) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedCity("Todas as cidades");
+                      setCoords(null);
+                      setCustomCityInput("");
+                    }}
+                    className="text-[11px] font-semibold text-primary hover:underline shrink-0 px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors"
+                  >
+                    Ver todo o Brasil
+                  </button>
+                )}
+              </div>
+
+              {/* Linha 2: Chips de Cidades com scroll horizontal fluido e sem quebras */}
+              <div className="w-full min-w-0">
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar touch-pan-x">
+                  {CITIES_PRESETS.map((city) => {
+                    const isSelected = selectedCity === city && !coords;
+                    return (
+                      <button
+                        key={city}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCity(city);
+                          setCoords(null);
+                          setCustomCityInput("");
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0 active:scale-95 ${
+                          isSelected
+                            ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
+                            : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
+                      >
+                        {city}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Digitar outra cidade */}
-              <div className="flex items-center gap-1.5 w-full md:w-auto">
-                <Input
-                  placeholder="Ou digite outra cidade..."
-                  value={customCityInput}
-                  onChange={(e) => setCustomCityInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && customCityInput.trim()) {
-                      setSelectedCity(customCityInput.trim());
-                      setCoords(null);
-                    }
-                  }}
-                  className="h-8 text-xs rounded-xl bg-muted/70 min-w-[180px]"
-                />
+              {/* Linha 3: Campo de busca de outra cidade 100% responsivo */}
+              <div className="flex items-center gap-2 pt-2 border-t border-border/40 w-full min-w-0">
+                <div className="relative flex-1 min-w-0">
+                  <MapPin className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 shrink-0 pointer-events-none" />
+                  <Input
+                    placeholder="Ou digite outra cidade..."
+                    value={customCityInput}
+                    onChange={(e) => setCustomCityInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && customCityInput.trim()) {
+                        setSelectedCity(customCityInput.trim());
+                        setCoords(null);
+                      }
+                    }}
+                    className="h-9 text-xs sm:text-sm pl-8 pr-7 rounded-xl bg-muted/50 border-border/70 w-full focus-visible:ring-primary/30"
+                  />
+                  {customCityInput && (
+                    <button
+                      type="button"
+                      onClick={() => setCustomCityInput("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+                      aria-label="Limpar cidade digitada"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
                 <Button
                   size="sm"
+                  type="button"
                   variant="outline"
                   onClick={() => {
                     if (customCityInput.trim()) {
@@ -389,7 +435,7 @@ const Buscar = () => {
                       setCoords(null);
                     }
                   }}
-                  className="h-8 text-xs rounded-xl font-semibold shrink-0"
+                  className="h-9 text-xs px-3 sm:px-4 rounded-xl font-bold shrink-0 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
                 >
                   Buscar Cidade
                 </Button>
