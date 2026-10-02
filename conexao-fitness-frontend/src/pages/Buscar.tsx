@@ -570,7 +570,9 @@ const Buscar = () => {
                 <div className="grid gap-4">
                   {services.map((s) => {
                     const avatarSrc = (() => {
-                      if (s.providerAvatar) return s.providerAvatar;
+                      if (s.providerAvatar && !s.providerAvatar.includes("1594824813")) {
+                        return s.providerAvatar;
+                      }
                       const lowerName = (s.providerName || s.name || "").toLowerCase();
                       const lowerMod = (s.modality || "").toLowerCase();
                       const lowerTitle = (s.professionTitle || "").toLowerCase();
@@ -578,7 +580,7 @@ const Buscar = () => {
                         return "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400&auto=format&fit=crop";
                       }
                       if (lowerName.includes("camila") || lowerName.includes("dra") || lowerMod.includes("nutri") || lowerTitle.includes("nutri")) {
-                        return "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop";
+                        return "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=400&auto=format&fit=crop";
                       }
                       if (lowerName.includes("rodrigo") || lowerMod.includes("fisio") || lowerTitle.includes("fisio")) {
                         return "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=400&auto=format&fit=crop";

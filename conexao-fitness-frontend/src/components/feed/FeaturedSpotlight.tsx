@@ -85,7 +85,7 @@ const DEFAULT_PROS = [
     description: "Planos alimentares sob medida para ganho de massa magra, redução de gordura e alto rendimento sem dietas restritivas.",
     price: 140.0,
     providerRating: 5.0,
-    providerAvatar: "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop",
+    providerAvatar: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=400&auto=format&fit=crop",
   },
   {
     id: "pro-default-3",
@@ -507,14 +507,25 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
                             className="relative shrink-0 block group/avatar cursor-pointer no-underline"
                           >
                             <img
-                              src={
-                                resolveMediaUrl(pro.providerAvatar) ||
-                                "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop"
-                              }
+                              src={(() => {
+                                const raw = resolveMediaUrl(pro.providerAvatar);
+                                const isCam = (pro.providerName || pro.name || "").toLowerCase().includes("camila");
+                                if (isCam && (!raw || raw.includes("1594824813"))) {
+                                  return "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=400&auto=format&fit=crop";
+                                }
+                                return (
+                                  raw ||
+                                  (isCam
+                                    ? "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=400&auto=format&fit=crop"
+                                    : "https://images.unsplash.com/photo-1567013127542-490d757e51fc?w=400&auto=format&fit=crop")
+                                );
+                              })()}
                               alt={pro.providerName || pro.name}
                               onError={(e) => {
-                                (e.target as HTMLImageElement).src =
-                                  "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop";
+                                const isCam = (pro.providerName || pro.name || "").toLowerCase().includes("camila");
+                                (e.target as HTMLImageElement).src = isCam
+                                  ? "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=400&auto=format&fit=crop"
+                                  : "https://images.unsplash.com/photo-1567013127542-490d757e51fc?w=400&auto=format&fit=crop";
                               }}
                               className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl object-cover ring-2 ring-emerald-500/40 group-hover/avatar:ring-emerald-400 group-hover/avatar:scale-105 transition-all shadow-md"
                               loading="lazy"

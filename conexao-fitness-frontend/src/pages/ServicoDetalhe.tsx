@@ -88,7 +88,11 @@ const ServicoDetalhe = () => {
     (service?.providerType === "ACADEMIA" && service?.type !== "PLANO_MENSAL");
 
   const avatarSrc = (() => {
-    if (service?.providerAvatar && !service.providerAvatar.includes("photo-1612349317150-e413f6a5b16d")) {
+    if (
+      service?.providerAvatar &&
+      !service.providerAvatar.includes("photo-1612349317150-e413f6a5b16d") &&
+      !service.providerAvatar.includes("1594824813")
+    ) {
       return service.providerAvatar;
     }
     const lowerName = (service?.providerName || "").toLowerCase();
@@ -98,7 +102,7 @@ const ServicoDetalhe = () => {
       return "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400&auto=format&fit=crop";
     }
     if (lowerName.includes("camila") || lowerName.includes("dra") || lowerMod.includes("nutri") || lowerTitle.includes("nutri")) {
-      return "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop";
+      return "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=400&auto=format&fit=crop";
     }
     if (lowerName.includes("rodrigo") || lowerMod.includes("fisio") || lowerTitle.includes("fisio")) {
       return "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=400&auto=format&fit=crop";

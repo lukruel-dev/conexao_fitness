@@ -390,7 +390,7 @@ export class AdminService {
           status: 'ATIVO',
           cityBase: 'São Paulo - SP',
           phone: '(11) 97222-4455',
-          avatarUrl: 'https://images.unsplash.com/photo-1594824813689-ff82544cb44a?w=300&auto=format&fit=crop&q=80',
+          avatarUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&auto=format&fit=crop&q=80',
           bio: 'Nutricionista Esportiva (CRN-3 48190-D). Pós-graduada em Nutrição Clínica e Esportiva de Alta Performance. Prescrição de planos alimentares individualizados, cálculo de macronutrientes e bioimpedância.',
         });
         await this.usersRepo.save(user);

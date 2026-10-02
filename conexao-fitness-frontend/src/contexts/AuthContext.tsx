@@ -40,7 +40,7 @@ export const DEMO_PERSONAS: Record<DemoPersonaRole, AuthUser> = {
     email: 'nutri.demo@conexao.com',
     role: 'PERSONAL', // Provedor de serviço autônomo
     status: 'ATIVO',
-    avatarUrl: 'https://images.unsplash.com/photo-1594824813689-ff82544cb44a?w=300&auto=format&fit=crop&q=80',
+    avatarUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&auto=format&fit=crop&q=80',
     crn: 'CRN-3 48190-D',
     professionTitle: 'Nutricionista Esportiva & Clínica Funcional',
     planName: 'Elite',

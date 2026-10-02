@@ -293,7 +293,7 @@ export async function seedOfficialFinexAccounts(repos: SeederRepositories): Prom
     name: 'Dra. Camila Alencar',
     email: 'nutri@finex.net.br',
     role: 'PERSONAL',
-    avatarUrl: 'https://images.unsplash.com/photo-1594824813580-c1165a6f2369?w=400',
+    avatarUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400',
     phone: '(55) 99999-0004',
     cityBase: 'Uruguaiana - RS',
     bio: 'Nutricionista clínica e esportiva (CRN-2 98765). Foco em emagrecimento saudável, hipertrofia e performance sem dietas restritivas insustentáveis.',

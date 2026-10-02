@@ -259,13 +259,16 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
   };
 
   const fallbackAvatar = isNutri
-    ? "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop"
+    ? "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=400&auto=format&fit=crop"
     : isFisio
     ? "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=400&auto=format&fit=crop"
     : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop";
 
   const avatarImage = resolveMediaUrl(
-    profile.avatarUrl && !avatarLoadError && !profile.avatarUrl.includes("photo-1612349317150-e413f6a5b16d")
+    profile.avatarUrl &&
+      !avatarLoadError &&
+      !profile.avatarUrl.includes("photo-1612349317150-e413f6a5b16d") &&
+      !profile.avatarUrl.includes("1594824813")
       ? profile.avatarUrl
       : fallbackAvatar
   );

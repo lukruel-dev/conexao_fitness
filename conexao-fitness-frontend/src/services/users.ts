@@ -101,13 +101,18 @@ export async function getPublicUserProfile(id: string): Promise<PublicUserProfil
         const isRodrigo = provName.toLowerCase().includes("rodrigo");
         const isDiego = provName.toLowerCase().includes("diego");
 
+        const validAvatar =
+          match.providerAvatar && !match.providerAvatar.includes("1594824813")
+            ? match.providerAvatar
+            : null;
+
         return {
           id: match.providerId || match.id || id,
           name: provName,
           avatarUrl:
-            match.providerAvatar ||
+            validAvatar ||
             (isCamila
-              ? "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop"
+              ? "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=400&auto=format&fit=crop"
               : isRodrigo
               ? "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=400&auto=format&fit=crop"
               : isDiego
@@ -210,7 +215,7 @@ export async function getPublicUserProfile(id: string): Promise<PublicUserProfil
       ? "Academia Conexão VIP"
       : "Profissional Parceiro",
     avatarUrl: isCamila
-      ? "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop"
+      ? "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=400&auto=format&fit=crop"
       : isRodrigo
       ? "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=400&auto=format&fit=crop"
       : isDiego
