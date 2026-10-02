@@ -30,6 +30,11 @@ import {
   Utensils,
   ArrowRight,
   ChevronRight,
+  ChevronLeft,
+  QrCode,
+  CreditCard,
+  Calendar,
+  ShieldCheck,
 } from "lucide-react";
 import type { Post } from "@/types/community";
 
@@ -39,6 +44,133 @@ const CATEGORY_FILTERS = [
   { id: "Dieta", label: "🥗 Dieta & Nutrição" },
   { id: "Evolução", label: "🔥 Evolução & Foco" },
   { id: "Dúvidas", label: "❓ Perguntas & Dúvidas" },
+];
+
+interface AppPromo {
+  id: string;
+  badge: string;
+  badgeIcon: React.ElementType;
+  titlePrefix: string;
+  titleHighlight: string;
+  description: string;
+  pill1: { icon: React.ElementType; title: string; subtitle: string };
+  pill2: { icon: React.ElementType; title: string; subtitle: string };
+  ctaText: string;
+  ctaLink: string;
+  accentGradient: string;
+}
+
+const APP_PROMOS: AppPromo[] = [
+  {
+    id: "catraca-daypass",
+    badge: "CATRACA DIGITAL & PORTARIA",
+    badgeIcon: QrCode,
+    titlePrefix: "Acesso Inteligente na Portaria com ",
+    titleHighlight: "Catraca Digital & QR Code",
+    description:
+      "Chega de filas e fichas de papel. Entre nas academias parceiras liberando a catraca com seu QR Code instantâneo e treine com Day Pass avulso sem fidelidade.",
+    pill1: {
+      icon: QrCode,
+      title: "Catraca Inteligente",
+      subtitle: "Leitura instantânea em totens",
+    },
+    pill2: {
+      icon: Building2,
+      title: "Day Pass Avulso",
+      subtitle: "Treine quando e onde quiser",
+    },
+    ctaText: "Ver Academias & Day Pass",
+    ctaLink: "/buscar?providerType=ACADEMIA",
+    accentGradient: "from-sky-400 via-primary to-cyan-300",
+  },
+  {
+    id: "treinos-performance",
+    badge: "FICHAS DE TREINO INTELIGENTES",
+    badgeIcon: Dumbbell,
+    titlePrefix: "Treinos Prescritos no Celular com ",
+    titleHighlight: "Cargas, Séries e Descanso",
+    description:
+      "Tenha suas rotinas de treino A/B/C/D organizadas pelo seu Personal, com contagem de séries, histórico de cargas e cronômetro de descanso em tempo real.",
+    pill1: {
+      icon: Dumbbell,
+      title: "Fichas A/B/C/D",
+      subtitle: "Prescrição completa do seu instrutor",
+    },
+    pill2: {
+      icon: Flame,
+      title: "Histórico de Carga",
+      subtitle: "Acompanhe sua evolução treino a treino",
+    },
+    ctaText: "Conhecer Personal Trainers",
+    ctaLink: "/buscar?providerType=PERSONAL&modality=Personal",
+    accentGradient: "from-primary via-cyan-400 to-emerald-400",
+  },
+  {
+    id: "nutricao-dietas",
+    badge: "PLANOS ALIMENTARES & NUTRIÇÃO",
+    badgeIcon: Utensils,
+    titlePrefix: "Nutrição de Alta Precisão com ",
+    titleHighlight: "Nutricionistas Credenciados",
+    description:
+      "Planos alimentares sob medida para ganho de massa, definição ou emagrecimento saudável, com cálculo de macros prescritos por especialistas com CRN.",
+    pill1: {
+      icon: Utensils,
+      title: "Dieta & Macros",
+      subtitle: "Metas calóricas para o seu objetivo",
+    },
+    pill2: {
+      icon: ShieldCheck,
+      title: "Profissionais CRN",
+      subtitle: "Atendimento presencial e online",
+    },
+    ctaText: "Consultar Nutricionistas",
+    ctaLink: "/buscar?providerType=PERSONAL&modality=Nutri",
+    accentGradient: "from-emerald-400 via-teal-300 to-cyan-400",
+  },
+  {
+    id: "carteira-cashback",
+    badge: "CARTEIRA DIGITAL & BENEFÍCIOS",
+    badgeIcon: CreditCard,
+    titlePrefix: "Pague com 1 Toque e Acumule ",
+    titleHighlight: "Cashback & Pontos Fitness",
+    description:
+      "Recarregue saldo via PIX ou cartão na sua Carteira Finex, pague mensalidades e treinos avulsos instantaneamente e garanta vantagens exclusivas.",
+    pill1: {
+      icon: CreditCard,
+      title: "Saldo Digital Seguro",
+      subtitle: "Pagamentos em 1 clique sem burocracia",
+    },
+    pill2: {
+      icon: Sparkles,
+      title: "Pontos & Recompensas",
+      subtitle: "Quanto mais você treina, mais ganha",
+    },
+    ctaText: "Conhecer Minha Carteira",
+    ctaLink: "/carteira",
+    accentGradient: "from-amber-400 via-orange-400 to-primary",
+  },
+  {
+    id: "agendamento-online",
+    badge: "AGENDA 24H EM TEMPO REAL",
+    badgeIcon: Calendar,
+    titlePrefix: "Agende Sessões com Especialistas ",
+    titleHighlight: "Sem Esperar no Chat",
+    description:
+      "Consulte os horários disponíveis em tempo real de personais, nutricionistas e fisioterapeutas, agendando sessões presenciais ou online com confirmação imediata.",
+    pill1: {
+      icon: Calendar,
+      title: "Agenda Aberta 24/7",
+      subtitle: "Escolha o dia e horário perfeito",
+    },
+    pill2: {
+      icon: Users,
+      title: "Presencial & Online",
+      subtitle: "Flexibilidade total para sua rotina",
+    },
+    ctaText: "Explorar Catálogo Completo",
+    ctaLink: "/buscar",
+    accentGradient: "from-cyan-400 via-sky-400 to-indigo-400",
+  },
 ];
 
 const Index: React.FC = () => {
@@ -56,6 +188,26 @@ const Index: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Estados da propaganda rotativa das funcionalidades
+  const [currentPromoIndex, setCurrentPromoIndex] = useState(0);
+  const [isPromoPaused, setIsPromoPaused] = useState(false);
+
+  // Auto-play do card de propagandas das funcionalidades (a cada 4.8s)
+  useEffect(() => {
+    if (isPromoPaused || isDropdownOpen || searchQuery.trim().length > 0) return;
+    const timer = setInterval(() => {
+      setCurrentPromoIndex((prev) => (prev + 1) % APP_PROMOS.length);
+    }, 4800);
+    return () => clearInterval(timer);
+  }, [isPromoPaused, isDropdownOpen, searchQuery]);
+
+  const prevPromo = () => {
+    setCurrentPromoIndex((prev) => (prev - 1 + APP_PROMOS.length) % APP_PROMOS.length);
+  };
+  const nextPromo = () => {
+    setCurrentPromoIndex((prev) => (prev + 1) % APP_PROMOS.length);
+  };
 
   // Carrega catálogo para busca instantânea / preview na barra de pesquisa
   const { data: allServices = [] } = useQuery({
@@ -215,26 +367,56 @@ const Index: React.FC = () => {
         <div className="container mx-auto px-4 max-w-7xl">
           {/* SEÇÃO SUPERIOR: DOIS CARDS LADO A LADO (BUSCA & SOCIAL FINEX) */}
           <section className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* CARD 1: BUSCA & CATÁLOGO */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card/95 to-primary/5 border border-primary/20 p-5 sm:p-6 shadow-sm flex flex-col justify-between group hover:border-primary/40 transition-all duration-300">
+            {/* CARD 1: O SUPER APP FINEX - PROPAGANDAS ROTATIVAS DAS FUNCIONALIDADES & BUSCA */}
+            <div
+              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#071728] via-[#09253d] to-[#04334a] border-2 border-primary/40 hover:border-primary/60 shadow-[0_0_25px_rgba(14,165,233,0.18)] hover:shadow-[0_0_40px_rgba(14,165,233,0.28)] p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 group"
+              onMouseEnter={() => setIsPromoPaused(true)}
+              onMouseLeave={() => {
+                if (!searchQuery) setIsPromoPaused(false);
+              }}
+            >
               <div className="relative z-10 flex flex-col h-full space-y-3.5">
-                {/* 1. PARTE SUPERIOR DO CARD: BADGE E BOTÃO BUSCAR */}
-                <div className="flex items-center justify-between gap-3">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary text-xs font-extrabold tracking-wide shadow-sm">
-                    <Search className="h-3.5 w-3.5 text-primary" />
-                    <span>BUSCA RÁPIDA FINEX</span>
+                {/* 1. PARTE SUPERIOR DO CARD: BADGE DINÂMICO DA PROPAGANDA + CONTROLES + BOTÃO BUSCAR */}
+                <div className="flex items-center justify-between gap-2.5">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/40 text-primary text-xs font-extrabold tracking-wide shadow-sm max-w-[210px] sm:max-w-none truncate">
+                    {React.createElement(APP_PROMOS[currentPromoIndex].badgeIcon, {
+                      className: "h-3.5 w-3.5 text-primary shrink-0 animate-pulse",
+                    })}
+                    <span className="truncate">{APP_PROMOS[currentPromoIndex].badge}</span>
                   </div>
 
-                  <Button
-                    type="submit"
-                    form="hero-search-form"
-                    className="h-11 sm:h-12 min-w-[130px] sm:min-w-[145px] px-6 sm:px-7 text-sm sm:text-base font-bold tracking-normal gap-2 rounded-xl shadow-md bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 cursor-pointer transition-all hover:scale-[1.03]"
-                  >
-                    <Search className="h-4 w-4" /> Buscar
-                  </Button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {/* Controles manuais do carrossel de propaganda */}
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={prevPromo}
+                        aria-label="Funcionalidade anterior"
+                        className="h-8 w-8 rounded-lg bg-background/70 hover:bg-muted border border-border/60 flex items-center justify-center text-foreground hover:text-primary transition-colors cursor-pointer"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={nextPromo}
+                        aria-label="Próxima funcionalidade"
+                        className="h-8 w-8 rounded-lg bg-background/70 hover:bg-muted border border-border/60 flex items-center justify-center text-foreground hover:text-primary transition-colors cursor-pointer"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      form="hero-search-form"
+                      className="h-9 sm:h-10 px-4 sm:px-5 text-xs sm:text-sm font-bold tracking-normal gap-1.5 rounded-xl shadow-md bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 cursor-pointer transition-all hover:scale-[1.03]"
+                    >
+                      <Search className="h-3.5 w-3.5" /> Buscar
+                    </Button>
+                  </div>
                 </div>
 
-                {/* 2. LOGO ABAIXO: CAMPO DE PREENCHIMENTO */}
+                {/* 2. LOGO ABAIXO: CAMPO DE PREENCHIMENTO RÁPIDO */}
                 <div ref={searchContainerRef} className="relative w-full">
                   <form
                     id="hero-search-form"
@@ -252,11 +434,15 @@ const Index: React.FC = () => {
                         }}
                         onFocus={() => {
                           setIsDropdownOpen(true);
+                          setIsPromoPaused(true);
                           if (window.scrollY < 200) {
                             window.scrollTo({ top: 0, behavior: "instant" });
                           }
                         }}
-                        className="pl-10 pr-9 h-11 text-xs sm:text-sm rounded-xl bg-background/90 border-border/80 shadow-inner focus-visible:ring-primary/50"
+                        onBlur={() => {
+                          if (!searchQuery) setIsPromoPaused(false);
+                        }}
+                        className="pl-10 pr-9 h-11 text-xs sm:text-sm rounded-xl bg-background/90 border-border/80 shadow-inner focus-visible:ring-primary/50 text-foreground"
                       />
                       {searchQuery && (
                         <button
@@ -408,44 +594,84 @@ const Index: React.FC = () => {
                   )}
                 </div>
 
-                {/* 3. LOGO ABAIXO: LINKS MAIS POPULARES */}
-                <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
-                  <span className="text-muted-foreground font-semibold text-[11px] mr-0.5 flex items-center gap-1">
-                    <Sparkles className="h-3 w-3 text-primary" /> Populares:
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => navigate("/buscar?providerType=ACADEMIA")}
-                    className="px-2.5 py-1 rounded-full bg-card/80 hover:bg-primary/15 hover:text-primary border border-border/70 hover:border-primary/40 transition-all text-[11px] font-medium flex items-center gap-1 cursor-pointer shadow-2xs"
-                  >
-                    <Building2 className="h-3 w-3 text-primary" /> Academias & Day Pass
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate("/buscar?providerType=PERSONAL&modality=Personal")}
-                    className="px-2.5 py-1 rounded-full bg-card/80 hover:bg-primary/15 hover:text-primary border border-border/70 hover:border-primary/40 transition-all text-[11px] font-medium flex items-center gap-1 cursor-pointer shadow-2xs"
-                  >
-                    <Dumbbell className="h-3 w-3 text-primary" /> Personal Trainers
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate("/buscar?providerType=PERSONAL&modality=Nutri")}
-                    className="px-2.5 py-1 rounded-full bg-card/80 hover:bg-primary/15 hover:text-primary border border-border/70 hover:border-primary/40 transition-all text-[11px] font-medium flex items-center gap-1 cursor-pointer shadow-2xs"
-                  >
-                    <Utensils className="h-3 w-3 text-primary" /> Nutricionistas
-                  </button>
+                {/* 3. TÍTULO E APRESENTAÇÃO DA FUNCIONALIDADE EM PROPAGANDA ROTATIVA */}
+                <div className="space-y-1.5 transition-all duration-300">
+                  <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white leading-tight">
+                    {APP_PROMOS[currentPromoIndex].titlePrefix}
+                    <span
+                      className={`text-transparent bg-clip-text bg-gradient-to-r ${APP_PROMOS[currentPromoIndex].accentGradient} drop-shadow-[0_0_20px_rgba(56,189,248,0.4)]`}
+                    >
+                      {APP_PROMOS[currentPromoIndex].titleHighlight}
+                    </span>
+                  </h2>
+                  <p className="text-xs sm:text-sm text-sky-100/80 leading-relaxed min-h-[38px]">
+                    {APP_PROMOS[currentPromoIndex].description}
+                  </p>
                 </div>
 
-                {/* 4. E SÓ DEPOIS O TÍTULO SOLICITADO */}
-                <div className="pt-3 border-t border-border/50 mt-auto">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight text-foreground leading-snug">
-                    Conecte-se com as <span className="text-primary underline decoration-primary/40">Melhores Academias</span> e Profissionais
-                  </h1>
+                {/* 4. RECURSOS EM DESTAQUE (2 PILLS MODERNAS SIMÉTRICAS AO CARD SOCIAL) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
+                  <div className="p-2.5 sm:p-3 rounded-2xl bg-sky-950/60 border border-sky-500/30 backdrop-blur-sm flex flex-col justify-center">
+                    <div className="flex items-center gap-1.5 text-sky-300 font-bold text-xs mb-0.5">
+                      {React.createElement(APP_PROMOS[currentPromoIndex].pill1.icon, {
+                        className: "h-3.5 w-3.5 text-primary shrink-0",
+                      })}
+                      <span className="truncate">{APP_PROMOS[currentPromoIndex].pill1.title}</span>
+                    </div>
+                    <p className="text-[11px] text-sky-100/60 leading-tight">
+                      {APP_PROMOS[currentPromoIndex].pill1.subtitle}
+                    </p>
+                  </div>
+
+                  <div className="p-2.5 sm:p-3 rounded-2xl bg-primary/10 border border-primary/30 backdrop-blur-sm flex flex-col justify-center">
+                    <div className="flex items-center gap-1.5 text-cyan-300 font-bold text-xs mb-0.5">
+                      {React.createElement(APP_PROMOS[currentPromoIndex].pill2.icon, {
+                        className: "h-3.5 w-3.5 text-cyan-400 shrink-0",
+                      })}
+                      <span className="truncate">{APP_PROMOS[currentPromoIndex].pill2.title}</span>
+                    </div>
+                    <p className="text-[11px] text-sky-100/60 leading-tight">
+                      {APP_PROMOS[currentPromoIndex].pill2.subtitle}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 5. RODAPÉ COM INDICADORES (DOTS) + CTA DA PROPAGANDA + ATALHOS RÁPIDOS */}
+                <div className="pt-2.5 border-t border-sky-500/30 flex flex-wrap items-center justify-between gap-3 text-xs mt-auto">
+                  {/* Dots de navegação das 5 propagandas rotativas */}
+                  <div className="flex items-center gap-1.5">
+                    {APP_PROMOS.map((promo, idx) => (
+                      <button
+                        key={promo.id}
+                        type="button"
+                        onClick={() => setCurrentPromoIndex(idx)}
+                        className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                          currentPromoIndex === idx
+                            ? "w-5 bg-primary"
+                            : "w-1.5 bg-sky-400/30 hover:bg-sky-400/60"
+                        }`}
+                        aria-label={`Ver funcionalidade ${idx + 1}`}
+                      />
+                    ))}
+                    <span className="text-[10px] text-sky-300/60 ml-1">
+                      {currentPromoIndex + 1}/{APP_PROMOS.length}
+                    </span>
+                  </div>
+
+                  {/* Botão de ação (CTA) para a funcionalidade ativa */}
+                  <Link
+                    to={APP_PROMOS[currentPromoIndex].ctaLink}
+                    className="text-xs font-bold text-sky-300 hover:text-white flex items-center gap-1 cursor-pointer transition-colors no-underline group/cta"
+                  >
+                    <span>{APP_PROMOS[currentPromoIndex].ctaText}</span>
+                    <ArrowRight className="h-3.5 w-3.5 group-hover/cta:translate-x-0.5 transition-transform" />
+                  </Link>
                 </div>
               </div>
 
-              {/* ELEMENTO DECORATIVO DE FUNDO */}
-              <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+              {/* ELEMENTOS DECORATIVOS DE LUZ NO FUNDO */}
+              <div className="absolute -right-8 -top-8 w-44 h-44 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -left-8 -bottom-8 w-44 h-44 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
             </div>
 
             {/* CARD 2: SOCIAL FINEX (REDE SOCIAL FITNESS) */}
