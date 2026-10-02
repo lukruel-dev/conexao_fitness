@@ -15,8 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AdminImpersonationBanner } from "@/components/AdminImpersonationBanner";
 
-import { isNutritionist } from "@/utils/professionalRoles";
-
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isAuthenticated, logout, startImpersonation } = useAuth();
@@ -52,9 +50,6 @@ const Header = () => {
 
   const isAdminRoute = location.pathname.startsWith('/admin');
 
-  const isProvider = isAuthenticated && (user?.role === "PERSONAL" || user?.role === "ACADEMIA");
-  const studentOrPatientLabel = isNutritionist(user) ? "Meus pacientes" : "Meus alunos";
-
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -83,20 +78,55 @@ const Header = () => {
               Início
             </Link>
 
-            {user?.role === "ADMIN" ? (
-              <div className="flex items-center gap-2">
+            <Link
+              to="/quem-somos"
+              className={`transition-colors font-medium text-sm ${
+                location.pathname === "/quem-somos"
+                  ? "text-primary font-bold"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Quem somos
+            </Link>
+
+            <Link
+              to="/planos"
+              className={`transition-colors font-medium text-sm ${
+                location.pathname === "/planos"
+                  ? "text-primary font-bold"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Planos
+            </Link>
+
+            {isAuthenticated && (
+              <Link
+                to="/perfil"
+                className={`transition-colors font-medium text-sm ${
+                  location.pathname === "/perfil"
+                    ? "text-primary font-bold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Perfil
+              </Link>
+            )}
+
+            {user?.role === "ADMIN" && (
+              <div className="flex items-center gap-2 ml-2">
                 <Link
                   to="/admin"
-                  className="text-secondary font-semibold hover:text-secondary/80 transition-colors font-medium flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/20"
+                  className="text-secondary font-semibold hover:text-secondary/80 transition-colors font-medium flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/20 text-xs"
                 >
-                  Painel Administrativo
+                  <ShieldCheck className="w-3.5 h-3.5" /> Painel Admin
                 </Link>
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 cursor-pointer">
-                      <Eye className="w-3.5 h-3.5" />
-                      <span>Simular Visão</span>
+                    <button className="text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 cursor-pointer">
+                      <Eye className="w-3 h-3" />
+                      <span>Simular</span>
                       <ChevronDown className="w-3 h-3 opacity-60" />
                     </button>
                   </DropdownMenuTrigger>
@@ -159,154 +189,6 @@ const Header = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-            ) : isProvider ? (
-              <>
-                {user?.role === "ACADEMIA" && (
-                  <Link
-                    to="/gestao-academia"
-                    className={`transition-colors font-bold text-sm flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 ${
-                      location.pathname === "/gestao-academia"
-                        ? "text-primary font-bold bg-primary/20"
-                        : "text-primary hover:text-primary/80"
-                    }`}
-                  >
-                    Gestão & Catraca
-                  </Link>
-                )}
-                <Link
-                  to="/planos"
-                  className={`transition-colors font-medium text-sm ${
-                    location.pathname === "/planos"
-                      ? "text-primary font-bold"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Planos
-                </Link>
-                <Link
-                  to="/carteira"
-                  className={`transition-colors font-medium text-sm ${
-                    location.pathname === "/carteira"
-                      ? "text-primary font-bold"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Carteira
-                </Link>
-                <Link
-                  to="/agenda-profissional"
-                  className={`transition-colors font-medium text-sm ${
-                    location.pathname === "/agenda-profissional"
-                      ? "text-primary font-bold"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {studentOrPatientLabel}
-                </Link>
-                <Link
-                  to="/meus-servicos"
-                  className={`transition-colors font-medium text-sm ${
-                    location.pathname === "/meus-servicos"
-                      ? "text-primary font-bold"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Meus serviços
-                </Link>
-                <Link
-                  to="/perfil"
-                  className={`transition-colors font-medium text-sm ${
-                    location.pathname === "/perfil"
-                      ? "text-primary font-bold"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Perfil
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/buscar"
-                  className={`transition-colors font-medium text-sm ${
-                    location.pathname === "/buscar"
-                      ? "text-primary font-bold"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Buscar
-                </Link>
-                <Link
-                  to="/planos"
-                  className={`transition-colors font-medium text-sm ${
-                    location.pathname === "/planos"
-                      ? "text-primary font-bold"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Planos
-                </Link>
-                {isAuthenticated && (
-                  <Link
-                    to="/minhas-matriculas"
-                    className={`transition-colors font-medium text-sm ${
-                      location.pathname === "/minhas-matriculas"
-                        ? "text-primary font-bold"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Minhas Matrículas
-                  </Link>
-                )}
-                {isAuthenticated && (
-                  <Link
-                    to="/treinos"
-                    className={`transition-colors font-medium text-sm ${
-                      location.pathname === "/treinos"
-                        ? "text-primary font-bold"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Treinos
-                  </Link>
-                )}
-                {isAuthenticated && (
-                  <Link
-                    to="/meus-agendamentos"
-                    className={`transition-colors font-medium text-sm ${
-                      location.pathname === "/meus-agendamentos"
-                        ? "text-primary font-bold"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Meus agendamentos
-                  </Link>
-                )}
-                {isAuthenticated && (
-                  <Link
-                    to="/carteira"
-                    className={`transition-colors font-medium text-sm ${
-                      location.pathname === "/carteira"
-                        ? "text-primary font-bold"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Carteira
-                  </Link>
-                )}
-                {isAuthenticated && (
-                  <Link
-                    to="/perfil"
-                    className={`transition-colors font-medium text-sm ${
-                      location.pathname === "/perfil"
-                        ? "text-primary font-bold"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Perfil
-                  </Link>
-                )}
-              </>
             )}
           </nav>
 
@@ -364,171 +246,52 @@ const Header = () => {
                 to="/"
                 onClick={() => setIsMenuOpen(false)}
                 className={`py-2 text-sm font-semibold transition-colors ${
-                  location.pathname === "/" ? "text-primary" : "text-foreground"
+                  location.pathname === "/" ? "text-primary font-bold" : "text-foreground"
                 }`}
               >
                 Início
               </Link>
 
-              {user?.role === "ADMIN" ? (
-                <>
-                  <Link
-                    to="/admin"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-secondary font-semibold py-2 text-sm flex items-center gap-1.5"
-                  >
-                    <ShieldCheck className="w-4 h-4" /> Painel Administrativo
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      startImpersonation('ACADEMIA');
-                      navigate('/gestao-academia');
-                    }}
-                    className="text-left py-2 text-sm font-medium text-emerald-400 hover:text-emerald-300 flex items-center gap-2"
-                  >
-                    <Building2 className="w-4 h-4" /> Academia Prime Demo
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      startImpersonation('PERSONAL');
-                      navigate('/agenda-profissional');
-                    }}
-                    className="text-left py-2 text-sm font-medium text-purple-400 hover:text-purple-300 flex items-center gap-2"
-                  >
-                    <Dumbbell className="w-4 h-4" /> Personal Trainer (Lucas - CREF)
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      startImpersonation('NUTRICIONISTA');
-                      navigate('/agenda-profissional');
-                    }}
-                    className="text-left py-2 text-sm font-medium text-teal-400 hover:text-teal-300 flex items-center gap-2"
-                  >
-                    <Utensils className="w-4 h-4" /> Nutricionista (Dra. Camila - CRN)
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      startImpersonation('STUDENT');
-                      navigate('/minhas-matriculas');
-                    }}
-                    className="text-left py-2 text-sm font-medium text-blue-400 hover:text-blue-300 flex items-center gap-2"
-                  >
-                    <User className="w-4 h-4" /> Aluno (Gabriel Souza)
-                  </button>
-                </>
-              ) : isProvider ? (
-                <>
-                  {user?.role === "ACADEMIA" && (
-                    <Link
-                      to="/gestao-academia"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="text-primary font-bold hover:text-primary/80 transition-colors py-2 text-sm flex items-center gap-1.5"
-                    >
-                      Gestão da Academia & Catraca QR
-                    </Link>
-                  )}
-                  <Link
-                    to="/planos"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
-                  >
-                    Planos
-                  </Link>
-                  <Link
-                    to="/carteira"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
-                  >
-                    Carteira
-                  </Link>
-                  <Link
-                    to="/agenda-profissional"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
-                  >
-                    {studentOrPatientLabel}
-                  </Link>
-                  <Link
-                    to="/meus-servicos"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
-                  >
-                    Meus serviços
-                  </Link>
-                  <Link
-                    to="/perfil"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
-                  >
-                    Perfil
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link
-                    to="/buscar"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
-                  >
-                    Buscar
-                  </Link>
-                  <Link
-                    to="/planos"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
-                  >
-                    Planos
-                  </Link>
-                  {isAuthenticated && (
-                    <Link
-                      to="/minhas-matriculas"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="text-primary font-bold hover:text-primary/80 transition-colors py-2 text-sm"
-                    >
-                      Minhas Matrículas & Passes QR
-                    </Link>
-                  )}
-                  {isAuthenticated && (
-                    <Link
-                      to="/treinos"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm font-medium"
-                    >
-                      🏋️ Meus Treinos
-                    </Link>
-                  )}
-                  {isAuthenticated && (
-                    <Link
-                      to="/meus-agendamentos"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
-                    >
-                      Meus agendamentos
-                    </Link>
-                  )}
-                  {isAuthenticated && (
-                    <Link
-                      to="/carteira"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
-                    >
-                      Carteira
-                    </Link>
-                  )}
-                  {isAuthenticated && (
-                    <Link
-                      to="/perfil"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="text-muted-foreground hover:text-foreground transition-colors py-2 text-sm"
-                    >
-                      Perfil
-                    </Link>
-                  )}
-                </>
+              <Link
+                to="/quem-somos"
+                onClick={() => setIsMenuOpen(false)}
+                className={`py-2 text-sm font-semibold transition-colors ${
+                  location.pathname === "/quem-somos" ? "text-primary font-bold" : "text-foreground"
+                }`}
+              >
+                Quem somos
+              </Link>
+
+              <Link
+                to="/planos"
+                onClick={() => setIsMenuOpen(false)}
+                className={`py-2 text-sm font-semibold transition-colors ${
+                  location.pathname === "/planos" ? "text-primary font-bold" : "text-foreground"
+                }`}
+              >
+                Planos
+              </Link>
+
+              {isAuthenticated && (
+                <Link
+                  to="/perfil"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`py-2 text-sm font-semibold transition-colors ${
+                    location.pathname === "/perfil" ? "text-primary font-bold" : "text-foreground"
+                  }`}
+                >
+                  Perfil
+                </Link>
+              )}
+
+              {user?.role === "ADMIN" && (
+                <Link
+                  to="/admin"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-secondary font-semibold py-2 text-sm flex items-center gap-1.5"
+                >
+                  <ShieldCheck className="w-4 h-4" /> Painel Administrativo
+                </Link>
               )}
 
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">

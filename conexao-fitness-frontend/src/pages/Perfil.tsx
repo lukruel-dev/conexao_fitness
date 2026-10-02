@@ -40,6 +40,7 @@ import {
   Trophy,
   Award,
   RefreshCw,
+  Building2,
 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
@@ -50,7 +51,7 @@ import { validateBioContent } from "@/lib/bioValidator";
 import { updateMyBio } from "@/services/users";
 import UserPinBadge from "@/components/UserPinBadge";
 import { BadgesModal } from "@/components/gamification/BadgesModal";
-import { isNutritionist } from "@/utils/professionalRoles";
+import { isNutritionist, getStudentOrPatientLabel } from "@/utils/professionalRoles";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -327,6 +328,7 @@ const Perfil = () => {
 
   const planName = user.planName || (user as any).plan || localStorage.getItem("cf_user_plan") || "Gratuito";
   const isMaxPlan = planName === getMaxPlan(user.role);
+  const studentOrPatientLabel = getStudentOrPatientLabel(user);
 
   return (
     <div className="min-h-screen bg-background">
@@ -494,6 +496,184 @@ const Perfil = () => {
                   <p className="text-xs text-muted-foreground mt-1 animate-pulse">Enviando foto...</p>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* PAINEL DE ATALHOS RÁPIDOS DO PERFIL */}
+          <div className="bg-card border border-border rounded-3xl p-5 sm:p-6 mb-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display font-bold text-base sm:text-lg text-foreground flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <span>Atalhos Rápidos</span>
+              </h2>
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                {user.role === "STUDENT" ? "Painel do Aluno" : user.role === "PERSONAL" ? "Painel do Profissional" : "Painel da Academia"}
+              </span>
+            </div>
+
+            {/* Grid de botões */}
+            <div className={`grid gap-3 ${user.role === "STUDENT" ? "grid-cols-2 sm:grid-cols-4" : user.role === "ACADEMIA" ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"}`}>
+              {user.role === "STUDENT" && (
+                <>
+                  <Link
+                    to="/minhas-matriculas"
+                    className="flex flex-col items-center justify-center text-center p-4 rounded-2xl bg-gradient-to-b from-primary/10 to-primary/5 border border-primary/20 hover:border-primary/50 hover:bg-primary/15 transition-all group shadow-xs active:scale-[0.98]"
+                  >
+                    <div className="w-11 h-11 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center mb-2.5 shadow-md shadow-primary/20 group-hover:scale-105 transition-transform">
+                      <QrCode className="w-5 h-5" />
+                    </div>
+                    <span className="font-bold text-xs sm:text-sm text-foreground group-hover:text-primary transition-colors">
+                      Minhas matrículas
+                    </span>
+                    <span className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
+                      Passes QR
+                    </span>
+                  </Link>
+
+                  <Link
+                    to="/treinos"
+                    className="flex flex-col items-center justify-center text-center p-4 rounded-2xl bg-gradient-to-b from-secondary/10 to-secondary/5 border border-secondary/20 hover:border-secondary/50 hover:bg-secondary/15 transition-all group shadow-xs active:scale-[0.98]"
+                  >
+                    <div className="w-11 h-11 rounded-2xl bg-secondary text-secondary-foreground flex items-center justify-center mb-2.5 shadow-md shadow-secondary/20 group-hover:scale-105 transition-transform">
+                      <Dumbbell className="w-5 h-5" />
+                    </div>
+                    <span className="font-bold text-xs sm:text-sm text-foreground group-hover:text-secondary transition-colors">
+                      Treinos
+                    </span>
+                    <span className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
+                      Fichas e séries
+                    </span>
+                  </Link>
+
+                  <Link
+                    to="/meus-agendamentos"
+                    className="flex flex-col items-center justify-center text-center p-4 rounded-2xl bg-gradient-to-b from-blue-500/10 to-blue-500/5 border border-blue-500/20 hover:border-blue-500/50 hover:bg-blue-500/15 transition-all group shadow-xs active:scale-[0.98]"
+                  >
+                    <div className="w-11 h-11 rounded-2xl bg-blue-500 text-white flex items-center justify-center mb-2.5 shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                      <CalendarDays className="w-5 h-5" />
+                    </div>
+                    <span className="font-bold text-xs sm:text-sm text-foreground group-hover:text-blue-500 transition-colors">
+                      Meus agendamentos
+                    </span>
+                    <span className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
+                      Horários marcados
+                    </span>
+                  </Link>
+
+                  <Link
+                    to="/carteira"
+                    className="flex flex-col items-center justify-center text-center p-4 rounded-2xl bg-gradient-to-b from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20 hover:border-emerald-500/50 hover:bg-emerald-500/15 transition-all group shadow-xs active:scale-[0.98]"
+                  >
+                    <div className="w-11 h-11 rounded-2xl bg-emerald-500 text-white flex items-center justify-center mb-2.5 shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+                      <CreditCard className="w-5 h-5" />
+                    </div>
+                    <span className="font-bold text-xs sm:text-sm text-foreground group-hover:text-emerald-500 transition-colors">
+                      Carteira
+                    </span>
+                    <span className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
+                      Saldo e compras
+                    </span>
+                  </Link>
+                </>
+              )}
+
+              {user.role === "PERSONAL" && (
+                <>
+                  <Link
+                    to="/agenda-profissional"
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-purple-500/10 via-purple-500/5 to-transparent border border-purple-500/25 hover:border-purple-500/50 hover:bg-purple-500/15 transition-all group shadow-xs active:scale-[0.99]"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-purple-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-purple-500/25 group-hover:scale-105 transition-transform">
+                      <Users className="w-6 h-6" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-sm sm:text-base text-foreground group-hover:text-purple-400 transition-colors">
+                        {studentOrPatientLabel}
+                      </h4>
+                      <p className="text-xs text-muted-foreground truncate">
+                        Agendamentos, sessões e acompanhamento
+                      </p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-purple-400 shrink-0 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+
+                  <Link
+                    to="/meus-servicos"
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/25 hover:border-primary/50 hover:bg-primary/15 transition-all group shadow-xs active:scale-[0.99]"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shrink-0 shadow-md shadow-primary/25 group-hover:scale-105 transition-transform">
+                      <Sparkles className="w-6 h-6" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors">
+                        Meus serviços
+                      </h4>
+                      <p className="text-xs text-muted-foreground truncate">
+                        Preços de sessão, planos e diárias
+                      </p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-primary shrink-0 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </>
+              )}
+
+              {user.role === "ACADEMIA" && (
+                <>
+                  <Link
+                    to="/gestao-academia"
+                    className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/25 hover:border-emerald-500/50 hover:bg-emerald-500/15 transition-all group shadow-xs active:scale-[0.99]"
+                  >
+                    <div className="w-11 h-11 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/25 group-hover:scale-105 transition-transform">
+                      <Building2 className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-sm text-foreground group-hover:text-emerald-400 transition-colors">
+                        Gestão e Catraca
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground truncate">
+                        Portaria QR e acesso
+                      </p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-emerald-400 shrink-0 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+
+                  <Link
+                    to="/agenda-profissional"
+                    className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-r from-purple-500/10 via-purple-500/5 to-transparent border border-purple-500/25 hover:border-purple-500/50 hover:bg-purple-500/15 transition-all group shadow-xs active:scale-[0.99]"
+                  >
+                    <div className="w-11 h-11 rounded-2xl bg-purple-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-purple-500/25 group-hover:scale-105 transition-transform">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-sm text-foreground group-hover:text-purple-400 transition-colors">
+                        Meus alunos
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground truncate">
+                        Alunos e agendamentos
+                      </p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-purple-400 shrink-0 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+
+                  <Link
+                    to="/meus-servicos"
+                    className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/25 hover:border-primary/50 hover:bg-primary/15 transition-all group shadow-xs active:scale-[0.99]"
+                  >
+                    <div className="w-11 h-11 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shrink-0 shadow-md shadow-primary/25 group-hover:scale-105 transition-transform">
+                      <List className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
+                        Meus serviços
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground truncate">
+                        Planos e diárias
+                      </p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-primary shrink-0 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -780,26 +960,44 @@ const Perfil = () => {
                 </Link>
                 
                 {user.role === "ACADEMIA" && (
-                  <Link to="/gestao-academia" className="bg-card border border-primary/40 bg-primary/5 rounded-2xl p-4 flex items-center justify-between hover:bg-primary/10 transition-colors group shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center">
-                        <QrCode className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <span className="font-bold text-foreground block">Gestão da Academia & Catraca QR</span>
-                        <span className="text-xs text-muted-foreground">Matrículas, alunos, portaria e planos</span>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-primary group-hover:translate-x-0.5 transition-transform" />
-                  </Link>
-                )}
-
-                {isProvider && (
                   <>
+                    <Link to="/gestao-academia" className="bg-card border border-primary/40 bg-primary/5 rounded-2xl p-4 flex items-center justify-between hover:bg-primary/10 transition-colors group shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center">
+                          <Building2 className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <span className="font-bold text-foreground block">Gestão e Catraca</span>
+                          <span className="text-xs text-muted-foreground">Portaria QR, controle de acesso e matrículas</span>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-primary group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+
                     <Link to="/agenda-profissional" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-3">
                         <Users className="w-5 h-5 text-muted-foreground" />
                         <span className="font-medium text-foreground">Meus alunos (Agendamentos)</span>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                    </Link>
+
+                    <Link to="/meus-servicos" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <List className="w-5 h-5 text-muted-foreground" />
+                        <span className="font-medium text-foreground">Meus serviços & diárias</span>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                    </Link>
+                  </>
+                )}
+
+                {user.role === "PERSONAL" && (
+                  <>
+                    <Link to="/agenda-profissional" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <Users className="w-5 h-5 text-muted-foreground" />
+                        <span className="font-medium text-foreground">{studentOrPatientLabel}</span>
                       </div>
                       <ChevronRight className="w-5 h-5 text-muted-foreground" />
                     </Link>
@@ -813,7 +1011,7 @@ const Perfil = () => {
                   </>
                 )}
 
-                {!isProvider && (
+                {user.role === "STUDENT" && (
                   <>
                     <Link to="/minhas-matriculas" className="bg-card border border-primary/40 bg-primary/5 rounded-2xl p-4 flex items-center justify-between hover:bg-primary/10 transition-colors group">
                       <div className="flex items-center gap-3">
@@ -821,11 +1019,19 @@ const Perfil = () => {
                           <QrCode className="w-4 h-4" />
                         </div>
                         <div>
-                          <span className="font-bold text-foreground block">Minhas Matrículas & Passes QR</span>
-                          <span className="text-xs text-muted-foreground">Carteirinhas para liberar entrada</span>
+                          <span className="font-bold text-foreground block">Minhas matrículas</span>
+                          <span className="text-xs text-muted-foreground">Passes QR para liberar entrada nas academias</span>
                         </div>
                       </div>
                       <ChevronRight className="w-5 h-5 text-primary group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+
+                    <Link to="/treinos" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <Dumbbell className="w-5 h-5 text-muted-foreground" />
+                        <span className="font-medium text-foreground">Treinos & Fichas</span>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
                     </Link>
 
                     <Link to="/meus-agendamentos" className="bg-card border border-border rounded-2xl p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">

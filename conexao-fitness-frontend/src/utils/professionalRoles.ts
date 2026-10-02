@@ -20,6 +20,31 @@ export function isNutritionist(user?: AuthUser | null): boolean {
 }
 
 /**
+ * Retorna o rótulo adequado para o público do profissional: "Meus pacientes" ou "Meus alunos".
+ */
+export function getStudentOrPatientLabel(user?: AuthUser | null): string {
+  if (!user) return "Meus alunos";
+  if (isNutritionist(user)) return "Meus pacientes";
+  const title = (user.professionTitle || "").toLowerCase();
+  const bio = (user.bio || "").toLowerCase();
+  if (
+    title.includes("masso") ||
+    title.includes("terap") ||
+    title.includes("fisio") ||
+    title.includes("psico") ||
+    title.includes("saúde") ||
+    title.includes("saude") ||
+    bio.includes("masso") ||
+    bio.includes("paciente") ||
+    bio.includes("fisioter") ||
+    bio.includes("terapeuta")
+  ) {
+    return "Meus pacientes";
+  }
+  return "Meus alunos";
+}
+
+/**
  * Identifica se o usuário logado atua como Personal Trainer na plataforma.
  */
 export function isPersonalTrainer(user?: AuthUser | null): boolean {
