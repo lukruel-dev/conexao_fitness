@@ -80,8 +80,8 @@ export class User {
   @Column({ nullable: true })
   stripeCustomerId?: string;
 
-  @Column({ type: 'double precision', default: 5.0 })
-  averageRating: number;
+  @Column({ type: 'double precision', nullable: true })
+  averageRating?: number | null;
 
   @Column({ type: 'int', default: 0 })
   totalReviews: number;

@@ -270,11 +270,11 @@ export class ServicesService {
             providerName: u.role === 'ACADEMIA' ? (u.academiaProfile?.nomeFantasia || u.name) : u.name,
             providerAvatar: u.avatarUrl,
             professionTitle: u.personalProfile?.professionTitle || (u.role === 'ACADEMIA' ? 'Academia' : 'Profissional'),
-            averageRating: u.averageRating ? parseFloat(u.averageRating as any) : null,
+            averageRating: (u.totalReviews > 0 && u.averageRating) ? parseFloat(u.averageRating as any) : null,
             totalReviews: u.totalReviews || 0,
             boostScore: 0,
             isPremium: false,
-            providerRating: u.averageRating ? parseFloat(u.averageRating as any) : null,
+            providerRating: (u.totalReviews > 0 && u.averageRating) ? parseFloat(u.averageRating as any) : null,
             createdAt: u.createdAt,
             locationCity: u.cityBase || u.academiaProfile?.city || null,
           } as any);

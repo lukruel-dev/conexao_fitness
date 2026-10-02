@@ -31,10 +31,10 @@ export async function getPublicUserProfile(id: string): Promise<PublicUserProfil
           cref: stored.cref,
           bio: stored.bio || "",
           cityBase: stored.cityBase || "Uruguaiana - RS",
-          averageRating: 5.0,
-          totalReviews: 12,
-          followersCount: 24,
-          followingCount: 15,
+          averageRating: stored.totalReviews > 0 && stored.averageRating ? Number(stored.averageRating) : null,
+          totalReviews: stored.totalReviews || 0,
+          followersCount: stored.followersCount || 0,
+          followingCount: stored.followingCount || 0,
         };
       }
     }
@@ -61,7 +61,7 @@ export async function getPublicUserProfile(id: string): Promise<PublicUserProfil
         role: userRes.role,
         status: userRes.status,
         cityBase: userRes.cityBase || "Uruguaiana - RS",
-        averageRating: userRes.averageRating || 5.0,
+        averageRating: userRes.totalReviews > 0 && userRes.averageRating ? Number(userRes.averageRating) : null,
         totalReviews: userRes.totalReviews || 0,
         professionTitle:
           userRes.personalProfile?.professionTitle ||
@@ -120,10 +120,10 @@ export async function getPublicUserProfile(id: string): Promise<PublicUserProfil
           cityBase: match.city || "Uruguaiana - RS",
           professionTitle: match.professionTitle || (isAcademia ? "Academia Parceira" : match.modality || "Profissional da Saúde & Fitness"),
           bio: match.description || (isAcademia ? "Estrutura completa com musculação, cardio e vestiários." : "Profissional parceiro Conexão Fitness / Finex."),
-          averageRating: match.providerRating || match.rating || 5.0,
-          totalReviews: match.totalReviews || match.reviewsCount || 15,
-          followersCount: 38,
-          followingCount: 14,
+          averageRating: (match.totalReviews || match.reviewsCount) && (match.providerRating || match.rating) ? Number(match.providerRating || match.rating) : null,
+          totalReviews: match.totalReviews || match.reviewsCount || 0,
+          followersCount: 0,
+          followingCount: 0,
           specialties: [match.modality, "Consultoria", "Acompanhamento Individual", "Biomecânica"].filter(Boolean),
           serviceLocations: isAcademia ? ["Uruguaiana - RS"] : ["Online pelo App Finex", "Academias Parceiras Cadastradas", "Atendimento Presencial"],
           includedBenefits: [
@@ -162,10 +162,10 @@ export async function getPublicUserProfile(id: string): Promise<PublicUserProfil
               (found.author.role === "PERSONAL" ? "Profissional da Saúde & Fitness" : undefined),
             cref: found.author.personalProfile?.cref,
             bio: found.author.bio || "",
-            averageRating: 5.0,
-            totalReviews: 8,
-            followersCount: 18,
-            followingCount: 12,
+            averageRating: (found.author.totalReviews > 0 && found.author.averageRating) ? Number(found.author.averageRating) : null,
+            totalReviews: found.author.totalReviews || 0,
+            followersCount: found.author.followersCount || 0,
+            followingCount: found.author.followingCount || 0,
           };
         }
       }
@@ -223,10 +223,10 @@ export async function getPublicUserProfile(id: string): Promise<PublicUserProfil
       : isAcademia
       ? "Estrutura moderna e completa com musculação e cardio no centro de Uruguaiana."
       : "Atendimento especializado em saúde e bem-estar.",
-    averageRating: 5.0,
-    totalReviews: 24,
-    followersCount: 42,
-    followingCount: 18,
+    averageRating: null,
+    totalReviews: 0,
+    followersCount: 0,
+    followingCount: 0,
     specialties: isCamila
       ? ["Nutrição Esportiva", "Emagrecimento", "Bioimpedância", "Suplementação", "Hipertrofia"]
       : isRodrigo

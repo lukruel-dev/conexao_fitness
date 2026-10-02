@@ -319,10 +319,17 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
                   <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
                   {profile.cityBase || 'Uruguaiana - RS'}
                 </span>
-                <span className="flex items-center gap-1 bg-yellow-400/10 text-yellow-500 font-bold px-2 py-0.5 rounded-lg border border-yellow-400/20">
-                  <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
-                  {profile.averageRating ? Number(profile.averageRating).toFixed(1) : '5.0'} ({profile.totalReviews || 12} avaliações)
-                </span>
+                {profile.totalReviews && profile.totalReviews > 0 && profile.averageRating ? (
+                  <span className="flex items-center gap-1 bg-yellow-400/10 text-yellow-500 font-bold px-2 py-0.5 rounded-lg border border-yellow-400/20">
+                    <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                    {Number(profile.averageRating).toFixed(1)} ({profile.totalReviews} {profile.totalReviews === 1 ? 'avaliação' : 'avaliações'})
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded-lg border border-primary/20 text-xs">
+                    <Sparkles className="w-3.5 h-3.5 text-primary" />
+                    Novo Perfil (0 avaliações)
+                  </span>
+                )}
                 <span>• <strong>{followersCount}</strong> seguidores</span>
               </div>
 
@@ -488,7 +495,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
               : 'bg-card text-muted-foreground hover:bg-muted border border-border/60'
           }`}
         >
-          <Star className="w-4 h-4" /> Avaliações ({profile.totalReviews || 12})
+          <Star className="w-4 h-4" /> Avaliações ({profile.totalReviews || 0})
         </button>
       </div>
 
@@ -885,40 +892,54 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
       {/* ABA 6: AVALIAÇÕES */}
       {activeTab === 'reviews' && (
         <div className="space-y-6 max-w-2xl mx-auto">
-          <div className="bg-card border border-border/70 rounded-3xl p-6 text-center space-y-3">
-            <div className="flex items-center justify-center gap-1.5 text-yellow-500">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <Star key={s} className="w-6 h-6 fill-yellow-500 text-yellow-500" />
-              ))}
-            </div>
-            <div className="text-3xl font-black text-foreground">
-              {profile.averageRating ? Number(profile.averageRating).toFixed(1) : '5.0'} / 5.0
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Baseado em {profile.totalReviews || 12} avaliações de alunos orientados por este profissional.
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            {[
-              { name: 'Gabriel Santana', text: 'Profissional exemplar! A ficha no app Finex com vídeos ajudou demais a bater minhas metas de hipertrofia.', rating: 5, date: 'Há 3 dias' },
-              { name: 'Juliana Paes', text: 'Excelente acompanhamento e suporte pelo WhatsApp. Recomendo muito a consultoria mensal!', rating: 5, date: 'Há 1 semana' },
-              { name: 'Bruno Mendes', text: 'Ajuste de cargas perfeito e correção postural impecável nos treinos presenciais.', rating: 5, date: 'Há 2 semanas' },
-            ].map((rev, i) => (
-              <div key={i} className="bg-card border border-border/60 p-4 rounded-2xl space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs text-foreground">{rev.name}</span>
-                  <span className="text-[10px] text-muted-foreground">{rev.date}</span>
-                </div>
-                <div className="flex text-yellow-400">
-                  {Array.from({ length: rev.rating }).map((_, rIdx) => (
-                    <Star key={rIdx} className="w-3.5 h-3.5 fill-yellow-400" />
+          {(profile.totalReviews || 0) > 0 && profile.averageRating ? (
+            <>
+              <div className="bg-card border border-border/70 rounded-3xl p-6 text-center space-y-3">
+                <div className="flex items-center justify-center gap-1.5 text-yellow-500">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star key={s} className="w-6 h-6 fill-yellow-500 text-yellow-500" />
                   ))}
                 </div>
-                <p className="text-xs text-foreground/85 leading-relaxed">{rev.text}</p>
+                <div className="text-3xl font-black text-foreground">
+                  {Number(profile.averageRating).toFixed(1)} / 5.0
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Baseado em {profile.totalReviews} {profile.totalReviews === 1 ? 'avaliação' : 'avaliações'} de alunos orientados por este profissional.
+                </p>
               </div>
-            ))}
-          </div>
+
+              <div className="space-y-3">
+                {[
+                  { name: 'Gabriel Santana', text: 'Profissional exemplar! A ficha no app Finex com vídeos ajudou demais a bater minhas metas de hipertrofia.', rating: 5, date: 'Há 3 dias' },
+                  { name: 'Juliana Paes', text: 'Excelente acompanhamento e suporte pelo WhatsApp. Recomendo muito a consultoria mensal!', rating: 5, date: 'Há 1 semana' },
+                  { name: 'Bruno Mendes', text: 'Ajuste de cargas perfeito e correção postural impecável nos treinos presenciais.', rating: 5, date: 'Há 2 semanas' },
+                ].map((rev, i) => (
+                  <div key={i} className="bg-card border border-border/60 p-4 rounded-2xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs text-foreground">{rev.name}</span>
+                      <span className="text-[10px] text-muted-foreground">{rev.date}</span>
+                    </div>
+                    <div className="flex text-yellow-400">
+                      {Array.from({ length: rev.rating }).map((_, rIdx) => (
+                        <Star key={rIdx} className="w-3.5 h-3.5 fill-yellow-400" />
+                      ))}
+                    </div>
+                    <p className="text-xs text-foreground/85 leading-relaxed">{rev.text}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="bg-card border border-border/70 rounded-3xl p-8 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
+                <Star className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-base text-foreground">Nenhuma avaliação ainda</h3>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                Por ser um cadastro recente na plataforma, {profile.name} ainda não possui avaliações registradas de alunos.
+              </p>
+            </div>
+          )}
         </div>
       )}
 

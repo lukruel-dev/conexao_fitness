@@ -218,21 +218,17 @@ const Index: React.FC = () => {
             {/* CARD 1: BUSCA & CATÁLOGO */}
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card/95 to-primary/5 border border-primary/20 p-6 sm:p-7 shadow-sm flex flex-col justify-between group hover:border-primary/40 transition-all duration-300">
               <div className="relative z-10 flex flex-col h-full space-y-4">
-                {/* 1. PARTE SUPERIOR DO CARD: BOTÃO BUSCAR AZUL */}
+                {/* 1. PARTE SUPERIOR DO CARD: BADGE E BOTÃO BUSCAR */}
                 <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
-                      <Search className="h-4 w-4" />
-                    </div>
-                    <span className="text-xs font-bold text-foreground uppercase tracking-wider">
-                      Busca Rápida Finex
-                    </span>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary text-xs font-extrabold tracking-wide shadow-sm">
+                    <Search className="h-3.5 w-3.5 text-primary" />
+                    <span>BUSCA RÁPIDA FINEX</span>
                   </div>
 
                   <Button
                     type="submit"
                     form="hero-search-form"
-                    className="h-10 px-5 text-xs sm:text-sm font-bold gap-1.5 rounded-xl shadow-md bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 cursor-pointer transition-all hover:scale-[1.02]"
+                    className="h-11 sm:h-12 min-w-[130px] sm:min-w-[145px] px-6 sm:px-7 text-sm font-bold gap-2 rounded-xl shadow-md bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 cursor-pointer transition-all hover:scale-[1.03]"
                   >
                     <Search className="h-4 w-4" /> Buscar
                   </Button>
@@ -477,7 +473,7 @@ const Index: React.FC = () => {
                   <Button
                     type="button"
                     onClick={handleConnectSocial}
-                    className="h-10 px-6 text-xs sm:text-sm font-bold gap-2 rounded-xl shadow-lg bg-gradient-to-r from-cyan-500 via-sky-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-white font-display border border-cyan-300/40 transition-all hover:scale-[1.03] cursor-pointer"
+                    className="h-11 sm:h-12 min-w-[130px] sm:min-w-[145px] px-6 sm:px-7 text-sm font-bold gap-2 rounded-xl shadow-lg bg-gradient-to-r from-cyan-500 via-sky-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-white font-display border border-cyan-300/40 transition-all hover:scale-[1.03] cursor-pointer"
                   >
                     <Users className="h-4 w-4" /> Conectar
                   </Button>
@@ -489,24 +485,17 @@ const Index: React.FC = () => {
                     Social <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-emerald-400 drop-shadow-[0_0_25px_rgba(34,211,238,0.5)]">FINEX</span>
                   </h2>
                   <p className="text-xs sm:text-sm text-cyan-100/80 leading-relaxed">
-                    A rede social fitness da Finex feita para quem vive o estilo de vida saudável. Compartilhe sua evolução, tire dúvidas no fórum, curta treinos e conecte-se com alunos e profissionais.
+                    A rede social fitness da Finex feita para quem vive o estilo de vida saudável. Compartilhe sua evolução, tire dúvidas, curta treinos e conecte-se com alunos e profissionais.
                   </p>
                 </div>
 
                 {/* 3. RECURSOS EM DESTAQUE (PILLS MODERNAS) */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   <div className="p-3 rounded-2xl bg-cyan-950/50 border border-cyan-500/30 backdrop-blur-sm flex flex-col justify-center">
                     <div className="flex items-center gap-1.5 text-cyan-300 font-bold text-xs mb-0.5">
                       <MessageSquare className="h-3.5 w-3.5 text-cyan-400" /> Feed ao Vivo
                     </div>
                     <p className="text-[11px] text-cyan-100/60 leading-tight">Postagens de treinos, fotos e rotinas</p>
-                  </div>
-
-                  <div className="p-3 rounded-2xl bg-sky-950/50 border border-sky-500/30 backdrop-blur-sm flex flex-col justify-center">
-                    <div className="flex items-center gap-1.5 text-sky-300 font-bold text-xs mb-0.5">
-                      <Sparkles className="h-3.5 w-3.5 text-sky-400" /> Fórum & Dúvidas
-                    </div>
-                    <p className="text-[11px] text-cyan-100/60 leading-tight">Respostas diretas de profissionais</p>
                   </div>
 
                   <div className="p-3 rounded-2xl bg-emerald-950/50 border border-emerald-500/30 backdrop-blur-sm flex flex-col justify-center">
@@ -531,7 +520,7 @@ const Index: React.FC = () => {
                     onClick={handleConnectSocial}
                     className="text-xs font-bold text-cyan-300 hover:text-cyan-100 flex items-center gap-1 cursor-pointer transition-colors"
                   >
-                    <span>{isAuthenticated ? "Ir para o Feed da Comunidade" : "Acessar Feed & Fórum"}</span>
+                    <span>{isAuthenticated ? "Ir para o Feed da Comunidade" : "Acessar Comunidade Fitness"}</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
