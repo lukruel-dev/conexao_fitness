@@ -216,8 +216,8 @@ const Index: React.FC = () => {
           {/* SEÇÃO SUPERIOR: DOIS CARDS LADO A LADO (BUSCA & SOCIAL FINEX) */}
           <section className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* CARD 1: BUSCA & CATÁLOGO */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card/95 to-primary/5 border border-primary/20 p-6 sm:p-7 shadow-sm flex flex-col justify-between group hover:border-primary/40 transition-all duration-300">
-              <div className="relative z-10 flex flex-col h-full space-y-4">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card/95 to-primary/5 border border-primary/20 p-5 sm:p-6 shadow-sm flex flex-col justify-between group hover:border-primary/40 transition-all duration-300">
+              <div className="relative z-10 flex flex-col h-full space-y-3.5">
                 {/* 1. PARTE SUPERIOR DO CARD: BADGE E BOTÃO BUSCAR */}
                 <div className="flex items-center justify-between gap-3">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary text-xs font-extrabold tracking-wide shadow-sm">
@@ -409,7 +409,7 @@ const Index: React.FC = () => {
                 </div>
 
                 {/* 3. LOGO ABAIXO: LINKS MAIS POPULARES */}
-                <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
+                <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
                   <span className="text-muted-foreground font-semibold text-[11px] mr-0.5 flex items-center gap-1">
                     <Sparkles className="h-3 w-3 text-primary" /> Populares:
                   </span>
@@ -434,31 +434,13 @@ const Index: React.FC = () => {
                   >
                     <Utensils className="h-3 w-3 text-primary" /> Nutricionistas
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const el = document.getElementById("comunidade");
-                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }}
-                    className="px-2.5 py-1 rounded-full bg-card/80 hover:bg-primary/15 hover:text-primary border border-border/70 hover:border-primary/40 transition-all text-[11px] font-medium flex items-center gap-1 cursor-pointer shadow-2xs"
-                  >
-                    <MessageSquare className="h-3 w-3 text-primary" /> Fórum & Dúvidas
-                  </button>
                 </div>
 
-                {/* 4. E SÓ DEPOIS OS TEXTOS */}
-                <div className="pt-4 border-t border-border/50 space-y-2 mt-auto">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary text-xs font-bold tracking-wide">
-                    <Sparkles className="h-3.5 w-3.5" /> O Ponto de Encontro Fitness do Brasil
-                  </div>
-
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-foreground leading-snug">
-                    Conecte-se com as <span className="text-primary underline decoration-primary/40">Melhores Academias</span>, Profissionais e a Comunidade
+                {/* 4. E SÓ DEPOIS O TÍTULO SOLICITADO */}
+                <div className="pt-3 border-t border-border/50 mt-auto">
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tight text-foreground leading-snug">
+                    Conecte-se com as <span className="text-primary underline decoration-primary/40">Melhores Academias</span> e Profissionais
                   </h1>
-
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                    Descubra treinos, tire dúvidas, compartilhe sua evolução, adquira Day Passes e agende sessões com profissionais credenciados.
-                  </p>
                 </div>
               </div>
 
@@ -467,8 +449,8 @@ const Index: React.FC = () => {
             </div>
 
             {/* CARD 2: SOCIAL FINEX (REDE SOCIAL FITNESS) */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#071728] via-[#09253d] to-[#043d56] border-2 border-cyan-400/40 hover:border-cyan-300 shadow-[0_0_25px_rgba(6,182,212,0.18)] hover:shadow-[0_0_40px_rgba(6,182,212,0.28)] p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 group">
-              <div className="relative z-10 flex flex-col h-full space-y-4">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#071728] via-[#09253d] to-[#043d56] border-2 border-cyan-400/40 hover:border-cyan-300 shadow-[0_0_25px_rgba(6,182,212,0.18)] hover:shadow-[0_0_40px_rgba(6,182,212,0.28)] p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 group">
+              <div className="relative z-10 flex flex-col h-full space-y-3.5">
                 {/* 1. PARTE SUPERIOR DO CARD: BADGE E BOTÃO CONECTAR */}
                 <div className="flex items-center justify-between gap-3">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-xs font-extrabold tracking-wide shadow-sm">
@@ -486,8 +468,8 @@ const Index: React.FC = () => {
                 </div>
 
                 {/* 2. TÍTULO E APRESENTAÇÃO DO SOCIAL FINEX */}
-                <div className="space-y-2">
-                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white leading-tight">
+                <div className="space-y-1.5">
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white leading-tight">
                     Social <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-emerald-400 drop-shadow-[0_0_25px_rgba(34,211,238,0.5)]">FINEX</span>
                   </h2>
                   <p className="text-xs sm:text-sm text-cyan-100/80 leading-relaxed">
@@ -496,15 +478,15 @@ const Index: React.FC = () => {
                 </div>
 
                 {/* 3. RECURSOS EM DESTAQUE (PILLS MODERNAS) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <div className="p-3 rounded-2xl bg-cyan-950/50 border border-cyan-500/30 backdrop-blur-sm flex flex-col justify-center">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
+                  <div className="p-2.5 sm:p-3 rounded-2xl bg-cyan-950/50 border border-cyan-500/30 backdrop-blur-sm flex flex-col justify-center">
                     <div className="flex items-center gap-1.5 text-cyan-300 font-bold text-xs mb-0.5">
                       <MessageSquare className="h-3.5 w-3.5 text-cyan-400" /> Feed ao Vivo
                     </div>
                     <p className="text-[11px] text-cyan-100/60 leading-tight">Postagens de treinos, fotos e rotinas</p>
                   </div>
 
-                  <div className="p-3 rounded-2xl bg-emerald-950/50 border border-emerald-500/30 backdrop-blur-sm flex flex-col justify-center">
+                  <div className="p-2.5 sm:p-3 rounded-2xl bg-emerald-950/50 border border-emerald-500/30 backdrop-blur-sm flex flex-col justify-center">
                     <div className="flex items-center gap-1.5 text-emerald-300 font-bold text-xs mb-0.5">
                       <Flame className="h-3.5 w-3.5 text-emerald-400" /> Comunidade
                     </div>
@@ -513,7 +495,7 @@ const Index: React.FC = () => {
                 </div>
 
                 {/* 4. RODAPÉ COM REDIRECIONAMENTO EXPLÍCITO */}
-                <div className="pt-3 border-t border-cyan-500/30 flex flex-wrap items-center justify-between gap-3 text-xs mt-auto">
+                <div className="pt-2.5 border-t border-cyan-500/30 flex flex-wrap items-center justify-between gap-3 text-xs mt-auto">
                   <div className="flex items-center gap-2 text-cyan-200/90 text-xs">
                     <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
                     <span className="font-medium">
