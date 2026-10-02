@@ -13,6 +13,10 @@ import {
   Eye,
   CheckCircle2,
   Utensils,
+  Briefcase,
+  BookOpen,
+  Sparkles,
+  Calendar,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -52,7 +56,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1 container mx-auto px-4 pt-36 pb-16">
-        <div className="flex items-center justify-between flex-wrap gap-4 mb-8">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
           <div>
             <div className="flex items-center gap-2 text-secondary text-sm font-semibold uppercase tracking-wider">
               <ShieldCheck className="w-4 h-4" /> Painel administrativo
@@ -60,43 +64,52 @@ export default function AdminDashboard() {
             <h1 className="font-display text-3xl md:text-4xl font-bold mt-1">Centro de Comando</h1>
             <p className="text-muted-foreground mt-1">Visão geral da plataforma em tempo real.</p>
           </div>
-          <div className="flex gap-2 flex-wrap items-center">
-            <Button asChild variant="outline">
-              <Link to="/admin/profissoes">
-                Profissões
+
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-2.5">
+            <Button asChild variant="outline" size="sm" className="h-9 px-3 gap-1.5 rounded-xl no-underline hover:no-underline">
+              <Link to="/admin/profissoes" className="no-underline hover:no-underline flex items-center gap-1.5">
+                <Briefcase className="w-3.5 h-3.5 text-primary" />
+                <span>Profissões</span>
               </Link>
             </Button>
-            <Button asChild variant="outline">
-              <Link to="/admin/catalogo">
-                Catálogo Base
+            <Button asChild variant="outline" size="sm" className="h-9 px-3 gap-1.5 rounded-xl no-underline hover:no-underline">
+              <Link to="/admin/catalogo" className="no-underline hover:no-underline flex items-center gap-1.5">
+                <BookOpen className="w-3.5 h-3.5 text-primary" />
+                <span>Catálogo Base</span>
               </Link>
             </Button>
-            <Button asChild variant="outline">
-              <Link to="/admin/servicos">
-                Serviços dos Profissionais
+            <Button asChild variant="outline" size="sm" className="h-9 px-3 gap-1.5 rounded-xl no-underline hover:no-underline col-span-2 sm:col-span-1">
+              <Link to="/admin/servicos" className="no-underline hover:no-underline flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <span>Serviços dos Profissionais</span>
               </Link>
             </Button>
-            <Button asChild variant="outline">
-              <Link to="/admin/assinaturas">
-                Assinaturas
+            <Button asChild variant="outline" size="sm" className="h-9 px-3 gap-1.5 rounded-xl no-underline hover:no-underline">
+              <Link to="/admin/assinaturas" className="no-underline hover:no-underline flex items-center gap-1.5">
+                <CreditCard className="w-3.5 h-3.5 text-primary" />
+                <span>Assinaturas</span>
               </Link>
             </Button>
-            <Button asChild variant="outline">
-              <Link to="/admin/agendamentos">
-                Gerenciar agendamentos
+            <Button asChild variant="outline" size="sm" className="h-9 px-3 gap-1.5 rounded-xl no-underline hover:no-underline">
+              <Link to="/admin/agendamentos" className="no-underline hover:no-underline flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-primary" />
+                <span>Agendamentos</span>
               </Link>
             </Button>
-            <Button asChild variant="hero">
-              <Link to="/admin/usuarios">
-                Gerenciar usuários <ArrowRight className="w-4 h-4" />
+            <Button asChild variant="hero" size="sm" className="h-9 px-3.5 gap-1.5 rounded-xl no-underline hover:no-underline col-span-2 sm:col-span-1">
+              <Link to="/admin/usuarios" className="no-underline hover:no-underline flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5" />
+                <span>Gerenciar usuários</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </Button>
             <Button 
               variant="outline" 
+              size="sm"
               onClick={handleLogout} 
-              className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive gap-1.5 font-medium ml-1"
+              className="h-9 px-3 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive gap-1.5 font-medium rounded-xl col-span-2 sm:col-span-1 no-underline hover:no-underline"
             >
-              <LogOut className="w-4 h-4" /> Sair
+              <LogOut className="w-3.5 h-3.5" /> Sair
             </Button>
           </div>
         </div>

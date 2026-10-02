@@ -206,10 +206,10 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 pt-[max(2.5rem,calc(env(safe-area-inset-top,0px)+1.5rem))] pb-8 sm:py-12">
       <div className="w-full max-w-md">
         <div className="mb-6 flex justify-start">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-1.5 px-3 rounded-lg bg-muted/60 hover:bg-muted">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors py-2 px-3.5 rounded-xl bg-muted/70 hover:bg-muted border border-border/40 shadow-xs no-underline hover:no-underline">
             <ArrowLeft className="w-4 h-4" />
             <span>Voltar ao início</span>
           </Link>

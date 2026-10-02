@@ -119,6 +119,10 @@
     text-size-adjust: 100%;
   }
 
+  a {
+    text-decoration: none;
+  }
+
   #root {
     overflow-x: hidden;
     max-width: 100vw;

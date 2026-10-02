@@ -1012,7 +1012,10 @@ Qualquer dúvida estamos à disposição na recepção. Bons treinos! 💪🚀`;
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      <main className="flex-1 pt-24 md:pt-28 pb-16 container mx-auto px-4 max-w-7xl">
+      <main 
+        className="flex-1 pb-16 container mx-auto px-4 max-w-7xl pt-28 md:pt-32"
+        style={{ paddingTop: 'calc(var(--app-header-height, 4.5rem) + 1.75rem)' }}
+      >
         {/* Cabeçalho do Painel da Academia */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
