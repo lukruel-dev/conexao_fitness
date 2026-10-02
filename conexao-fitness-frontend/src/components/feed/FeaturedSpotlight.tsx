@@ -28,7 +28,7 @@ interface FeaturedSpotlightProps {
 const DEFAULT_GYMS = [
   {
     id: "gym-default-1",
-    providerId: "gym-prime",
+    providerId: "gym-iron-peak",
     name: "Academia Iron Peak Finex",
     providerName: "Academia Iron Peak Finex",
     city: "Uruguaiana - RS",
@@ -39,7 +39,7 @@ const DEFAULT_GYMS = [
   },
   {
     id: "gym-default-2",
-    providerId: "gym-prime-2",
+    providerId: "gym-prime-arena",
     name: "Conexão Fitness Prime & Arena",
     providerName: "Conexão Fitness Prime & Arena",
     city: "Uruguaiana - RS",
@@ -50,7 +50,7 @@ const DEFAULT_GYMS = [
   },
   {
     id: "gym-default-3",
-    providerId: "gym-studio",
+    providerId: "gym-estudio-core",
     name: "Estúdio Funcional & Pilates Core",
     providerName: "Estúdio Funcional & Pilates Core",
     city: "Uruguaiana - RS",
@@ -78,20 +78,20 @@ const DEFAULT_PROS = [
   {
     id: "pro-default-2",
     providerId: "pro-camila",
-    name: "Dra. Camila Duarte",
-    providerName: "Dra. Camila Duarte",
-    professionTitle: "Nutricionista Esportiva • CRN 12480",
+    name: "Dra. Camila Alencar",
+    providerName: "Dra. Camila Alencar",
+    professionTitle: "Nutricionista Esportiva • CRN-2 98765",
     city: "Uruguaiana - RS",
     description: "Planos alimentares sob medida para ganho de massa magra, redução de gordura e alto rendimento sem dietas restritivas.",
-    price: 120.0,
-    providerRating: 4.9,
-    providerAvatar: "https://images.unsplash.com/photo-1594824813511-2097e88c0379?w=400&auto=format&fit=crop",
+    price: 140.0,
+    providerRating: 5.0,
+    providerAvatar: "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop",
   },
   {
     id: "pro-default-3",
     providerId: "pro-rodrigo",
-    name: "Dr. Rodrigo Silveira",
-    providerName: "Dr. Rodrigo Silveira",
+    name: "Dr. Rodrigo Mendes",
+    providerName: "Dr. Rodrigo Mendes",
     professionTitle: "Fisioterapeuta & Reabilitação • CREFITO 8921",
     city: "Uruguaiana - RS",
     description: "Prevenção e reabilitação de lesões osteomusculares, liberação miofascial e retorno seguro aos treinos de alta carga.",
@@ -309,22 +309,29 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
                         key={`${gym.id}-${idx}`}
                         className="w-full shrink-0 flex flex-col justify-between h-full"
                       >
-                        {/* Imagem de Capa */}
-                        <div className="relative h-40 sm:h-44 w-full overflow-hidden bg-muted">
+                        {/* Imagem de Capa e Título clicáveis para o perfil */}
+                        <Link
+                          to={`/perfil/${gym.providerId || gym.id}`}
+                          className="relative h-40 sm:h-44 w-full overflow-hidden bg-muted block group/img no-underline cursor-pointer"
+                        >
                           <img
                             src={
                               resolveMediaUrl(gym.providerAvatar) ||
                               "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop"
                             }
                             alt={gym.providerName || gym.name}
-                            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src =
+                                "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop";
+                            }}
+                            className="h-full w-full object-cover group-hover/img:scale-105 transition-transform duration-700"
                             loading="lazy"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
 
                           <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between gap-2">
                             <div className="min-w-0">
-                              <h3 className="font-bold text-white text-base drop-shadow-sm truncate leading-tight">
+                              <h3 className="font-bold text-white text-base drop-shadow-sm truncate leading-tight group-hover/img:text-primary transition-colors">
                                 {gym.providerName || gym.name}
                               </h3>
                               <div className="flex items-center gap-1 text-[11px] text-white/90 mt-0.5">
@@ -339,7 +346,7 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
                               </div>
                             )}
                           </div>
-                        </div>
+                        </Link>
 
                         {/* Conteúdo & Ações */}
                         <div className="p-4 flex flex-col justify-between flex-1 gap-3.5">
@@ -358,7 +365,7 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
                             </div>
                             <Button
                               size="sm"
-                              className="h-9 text-xs font-bold px-4 gap-1.5 shadow-sm rounded-xl"
+                              className="h-9 text-xs font-bold px-4 gap-1.5 shadow-sm rounded-xl cursor-pointer"
                               asChild
                             >
                               <Link to={`/perfil/${gym.providerId || gym.id}`}>
@@ -495,40 +502,50 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
                       >
                         {/* Perfil & Identificação */}
                         <div className="flex items-start gap-4">
-                          <div className="relative shrink-0">
+                          <Link
+                            to={`/perfil/${pro.providerId || pro.id}`}
+                            className="relative shrink-0 block group/avatar cursor-pointer no-underline"
+                          >
                             <img
                               src={
                                 resolveMediaUrl(pro.providerAvatar) ||
-                                "https://images.unsplash.com/photo-1567013127542-490d757e51fc?w=400&auto=format&fit=crop"
+                                "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop"
                               }
                               alt={pro.providerName || pro.name}
-                              className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl object-cover ring-2 ring-emerald-500/40 group-hover:ring-emerald-400 transition-all shadow-md"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src =
+                                  "https://images.unsplash.com/photo-1594824813580-c1165a6f2369?q=80&w=400&auto=format&fit=crop";
+                              }}
+                              className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl object-cover ring-2 ring-emerald-500/40 group-hover/avatar:ring-emerald-400 group-hover/avatar:scale-105 transition-all shadow-md"
                               loading="lazy"
                             />
                             <span className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-1 shadow-sm">
                               <ShieldCheck className="h-3.5 w-3.5" />
                             </span>
-                          </div>
+                          </Link>
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-1">
-                              <h3 className="font-bold text-base sm:text-lg text-foreground truncate group-hover:text-emerald-400 transition-colors">
+                              <Link
+                                to={`/perfil/${pro.providerId || pro.id}`}
+                                className="font-bold text-base sm:text-lg text-foreground truncate hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors no-underline cursor-pointer block"
+                              >
                                 {pro.providerName || pro.name}
-                              </h3>
+                              </Link>
                               {pro.providerRating && (
-                                <div className="flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded-md text-[11px] font-bold text-amber-400 border border-amber-500/20 shrink-0">
+                                <div className="flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded-md text-[11px] font-bold text-amber-500 border border-amber-500/20 shrink-0">
                                   <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
                                   {Number(pro.providerRating).toFixed(1)}
                                 </div>
                               )}
                             </div>
 
-                            <p className="text-xs font-semibold text-emerald-400 truncate mt-0.5">
+                            <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 truncate mt-0.5">
                               {pro.professionTitle || pro.modality || "Personal Trainer Certificado"}
                             </p>
 
                             <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-1">
-                              <MapPin className="h-3 w-3 text-emerald-400 shrink-0" />
+                              <MapPin className="h-3 w-3 text-emerald-500 shrink-0" />
                               <span className="truncate">{pro.city || "Uruguaiana - RS"}</span>
                             </div>
                           </div>

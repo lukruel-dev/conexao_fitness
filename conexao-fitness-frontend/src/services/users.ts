@@ -179,16 +179,33 @@ export async function getPublicUserProfile(id: string): Promise<PublicUserProfil
   const isCamila = lowerId.includes("camila") || lowerId.includes("nutri");
   const isRodrigo = lowerId.includes("rodrigo") || lowerId.includes("fisio");
   const isDiego = lowerId.includes("diego") || lowerId.includes("personal");
-  const isAcademia = lowerId.includes("academia") || lowerId.includes("vip");
+  const isAcademia =
+    lowerId.includes("academia") ||
+    lowerId.includes("vip") ||
+    lowerId.includes("gym") ||
+    lowerId.includes("studio") ||
+    lowerId.includes("estudio") ||
+    lowerId.includes("arena") ||
+    lowerId.includes("peak");
+
+  const isArena = lowerId.includes("arena") || lowerId.includes("prime-2");
+  const isStudio = lowerId.includes("studio") || lowerId.includes("estudio");
+  const isIronPeak = lowerId.includes("iron") || (!isArena && !isStudio && isAcademia);
 
   return {
     id,
     name: isCamila
-      ? "Dra. Camila Santos"
+      ? "Dra. Camila Alencar"
       : isRodrigo
-      ? "Dr. Rodrigo Oliveira"
+      ? "Dr. Rodrigo Mendes"
       : isDiego
-      ? "Prof. Diego Silva"
+      ? "Diego Martins"
+      : isArena
+      ? "Conexão Fitness Prime & Arena"
+      : isStudio
+      ? "Estúdio Funcional & Pilates Core"
+      : isIronPeak
+      ? "Academia Iron Peak Finex"
       : isAcademia
       ? "Academia Conexão VIP"
       : "Profissional Parceiro",
@@ -198,9 +215,13 @@ export async function getPublicUserProfile(id: string): Promise<PublicUserProfil
       ? "https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=400&auto=format&fit=crop"
       : isDiego
       ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop"
-      : isAcademia
-      ? "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=600&auto=format&fit=crop"
-      : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop",
+      : isArena
+      ? "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=800&auto=format&fit=crop"
+      : isStudio
+      ? "https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=800&auto=format&fit=crop"
+      : isIronPeak
+      ? "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800&auto=format&fit=crop"
+      : "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=600&auto=format&fit=crop",
     role: isAcademia ? "ACADEMIA" : "PERSONAL",
     status: "ATIVO",
     cityBase: "Uruguaiana - RS",
@@ -211,33 +232,39 @@ export async function getPublicUserProfile(id: string): Promise<PublicUserProfil
       : isDiego
       ? "Personal Trainer & Preparador Físico"
       : isAcademia
-      ? "Academia Parceira"
+      ? "Academia Parceira Credenciada"
       : "Profissional da Saúde & Fitness",
-    cref: isDiego ? "CREF 019283-G/RS" : isCamila ? "CRN-2 14829" : isRodrigo ? "CREFITO-5 29381" : undefined,
+    cref: isDiego ? "CREF 012345-G/RS" : isCamila ? "CRN-2 98765" : isRodrigo ? "CREFITO-5 8921" : undefined,
     bio: isCamila
-      ? "Especialista em Nutrição Esportiva, Emagrecimento Consciente e Avaliação por Bioimpedância."
+      ? "Nutricionista clínica e esportiva (CRN-2 98765). Foco em emagrecimento saudável, hipertrofia e performance sem dietas restritivas insustentáveis."
       : isRodrigo
       ? "Fisioterapia Desportiva, Liberação Miofascial e Reabilitação Funcional de Lesões."
       : isDiego
-      ? "Preparador físico com foco em hipertrofia, biomecânica e periodização avançada."
-      : isAcademia
-      ? "Estrutura moderna e completa com musculação e cardio no centro de Uruguaiana."
-      : "Atendimento especializado em saúde e bem-estar.",
-    averageRating: null,
-    totalReviews: 0,
-    followersCount: 0,
-    followingCount: 0,
+      ? "Treinador especialista em biomecânica aplicada e hipertrofia muscular com periodizações personalizadas."
+      : isArena
+      ? "Musculação avançada, espaço cross training, spinning climatizado e vestiários completos com armários inteligentes e catraca digital."
+      : isStudio
+      ? "Treinamento funcional individualizado e em pequenos grupos, foco em mobilidade, postura e condicionamento físico."
+      : isIronPeak
+      ? "A maior e mais moderna academia de musculação e alta performance de Uruguaiana. Catraca digital com QR Code pelo App Finex."
+      : "Estrutura moderna e completa com musculação e cardio no centro de Uruguaiana.",
+    averageRating: isAcademia ? 4.9 : 5.0,
+    totalReviews: 24,
+    followersCount: 42,
+    followingCount: 12,
     specialties: isCamila
       ? ["Nutrição Esportiva", "Emagrecimento", "Bioimpedância", "Suplementação", "Hipertrofia"]
       : isRodrigo
       ? ["Fisioterapia Desportiva", "Liberação Miofascial", "Osteopatia", "Reabilitação", "Coluna & Postura"]
+      : isAcademia
+      ? ["Musculação", "Catraca Digital QR Code", "Day Pass Avulso", "CrossFit", "Cardio"]
       : ["Hipertrofia Muscular", "Biomecânica", "Emagrecimento & Definição", "Consultoria Online", "Musculação"],
     serviceLocations: ["Online pelo App Finex", "Academias Parceiras Cadastradas", "Atendimento Presencial em Uruguaiana"],
     includedBenefits: [
-      "Ficha de Treino Personalizada no App Finex",
-      "Ajustes Semanais de Volume e Carga",
-      "Suporte e Dúvidas pelo Chat do App Finex",
-      "Avaliação Física por Bioimpedância",
+      "Acesso completo via Catraca Digital no App Finex",
+      "Vestiários completos com chuveiro e armários",
+      "Instrutores credenciados na sala de musculação",
+      "Suporte e agendamentos pelo App Finex",
     ],
     methodology: "Metodologia baseada em evidências científicas com foco em segurança articular, adesão a longo prazo e resultados mensuráveis.",
   };

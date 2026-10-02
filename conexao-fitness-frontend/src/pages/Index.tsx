@@ -365,11 +365,11 @@ const Index: React.FC = () => {
 
       <main className="flex-1 pt-28 sm:pt-32 pb-16">
         <div className="container mx-auto px-4 max-w-7xl">
-          {/* SEÇÃO SUPERIOR: DOIS CARDS LADO A LADO (BUSCA & SOCIAL FINEX) */}
-          <section className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* SEÇÃO SUPERIOR: DOIS CARDS LADO A LADO COM CORES SUAVES & ELEGANTES */}
+          <section className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
             {/* CARD 1: O SUPER APP FINEX - PROPAGANDAS ROTATIVAS DAS FUNCIONALIDADES & BUSCA */}
             <div
-              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#071728] via-[#09253d] to-[#04334a] border-2 border-primary/40 hover:border-primary/60 shadow-[0_0_25px_rgba(14,165,233,0.18)] hover:shadow-[0_0_40px_rgba(14,165,233,0.28)] p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 group"
+              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card/95 to-primary/[0.05] border border-border/80 hover:border-primary/40 shadow-sm p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 group"
               onMouseEnter={() => setIsPromoPaused(true)}
               onMouseLeave={() => {
                 if (!searchQuery) setIsPromoPaused(false);
@@ -378,9 +378,9 @@ const Index: React.FC = () => {
               <div className="relative z-10 flex flex-col h-full space-y-3.5">
                 {/* 1. PARTE SUPERIOR DO CARD: BADGE DINÂMICO DA PROPAGANDA + CONTROLES + BOTÃO BUSCAR */}
                 <div className="flex items-center justify-between gap-2.5">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/40 text-primary text-xs font-extrabold tracking-wide shadow-sm max-w-[210px] sm:max-w-none truncate">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold tracking-wide shadow-xs max-w-[210px] sm:max-w-none truncate">
                     {React.createElement(APP_PROMOS[currentPromoIndex].badgeIcon, {
-                      className: "h-3.5 w-3.5 text-primary shrink-0 animate-pulse",
+                      className: "h-3.5 w-3.5 text-primary shrink-0",
                     })}
                     <span className="truncate">{APP_PROMOS[currentPromoIndex].badge}</span>
                   </div>
@@ -392,7 +392,7 @@ const Index: React.FC = () => {
                         type="button"
                         onClick={prevPromo}
                         aria-label="Funcionalidade anterior"
-                        className="h-8 w-8 rounded-lg bg-background/70 hover:bg-muted border border-border/60 flex items-center justify-center text-foreground hover:text-primary transition-colors cursor-pointer"
+                        className="h-8 w-8 rounded-lg bg-background/80 hover:bg-muted border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                       >
                         <ChevronLeft className="h-4 w-4" />
                       </button>
@@ -400,7 +400,7 @@ const Index: React.FC = () => {
                         type="button"
                         onClick={nextPromo}
                         aria-label="Próxima funcionalidade"
-                        className="h-8 w-8 rounded-lg bg-background/70 hover:bg-muted border border-border/60 flex items-center justify-center text-foreground hover:text-primary transition-colors cursor-pointer"
+                        className="h-8 w-8 rounded-lg bg-background/80 hover:bg-muted border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                       >
                         <ChevronRight className="h-4 w-4" />
                       </button>
@@ -409,7 +409,7 @@ const Index: React.FC = () => {
                     <Button
                       type="submit"
                       form="hero-search-form"
-                      className="h-9 sm:h-10 px-4 sm:px-5 text-xs sm:text-sm font-bold tracking-normal gap-1.5 rounded-xl shadow-md bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 cursor-pointer transition-all hover:scale-[1.03]"
+                      className="h-9 sm:h-10 px-4 sm:px-5 text-xs sm:text-sm font-bold tracking-normal gap-1.5 rounded-xl shadow-xs bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 cursor-pointer transition-all"
                     >
                       <Search className="h-3.5 w-3.5" /> Buscar
                     </Button>
@@ -442,7 +442,7 @@ const Index: React.FC = () => {
                         onBlur={() => {
                           if (!searchQuery) setIsPromoPaused(false);
                         }}
-                        className="pl-10 pr-9 h-11 text-xs sm:text-sm rounded-xl bg-background/90 border-border/80 shadow-inner focus-visible:ring-primary/50 text-foreground"
+                        className="pl-10 pr-9 h-11 text-xs sm:text-sm rounded-xl bg-background/80 border-border/70 shadow-xs focus-visible:ring-primary/40 text-foreground"
                       />
                       {searchQuery && (
                         <button
@@ -463,7 +463,7 @@ const Index: React.FC = () => {
 
                   {/* DROPDOWN FLUTUANTE DE RESULTADOS INSTANTÂNEOS */}
                   {isDropdownOpen && queryLower.length >= 1 && (
-                    <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl bg-card/95 backdrop-blur-xl border border-border/80 shadow-2xl overflow-hidden animate-in fade-in-50 slide-in-from-top-2">
+                    <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl bg-card/95 backdrop-blur-xl border border-border/80 shadow-xl overflow-hidden animate-in fade-in-50 slide-in-from-top-2">
                       <div className="max-h-72 overflow-y-auto divide-y divide-border/40 p-2 text-xs">
                         {/* Academias */}
                         {matchingGyms.length > 0 && (
@@ -596,48 +596,46 @@ const Index: React.FC = () => {
 
                 {/* 3. TÍTULO E APRESENTAÇÃO DA FUNCIONALIDADE EM PROPAGANDA ROTATIVA */}
                 <div className="space-y-1.5 transition-all duration-300">
-                  <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white leading-tight">
+                  <h2 className="text-xl sm:text-2xl font-black tracking-tight text-foreground leading-tight">
                     {APP_PROMOS[currentPromoIndex].titlePrefix}
-                    <span
-                      className={`text-transparent bg-clip-text bg-gradient-to-r ${APP_PROMOS[currentPromoIndex].accentGradient} drop-shadow-[0_0_20px_rgba(56,189,248,0.4)]`}
-                    >
+                    <span className="text-primary">
                       {APP_PROMOS[currentPromoIndex].titleHighlight}
                     </span>
                   </h2>
-                  <p className="text-xs sm:text-sm text-sky-100/80 leading-relaxed min-h-[38px]">
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed min-h-[38px]">
                     {APP_PROMOS[currentPromoIndex].description}
                   </p>
                 </div>
 
-                {/* 4. RECURSOS EM DESTAQUE (2 PILLS MODERNAS SIMÉTRICAS AO CARD SOCIAL) */}
+                {/* 4. RECURSOS EM DESTAQUE (2 PILLS MODERNAS E SUAVES) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
-                  <div className="p-2.5 sm:p-3 rounded-2xl bg-sky-950/60 border border-sky-500/30 backdrop-blur-sm flex flex-col justify-center">
-                    <div className="flex items-center gap-1.5 text-sky-300 font-bold text-xs mb-0.5">
+                  <div className="p-2.5 sm:p-3 rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center">
+                    <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5">
                       {React.createElement(APP_PROMOS[currentPromoIndex].pill1.icon, {
                         className: "h-3.5 w-3.5 text-primary shrink-0",
                       })}
                       <span className="truncate">{APP_PROMOS[currentPromoIndex].pill1.title}</span>
                     </div>
-                    <p className="text-[11px] text-sky-100/60 leading-tight">
+                    <p className="text-[11px] text-muted-foreground leading-tight">
                       {APP_PROMOS[currentPromoIndex].pill1.subtitle}
                     </p>
                   </div>
 
-                  <div className="p-2.5 sm:p-3 rounded-2xl bg-primary/10 border border-primary/30 backdrop-blur-sm flex flex-col justify-center">
-                    <div className="flex items-center gap-1.5 text-cyan-300 font-bold text-xs mb-0.5">
+                  <div className="p-2.5 sm:p-3 rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center">
+                    <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5">
                       {React.createElement(APP_PROMOS[currentPromoIndex].pill2.icon, {
-                        className: "h-3.5 w-3.5 text-cyan-400 shrink-0",
+                        className: "h-3.5 w-3.5 text-primary shrink-0",
                       })}
                       <span className="truncate">{APP_PROMOS[currentPromoIndex].pill2.title}</span>
                     </div>
-                    <p className="text-[11px] text-sky-100/60 leading-tight">
+                    <p className="text-[11px] text-muted-foreground leading-tight">
                       {APP_PROMOS[currentPromoIndex].pill2.subtitle}
                     </p>
                   </div>
                 </div>
 
-                {/* 5. RODAPÉ COM INDICADORES (DOTS) + CTA DA PROPAGANDA + ATALHOS RÁPIDOS */}
-                <div className="pt-2.5 border-t border-sky-500/30 flex flex-wrap items-center justify-between gap-3 text-xs mt-auto">
+                {/* 5. RODAPÉ COM INDICADORES (DOTS) + CTA DA PROPAGANDA */}
+                <div className="pt-2.5 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 text-xs mt-auto">
                   {/* Dots de navegação das 5 propagandas rotativas */}
                   <div className="flex items-center gap-1.5">
                     {APP_PROMOS.map((promo, idx) => (
@@ -648,12 +646,12 @@ const Index: React.FC = () => {
                         className={`h-1.5 rounded-full transition-all cursor-pointer ${
                           currentPromoIndex === idx
                             ? "w-5 bg-primary"
-                            : "w-1.5 bg-sky-400/30 hover:bg-sky-400/60"
+                            : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
                         }`}
                         aria-label={`Ver funcionalidade ${idx + 1}`}
                       />
                     ))}
-                    <span className="text-[10px] text-sky-300/60 ml-1">
+                    <span className="text-[10px] text-muted-foreground ml-1">
                       {currentPromoIndex + 1}/{APP_PROMOS.length}
                     </span>
                   </div>
@@ -661,7 +659,7 @@ const Index: React.FC = () => {
                   {/* Botão de ação (CTA) para a funcionalidade ativa */}
                   <Link
                     to={APP_PROMOS[currentPromoIndex].ctaLink}
-                    className="text-xs font-bold text-sky-300 hover:text-white flex items-center gap-1 cursor-pointer transition-colors no-underline group/cta"
+                    className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer transition-colors no-underline group/cta"
                   >
                     <span>{APP_PROMOS[currentPromoIndex].ctaText}</span>
                     <ArrowRight className="h-3.5 w-3.5 group-hover/cta:translate-x-0.5 transition-transform" />
@@ -669,62 +667,63 @@ const Index: React.FC = () => {
                 </div>
               </div>
 
-              {/* ELEMENTOS DECORATIVOS DE LUZ NO FUNDO */}
-              <div className="absolute -right-8 -top-8 w-44 h-44 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute -left-8 -bottom-8 w-44 h-44 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none" />
+              {/* ELEMENTO DECORATIVO SUAVE NO FUNDO */}
+              <div className="absolute -right-8 -bottom-8 w-44 h-44 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
             </div>
 
-            {/* CARD 2: SOCIAL FINEX (REDE SOCIAL FITNESS) */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#071728] via-[#09253d] to-[#043d56] border-2 border-cyan-400/40 hover:border-cyan-300 shadow-[0_0_25px_rgba(6,182,212,0.18)] hover:shadow-[0_0_40px_rgba(6,182,212,0.28)] p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 group">
+            {/* CARD 2: SOCIAL FINEX (REDE SOCIAL FITNESS) - CORES SUAVES & HARMONIOSAS */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card/95 to-teal-500/[0.05] border border-border/80 hover:border-teal-500/30 p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 shadow-sm group">
               <div className="relative z-10 flex flex-col h-full space-y-3.5">
                 {/* 1. PARTE SUPERIOR DO CARD: BADGE E BOTÃO CONECTAR */}
                 <div className="flex items-center justify-between gap-3">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-xs font-extrabold tracking-wide shadow-sm">
-                    <Flame className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-bold tracking-wide shadow-xs">
+                    <Flame className="h-3.5 w-3.5 text-teal-500" />
                     <span>REDE SOCIAL FITNESS</span>
                   </div>
 
                   <Button
                     type="button"
                     onClick={handleConnectSocial}
-                    className="h-11 sm:h-12 min-w-[130px] sm:min-w-[145px] px-6 sm:px-7 text-sm sm:text-base font-bold tracking-normal gap-2 rounded-xl shadow-lg bg-gradient-to-r from-cyan-500 via-sky-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-white border border-cyan-300/40 transition-all hover:scale-[1.03] cursor-pointer"
+                    className="h-9 sm:h-10 px-5 sm:px-6 text-xs sm:text-sm font-bold tracking-normal gap-2 rounded-xl shadow-xs bg-teal-600 hover:bg-teal-700 text-white transition-all cursor-pointer"
                   >
-                    <Users className="h-4 w-4" /> Conectar
+                    <Users className="h-3.5 w-3.5" /> Conectar
                   </Button>
                 </div>
 
                 {/* 2. TÍTULO E APRESENTAÇÃO DO SOCIAL FINEX */}
                 <div className="space-y-1.5">
-                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white leading-tight">
-                    Social <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-emerald-400 drop-shadow-[0_0_25px_rgba(34,211,238,0.5)]">FINEX</span>
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-foreground leading-tight">
+                    Social <span className="text-teal-600 dark:text-teal-400">FINEX</span>
                   </h2>
-                  <p className="text-xs sm:text-sm text-cyan-100/80 leading-relaxed">
-                    A rede social fitness da Finex feita para quem vive o estilo de vida saudável. Compartilhe sua evolução, tire dúvidas, curta treinos e conecte-se com alunos e profissionais.
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    A rede social fitness feita para quem vive o estilo de vida saudável. Compartilhe sua evolução, tire dúvidas, curta treinos e conecte-se com alunos e profissionais.
                   </p>
                 </div>
 
-                {/* 3. RECURSOS EM DESTAQUE (PILLS MODERNAS) */}
+                {/* 3. RECURSOS EM DESTAQUE (PILLS SUAVES) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
-                  <div className="p-2.5 sm:p-3 rounded-2xl bg-cyan-950/50 border border-cyan-500/30 backdrop-blur-sm flex flex-col justify-center">
-                    <div className="flex items-center gap-1.5 text-cyan-300 font-bold text-xs mb-0.5">
-                      <MessageSquare className="h-3.5 w-3.5 text-cyan-400" /> Feed ao Vivo
+                  <div className="p-2.5 sm:p-3 rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center">
+                    <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5">
+                      <MessageSquare className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                      <span>Feed ao Vivo</span>
                     </div>
-                    <p className="text-[11px] text-cyan-100/60 leading-tight">Postagens de treinos, fotos e rotinas</p>
+                    <p className="text-[11px] text-muted-foreground leading-tight">Postagens de treinos, fotos e rotinas</p>
                   </div>
 
-                  <div className="p-2.5 sm:p-3 rounded-2xl bg-emerald-950/50 border border-emerald-500/30 backdrop-blur-sm flex flex-col justify-center">
-                    <div className="flex items-center gap-1.5 text-emerald-300 font-bold text-xs mb-0.5">
-                      <Flame className="h-3.5 w-3.5 text-emerald-400" /> Comunidade
+                  <div className="p-2.5 sm:p-3 rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center">
+                    <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5">
+                      <Flame className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <span>Comunidade</span>
                     </div>
-                    <p className="text-[11px] text-cyan-100/60 leading-tight">Interação diária com alunos e personais</p>
+                    <p className="text-[11px] text-muted-foreground leading-tight">Interação diária com alunos e personais</p>
                   </div>
                 </div>
 
-                {/* 4. RODAPÉ COM REDIRECIONAMENTO EXPLÍCITO */}
-                <div className="pt-2.5 border-t border-cyan-500/30 flex flex-wrap items-center justify-between gap-3 text-xs mt-auto">
-                  <div className="flex items-center gap-2 text-cyan-200/90 text-xs">
-                    <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-                    <span className="font-medium">
+                {/* 4. RODAPÉ COM REDIRECIONAMENTO */}
+                <div className="pt-2.5 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 text-xs mt-auto">
+                  <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                    <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="font-medium text-foreground">
                       {isAuthenticated ? "Sua conta está conectada!" : "Acesse com sua conta ou cadastre-se"}
                     </span>
                   </div>
@@ -732,7 +731,7 @@ const Index: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleConnectSocial}
-                    className="text-xs font-bold text-cyan-300 hover:text-cyan-100 flex items-center gap-1 cursor-pointer transition-colors"
+                    className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1 cursor-pointer transition-colors"
                   >
                     <span>{isAuthenticated ? "Ir para o Feed da Comunidade" : "Acessar Comunidade Fitness"}</span>
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -740,9 +739,8 @@ const Index: React.FC = () => {
                 </div>
               </div>
 
-              {/* ELEMENTOS DECORATIVOS DE LUZ NO FUNDO */}
-              <div className="absolute -right-8 -top-8 w-44 h-44 bg-cyan-500/25 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute -left-8 -bottom-8 w-44 h-44 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+              {/* ELEMENTO DECORATIVO SUAVE NO FUNDO */}
+              <div className="absolute -right-8 -bottom-8 w-44 h-44 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
             </div>
           </section>
 
