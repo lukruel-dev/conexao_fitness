@@ -525,9 +525,13 @@ export async function listBookingsByProvider(
     const result = Array.from(uniqueMap.values());
     return status ? result.filter((b: any) => b.status === status) : result;
   } catch (err) {
-    console.warn("[Bookings] Fallback to demo bookings for provider:", err);
-    const localBookings = getDemoBookings().filter((b) => b.providerId === providerId);
-    const demoList = localBookings.length > 0 ? localBookings : getDemoBookings();
-    return status ? demoList.filter((b) => b.status === status) : demoList;
+    console.warn("[Bookings] Error fetching bookings for provider:", err);
+    const isImpersonating = localStorage.getItem("cf_impersonation_active") === "true";
+    if (isImpersonating) {
+      const localBookings = getDemoBookings().filter((b) => b.providerId === providerId);
+      const demoList = localBookings.length > 0 ? localBookings : getDemoBookings();
+      return status ? demoList.filter((b) => b.status === status) : demoList;
+    }
+    return [];
   }
 }

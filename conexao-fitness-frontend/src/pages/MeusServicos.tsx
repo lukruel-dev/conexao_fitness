@@ -278,7 +278,7 @@ export default function MeusServicos() {
   ];
 
   const rawOwn = allServices.filter((s: Service) => s.providerId === user.id);
-  const myOwnServices = rawOwn.length > 0 ? rawOwn : (isNutri ? fallbackNutriServices : fallbackPersonalServices);
+  const myOwnServices = rawOwn;
   const myTrainingPlans = myOwnServices.filter((s: Service) => s.type === "PLANO_MENSAL" || s.recurrence);
   const mySingleServices = myOwnServices.filter((s: Service) => s.type !== "PLANO_MENSAL");
 
@@ -299,9 +299,9 @@ export default function MeusServicos() {
   useEffect(() => {
     if (personalProfile) {
       setMethodology(personalProfile.methodology || "");
-      setSelectedSpecialties(personalProfile.specialties || PRESET_SPECIALTIES.slice(0, 4));
-      setSelectedLocations(personalProfile.serviceLocations || PRESET_LOCATIONS.slice(0, 3));
-      setSelectedDefaultBenefits(personalProfile.includedBenefits || SUGGESTED_PLAN_BENEFITS.slice(0, 4));
+      setSelectedSpecialties(personalProfile.specialties || []);
+      setSelectedLocations(personalProfile.serviceLocations || []);
+      setSelectedDefaultBenefits(personalProfile.includedBenefits || []);
       setInstagram(personalProfile.instagram || "");
       setWhatsapp(personalProfile.whatsapp || user.phone || "");
       setGalleryUrls(personalProfile.galleryUrls || []);

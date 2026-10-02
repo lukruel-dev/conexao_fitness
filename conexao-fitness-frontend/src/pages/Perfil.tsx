@@ -39,6 +39,7 @@ import {
   QrCode,
   Trophy,
   Award,
+  RefreshCw,
 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
@@ -75,7 +76,7 @@ const getMaxPlan = (role: string) => {
 };
 
 const Perfil = () => {
-  const { user, logout, setUser } = useAuth();
+  const { user, logout, setUser, refreshUser } = useAuth();
   const navigate = useNavigate();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,6 +85,22 @@ const Perfil = () => {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [isBadgesOpen, setIsBadgesOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"feed" | "settings">("feed");
+  const [isRefreshingStatus, setIsRefreshingStatus] = useState(false);
+
+  // Sincroniza dados e status do usuário ao abrir o perfil
+  useEffect(() => {
+    refreshUser();
+  }, [refreshUser]);
+
+  const handleRefreshKyc = async () => {
+    setIsRefreshingStatus(true);
+    try {
+      await refreshUser();
+      toast.info("Status da conta atualizado com sucesso!");
+    } finally {
+      setIsRefreshingStatus(false);
+    }
+  };
 
   // Estado das postagens do perfil do usuário
   const [userPosts, setUserPosts] = useState<Post[]>([]);
@@ -640,23 +657,38 @@ const Perfil = () => {
                       </div>
                     </div>
 
-                    {/* Badges de Status */}
-                    {user.status === "ATIVO" || user.status === "KYC_APROVADO" ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Credenciado
-                      </span>
-                    ) : user.status === "KYC_REJEITADO" ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-destructive/10 text-destructive border border-destructive/20">
-                        <AlertCircle className="w-3.5 h-3.5" />
-                        Ação Necessária
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                        <Clock className="w-3.5 h-3.5 animate-pulse" />
-                        Em Análise
-                      </span>
-                    )}
+                    {/* Badges de Status e Botão de Sincronização */}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRefreshKyc}
+                        disabled={isRefreshingStatus}
+                        className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground gap-1"
+                        title="Atualizar status de credenciamento"
+                      >
+                        <RefreshCw className={`w-3 h-3 ${isRefreshingStatus ? "animate-spin text-primary" : ""}`} />
+                        <span className="hidden sm:inline">Atualizar</span>
+                      </Button>
+
+                      {user.status === "ATIVO" || user.status === "KYC_APROVADO" ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Credenciado
+                        </span>
+                      ) : user.status === "KYC_REJEITADO" ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-destructive/10 text-destructive border border-destructive/20">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          Ação Necessária
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                          <Clock className="w-3.5 h-3.5 animate-pulse" />
+                          Em Análise
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Detalhes do Documento e Registro Profissional (CREF / CRN) */}

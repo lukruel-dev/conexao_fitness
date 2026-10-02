@@ -96,7 +96,7 @@ const Buscar = () => {
   const [geoLoading, setGeoLoading] = useState(false);
 
   // Controle de Cidade Selecionada para Resultados
-  const [selectedCity, setSelectedCity] = useState(initialCity || "São Paulo - SP");
+  const [selectedCity, setSelectedCity] = useState(initialCity || "Todas as cidades");
   const [customCityInput, setCustomCityInput] = useState("");
   const [gymFilterTab, setGymFilterTab] = useState<"ALL" | "PARTNER" | "EXTERNAL">("ALL");
   const [selectedGymForInvite, setSelectedGymForInvite] = useState<ExternalGym | null>(null);
@@ -126,6 +126,7 @@ const Buscar = () => {
   }, [searchParams]);
 
   const CITIES_PRESETS = [
+    "Todas as cidades",
     "São Paulo - SP",
     "Santa Maria - RS",
     "Porto Alegre - RS",
@@ -134,12 +135,17 @@ const Buscar = () => {
     "Uruguaiana - RS",
   ];
 
+  const isAllCities = !selectedCity || selectedCity === "Todas as cidades";
+
   const requestGeolocation = async (silent = false) => {
     if (coords && !silent) {
       // Se já possui coords ativas e o usuário clicou de novo, desativa
       setCoords(null);
       setRadiusKm(undefined);
-      toast({ title: "Filtro GPS removido", description: `Exibindo resultados da cidade: ${selectedCity}` });
+      toast({
+        title: "Filtro GPS removido",
+        description: isAllCities ? "Exibindo resultados em todo o Brasil" : `Exibindo resultados da cidade: ${selectedCity}`,
+      });
       return;
     }
 
@@ -271,7 +277,7 @@ const Buscar = () => {
     }
   }, []);
 
-  const selectedCityClean = selectedCity.split(" - ")[0].trim();
+  const selectedCityClean = isAllCities ? undefined : selectedCity.split(" - ")[0].trim();
 
   // Busca serviços credenciados Finex via backend
   const { data: services, isLoading } = useQuery({
@@ -323,7 +329,13 @@ const Buscar = () => {
             </h1>
             <div className="flex items-center gap-2 text-muted-foreground text-sm">
               <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
-              <span>{coords ? "Filtrando por proximidade GPS" : `Exibindo resultados em ${selectedCity}`}</span>
+              <span>
+                {coords
+                  ? "Filtrando por proximidade GPS"
+                  : isAllCities
+                  ? "Exibindo resultados em todo o Brasil"
+                  : `Exibindo resultados em ${selectedCity}`}
+              </span>
             </div>
 
             {/* SELETOR RÁPIDO DE CIDADES BRASILEIRAS */}
@@ -651,7 +663,9 @@ const Buscar = () => {
               ) : (
                 <div className="text-center py-10 text-muted-foreground bg-card/40 rounded-2xl border border-dashed border-border/80">
                   <Building2 className="w-8 h-8 mx-auto text-muted-foreground/50 mb-2" />
-                  <p className="font-semibold text-sm">Nenhum serviço credenciado encontrado para {coords ? "esta localização" : selectedCity}.</p>
+                  <p className="font-semibold text-sm">
+                    Nenhum serviço credenciado encontrado para {coords ? "esta localização" : isAllCities ? "sua busca" : selectedCity}.
+                  </p>
                   <p className="text-xs text-muted-foreground mt-1">Veja abaixo as academias reais mapeadas nesta região e ajude a trazê-las para o Finex!</p>
                 </div>
               )}
@@ -665,7 +679,7 @@ const Buscar = () => {
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <h2 className="font-display text-xl font-bold text-foreground">
-                              Academias Parceiras {coords ? "Perto de Você" : `em ${selectedCity}`}
+                              Academias Parceiras {coords ? "Perto de Você" : isAllCities ? "no Brasil" : `em ${selectedCity}`}
                             </h2>
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold">
                               <BadgeCheck className="w-3 h-3" /> Credenciadas Finex

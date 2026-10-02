@@ -7,6 +7,12 @@ import { Service } from '../services/entities/service.entity';
 import { Subscription } from '../payments/entities/subscription.entity';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 
+import { PersonalProfile } from '../users/entities/personal-profile.entity';
+import { AlunoProfile } from '../users/entities/aluno-profile.entity';
+import { AcademiaProfile } from '../users/entities/academia-profile.entity';
+import { AuthService } from '../auth/auth.service';
+import { EmailService } from '../notifications/email.service';
+
 describe('AdminService', () => {
   let service: AdminService;
 
@@ -44,6 +50,18 @@ describe('AdminService', () => {
   const mockSubscriptionsRepo = {
     count: jest.fn(),
   };
+  const mockProfileRepo = {
+    findOne: jest.fn(),
+    save: jest.fn(),
+    create: jest.fn(),
+  };
+  const mockAuthService = {};
+  const mockEmailService = {
+    sendKycApprovedEmail: jest.fn().mockResolvedValue(undefined),
+    sendKycRejectedEmail: jest.fn().mockResolvedValue(undefined),
+    sendAccountSuspendedEmail: jest.fn().mockResolvedValue(undefined),
+    sendAccountReactivatedEmail: jest.fn().mockResolvedValue(undefined),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -53,6 +71,11 @@ describe('AdminService', () => {
         { provide: getRepositoryToken(Booking), useValue: mockBookingsRepo },
         { provide: getRepositoryToken(Service), useValue: mockServicesRepo },
         { provide: getRepositoryToken(Subscription), useValue: mockSubscriptionsRepo },
+        { provide: getRepositoryToken(PersonalProfile), useValue: mockProfileRepo },
+        { provide: getRepositoryToken(AlunoProfile), useValue: mockProfileRepo },
+        { provide: getRepositoryToken(AcademiaProfile), useValue: mockProfileRepo },
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: EmailService, useValue: mockEmailService },
       ],
     }).compile();
 

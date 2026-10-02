@@ -124,8 +124,12 @@ const PRESET_PATIENTS = [
 
 export default function AgendaProfissional() {
   const qc = useQueryClient();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, refreshUser } = useAuth();
   const [status, setStatus] = useState<BookingStatus | "">("");
+
+  useEffect(() => {
+    refreshUser();
+  }, [refreshUser]);
   const [chatBooking, setChatBooking] = useState<{ id: string; name?: string } | null>(null);
   const [readChats, setReadChats] = useState<Set<string>>(new Set());
   const [searchParams, setSearchParams] = useSearchParams();

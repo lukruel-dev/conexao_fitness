@@ -95,35 +95,10 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
   const isNutri = lowerName.includes('camila') || lowerTitle.includes('nutri');
   const isFisio = lowerName.includes('rodrigo') || lowerTitle.includes('fisio');
 
-  const singleSessions: Service[] = singleSessionsRaw.length > 0 ? singleSessionsRaw : [
-    {
-      id: `session-${profile.id}-1`,
-      providerId: profile.id,
-      providerType: 'PERSONAL',
-      unitId: null,
-      name: isNutri
-        ? 'Consulta Nutricional Esportiva + Bioimpedância'
-        : isFisio
-        ? 'Sessão de Fisioterapia & Liberação Miofascial'
-        : 'Treino Personalizado Individual (60 min)',
-      description: isNutri
-        ? 'Avaliação da composição corporal por bioimpedância, plano alimentar individualizado e orientação de suplementação.'
-        : isFisio
-        ? 'Alívio de dores musculares, liberação miofascial instrumental e recuperação biomecânica acelerada.'
-        : 'Treino presencial individual de 60 minutos com acompanhamento biomecânico em tempo real.',
-      modality: profile.professionTitle || 'Atendimento Individual',
-      durationMinutes: isFisio ? 50 : 60,
-      type: 'SESSAO',
-      price: isNutri ? '140.00' : isFisio ? '135.00' : '75.00',
-      currency: 'BRL',
-      isActive: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-  ];
+  const singleSessions: Service[] = singleSessionsRaw;
 
-  // Fallback de planos se ainda não cadastrou
-  const displayPlans: Service[] = trainingPlans.length > 0 ? trainingPlans : [
+  const displayPlans: Service[] = trainingPlans;
+  /* const unusedPlans = [
     {
       id: 'plan-default-1',
       providerId: profile.id,
@@ -239,63 +214,17 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
         'Parcelamento em até 12x de R$ 100,00 sem juros',
       ],
     },
-  ];
+  ]; */
 
-  const specialties = (profile.specialties && profile.specialties.length > 0)
-    ? profile.specialties
-    : isNutri
-    ? ['Nutrição Esportiva', 'Emagrecimento & Definição', 'Bioimpedância', 'Hipertrofia Muscular', 'Suplementação Avançada']
-    : isFisio
-    ? ['Fisioterapia Desportiva', 'Liberação Miofascial', 'Osteopatia', 'Reabilitação de Lesões', 'Coluna & Postura']
-    : ['Hipertrofia Muscular', 'Emagrecimento & Definição', 'Consultoria Online', 'Biomecânica & Postura', 'Treinamento Funcional'];
+  const specialties = profile.specialties || [];
 
-  const serviceLocations = (profile.serviceLocations && profile.serviceLocations.length > 0)
-    ? profile.serviceLocations
-    : isNutri
-    ? ['Consultório Presencial em Uruguaiana', 'Consultoria Online pelo App Finex']
-    : isFisio
-    ? ['Clínica Presencial em Uruguaiana', 'Atendimento em Academias Parceiras Cadastradas']
-    : ['Online / Remoto pelo App Finex', 'Academias Parceiras Cadastradas', 'Atendimento a Domicílio / Condomínio'];
+  const serviceLocations = profile.serviceLocations || [];
 
-  const includedBenefits = (profile.includedBenefits && profile.includedBenefits.length > 0)
-    ? profile.includedBenefits
-    : isNutri
-    ? [
-        'Plano Alimentar Individualizado no App Finex',
-        'Avaliação de Bioimpedância com Gráficos de Evolução',
-        'Suporte e Dúvidas pelo Chat do App Finex',
-        'Orientação de Suplementação Estratégica',
-      ]
-    : isFisio
-    ? [
-        'Avaliação Postural e Biomecânica Detalhada',
-        'Liberação Miofascial Instrumental',
-        'Protocolo de Fortalecimento no App Finex',
-        'Suporte e Prevenção Contínua de Dores',
-      ]
-    : [
-        'Ficha de Treino Personalizada no App Finex',
-        'Ajustes Semanais de Carga e Volume',
-        'Suporte e Dúvidas pelo Chat do App Finex',
-        'Vídeos demonstrativos de execução dos exercícios',
-        'Avaliação Física por Bioimpedância e Dobras',
-      ];
+  const includedBenefits = profile.includedBenefits || [];
 
-  const methodology = profile.methodology ||
-    (isNutri
-      ? 'Elaboração de planos alimentares 100% individualizados baseados na rotina, preferências e exames do paciente. Foco em equilíbrio de macronutrientes, sem dietas restritivas insustentáveis, garantindo adesão e saúde de longo prazo.'
-      : isFisio
-      ? 'Diagnóstico biomecânico preciso e tratamento focado na causa raiz da dor ou lesão, combinando terapia manual, osteopatia e exercícios terapêuticos para devolver sua performance e qualidade de vida.'
-      : 'Metodologia fundamentada na ciência do exercício e biomecânica aplicada. Cada aluno passa por uma análise de perfil e objetivos para elaboração de uma periodização individualizada, garantindo segurança articular, progressão constante de cargas e resultados consistentes.');
+  const methodology = profile.methodology || '';
 
-  const gallery = (profile.galleryUrls && profile.galleryUrls.length > 0)
-    ? profile.galleryUrls
-    : [
-        'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=800&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=800&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=800&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1549060279-7e168fcee0c2?q=80&w=800&auto=format&fit=crop',
-      ];
+  const gallery = profile.galleryUrls || [];
 
   const handleHirePlan = (plan: Service) => {
     setSelectedPlanForContact(plan);
@@ -586,6 +515,22 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
             )}
           </div>
 
+          {displayPlans.length === 0 ? (
+            <div className="py-12 px-6 rounded-3xl border border-dashed border-border/80 text-center bg-card/30 space-y-3">
+              <CreditCard className="w-10 h-10 mx-auto text-muted-foreground/50" />
+              <h4 className="font-display font-bold text-base text-foreground">Nenhum plano cadastrado no momento</h4>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                Este profissional ainda não disponibilizou planos ou consultorias públicas para contratação imediata.
+              </p>
+              {isOwnProfile && (
+                <Button size="sm" variant="default" className="mt-2 rounded-xl font-bold gap-1.5" asChild>
+                  <Link to="/meus-servicos">
+                    <Plus className="w-4 h-4" /> Cadastrar Meu Primeiro Plano
+                  </Link>
+                </Button>
+              )}
+            </div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayPlans.map((plan, idx) => {
               const isPopular = idx === 0 || plan.name.toLowerCase().includes('premium') || plan.name.toLowerCase().includes('trimestral');
@@ -711,6 +656,7 @@ export const PersonalProfileView: React.FC<PersonalProfileViewProps> = ({
               );
             })}
           </div>
+          )}
         </div>
       )}
 

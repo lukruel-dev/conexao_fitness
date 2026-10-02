@@ -105,19 +105,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("cf:unauthorized", onUnauthorized);
   }, []);
 
-  // Revalida sessão contra /auth/me ao montar (se houver token salvo e NÃO estiver em modo teste).
+  // Revalida sessão contra /auth/me ao montar, no foco da janela e periodicamente se pendente KYC
   useEffect(() => {
     const isTesting = localStorage.getItem("cf_impersonation_active") === "true";
     if (isTesting) return;
 
     const token = localStorage.getItem(AUTH_TOKEN_KEY);
     if (!token) return;
-    fetchMe()
-      .then((fresh) => setUser(fresh))
-      .catch(() => {
-        // 401 já dispara cf:unauthorized via apiClient
-      });
-  }, []);
+
+    const checkMe = () => {
+      fetchMe()
+        .then((fresh) => {
+          if (fresh) setUser(fresh);
+        })
+        .catch(() => {});
+    };
+
+    checkMe();
+
+    let interval: any = null;
+    if (user?.status === "PENDENTE_KYC") {
+      interval = setInterval(checkMe, 15000);
+    }
+
+    const onFocus = () => checkMe();
+    window.addEventListener("focus", onFocus);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") checkMe();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      if (interval) clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [user?.status]);
 
   const startImpersonation = useCallback(async (targetRole: DemoPersonaRole) => {
     const currentToken = localStorage.getItem(AUTH_TOKEN_KEY);

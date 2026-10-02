@@ -10,6 +10,7 @@ import { PersonalProfile } from '../users/entities/personal-profile.entity';
 import { AlunoProfile } from '../users/entities/aluno-profile.entity';
 import { AcademiaProfile } from '../users/entities/academia-profile.entity';
 import { AuthService } from '../auth/auth.service';
+import { EmailService } from '../notifications/email.service';
 
 @Injectable()
 export class AdminService {
@@ -29,6 +30,7 @@ export class AdminService {
     @InjectRepository(AcademiaProfile)
     private readonly academiaProfileRepo: Repository<AcademiaProfile>,
     private readonly authService: AuthService,
+    private readonly emailService: EmailService,
   ) {}
 
   async approveKyc(userId: string): Promise<User> {
@@ -38,7 +40,16 @@ export class AdminService {
     }
     user.status = 'ATIVO';
     user.kycRejectionReason = null as any;
-    return this.usersRepo.save(user);
+    const saved = await this.usersRepo.save(user);
+
+    // Enviar e-mail de notificação de aprovação
+    if (user.email) {
+      this.emailService.sendKycApprovedEmail(user.email, user.name).catch((err) => {
+        console.error(`Erro ao disparar e-mail de aprovação para ${user.email}:`, err);
+      });
+    }
+
+    return saved;
   }
 
   async rejectKyc(userId: string, reason: string): Promise<User> {
@@ -48,7 +59,16 @@ export class AdminService {
     }
     user.status = 'KYC_REJEITADO'; 
     user.kycRejectionReason = reason;
-    return this.usersRepo.save(user);
+    const saved = await this.usersRepo.save(user);
+
+    // Enviar e-mail de notificação com motivo da rejeição
+    if (user.email) {
+      this.emailService.sendKycRejectedEmail(user.email, user.name, reason).catch((err) => {
+        console.error(`Erro ao disparar e-mail de rejeição para ${user.email}:`, err);
+      });
+    }
+
+    return saved;
   }
 
   async bulkApproveKyc(userIds: string[]): Promise<{ success: boolean; count: number; message: string }> {
@@ -66,6 +86,14 @@ export class AdminService {
       u.kycRejectionReason = null as any;
     }
     await this.usersRepo.save(users);
+
+    // Disparar e-mail para todos os aprovados em lote
+    for (const u of users) {
+      if (u.email) {
+        this.emailService.sendKycApprovedEmail(u.email, u.name).catch(() => {});
+      }
+    }
+
     return { success: true, count: users.length, message: `${users.length} usuário(s) aprovado(s) com sucesso.` };
   }
 
@@ -84,6 +112,13 @@ export class AdminService {
       u.status = 'SUSPENSO';
     }
     await this.usersRepo.save(users);
+
+    for (const u of users) {
+      if (u.email) {
+        this.emailService.sendAccountSuspendedEmail(u.email, u.name).catch(() => {});
+      }
+    }
+
     return { success: true, count: users.length, message: `${users.length} usuário(s) suspenso(s) com sucesso.` };
   }
 
@@ -98,6 +133,13 @@ export class AdminService {
       u.status = 'ATIVO';
     }
     await this.usersRepo.save(users);
+
+    for (const u of users) {
+      if (u.email) {
+        this.emailService.sendAccountReactivatedEmail(u.email, u.name).catch(() => {});
+      }
+    }
+
     return { success: true, count: users.length, message: `${users.length} usuário(s) reativado(s) com sucesso.` };
   }
 

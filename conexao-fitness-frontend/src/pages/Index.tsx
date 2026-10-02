@@ -131,6 +131,19 @@ const Index: React.FC = () => {
     }
   };
 
+  const handleConnectSocial = () => {
+    if (isAuthenticated) {
+      const el = document.getElementById("comunidade");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        navigate("/#comunidade");
+      }
+    } else {
+      navigate("/login?redirect=/#comunidade");
+    }
+  };
+
   // Smooth scroll para âncoras se houver
   useEffect(() => {
     if (!hash) return;
@@ -200,216 +213,222 @@ const Index: React.FC = () => {
 
       <main className="flex-1 pt-28 sm:pt-32 pb-16">
         <div className="container mx-auto px-4 max-w-7xl">
-          {/* BANNER BOAS-VINDAS & BUSCA RÁPIDA */}
-          <section className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-r from-card via-card/90 to-primary/10 border border-primary/20 p-6 sm:p-8 shadow-sm">
-            <div className="relative z-10 max-w-3xl space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary text-xs font-bold tracking-wide">
-                <Sparkles className="h-3.5 w-3.5" /> O Ponto de Encontro Fitness do Brasil
-              </div>
-
-              <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground leading-tight">
-                Conecte-se com as <span className="text-primary underline decoration-primary/40">Melhores Academias</span>, Profissionais e a Comunidade
-              </h1>
-
-              <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
-                Descubra treinos, tire dúvidas, compartilhe sua evolução, adquira Day Passes e agende sessões com profissionais credenciados.
-              </p>
-
-              {/* BARRA DE BUSCA GLOBAL RÁPIDA COM AUTOCOMPLETE / PREVIEW */}
-              <div ref={searchContainerRef} className="relative max-w-xl pt-2">
-                <form
-                  onSubmit={handleSearchSubmit}
-                  className="flex flex-col sm:flex-row gap-2"
-                >
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar treinos, profissionais, academias ou cidades..."
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setIsDropdownOpen(true);
-                      }}
-                      onFocus={() => {
-                        setIsDropdownOpen(true);
-                        if (window.scrollY < 200) {
-                          window.scrollTo({ top: 0, behavior: "instant" });
-                        }
-                      }}
-                      className="pl-10 pr-9 h-11 text-xs sm:text-sm rounded-xl bg-background/90 border-border/80 shadow-inner focus-visible:ring-primary/50"
-                    />
-                    {searchQuery && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSearchQuery("");
-                          setIsDropdownOpen(false);
-                          fetchFeed();
-                        }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 rounded-full cursor-pointer"
-                        aria-label="Limpar campo de busca"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    )}
+          {/* SEÇÃO SUPERIOR: DOIS CARDS LADO A LADO (BUSCA & SOCIAL FINEX) */}
+          <section className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* CARD 1: BUSCA & CATÁLOGO */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card/95 to-primary/5 border border-primary/20 p-6 sm:p-7 shadow-sm flex flex-col justify-between group hover:border-primary/40 transition-all duration-300">
+              <div className="relative z-10 flex flex-col h-full space-y-4">
+                {/* 1. PARTE SUPERIOR DO CARD: BOTÃO BUSCAR AZUL */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+                      <Search className="h-4 w-4" />
+                    </div>
+                    <span className="text-xs font-bold text-foreground uppercase tracking-wider">
+                      Busca Rápida Finex
+                    </span>
                   </div>
+
                   <Button
                     type="submit"
-                    className="h-11 px-6 text-xs sm:text-sm font-bold gap-1.5 rounded-xl shadow-md bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 cursor-pointer"
+                    form="hero-search-form"
+                    className="h-10 px-5 text-xs sm:text-sm font-bold gap-1.5 rounded-xl shadow-md bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 cursor-pointer transition-all hover:scale-[1.02]"
                   >
                     <Search className="h-4 w-4" /> Buscar
                   </Button>
-                </form>
+                </div>
 
-                {/* DROPDOWN FLUTUANTE DE RESULTADOS INSTANTÂNEOS */}
-                {isDropdownOpen && queryLower.length >= 1 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl bg-card/95 backdrop-blur-xl border border-border/80 shadow-2xl overflow-hidden animate-in fade-in-50 slide-in-from-top-2">
-                    <div className="max-h-80 overflow-y-auto divide-y divide-border/40 p-2 text-xs">
-                      {/* Academias */}
-                      {matchingGyms.length > 0 && (
-                        <div className="py-2 px-1">
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-2 block mb-1">
-                            🏢 Academias & Estúdios
-                          </span>
-                          {matchingGyms.map((gym) => (
-                            <Link
-                              key={gym.id}
-                              to={`/perfil/${gym.providerId || gym.id}`}
-                              onClick={() => setIsDropdownOpen(false)}
-                              className="flex items-center justify-between p-2 rounded-xl hover:bg-muted/70 transition-colors group cursor-pointer"
-                            >
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                                  <Building2 className="h-4 w-4" />
-                                </div>
-                                <div className="truncate">
-                                  <p className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                                    {gym.providerName || gym.name}
-                                  </p>
-                                  <p className="text-[11px] text-muted-foreground truncate">
-                                    {gym.city || "Uruguaiana - RS"} • {gym.modality || "Day Pass & Musculação"}
-                                  </p>
-                                </div>
-                              </div>
-                              <span className="text-primary font-bold text-xs shrink-0 pl-2">
-                                {formatBRL(gym.price)}
-                              </span>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Profissionais */}
-                      {matchingPros.length > 0 && (
-                        <div className="py-2 px-1">
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-2 block mb-1">
-                            🏋️‍♂️ Profissionais
-                          </span>
-                          {matchingPros.map((pro) => (
-                            <Link
-                              key={pro.id}
-                              to={`/perfil/${pro.providerId || pro.id}`}
-                              onClick={() => setIsDropdownOpen(false)}
-                              className="flex items-center justify-between p-2 rounded-xl hover:bg-muted/70 transition-colors group cursor-pointer"
-                            >
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <div className="h-8 w-8 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-                                  <Dumbbell className="h-4 w-4" />
-                                </div>
-                                <div className="truncate">
-                                  <p className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                                    {pro.providerName || pro.name}
-                                  </p>
-                                  <p className="text-[11px] text-muted-foreground truncate">
-                                    {pro.professionTitle || pro.modality || "Personal Trainer"} • {pro.city || "Uruguaiana - RS"}
-                                  </p>
-                                </div>
-                              </div>
-                              <span className="text-foreground font-semibold text-xs shrink-0 pl-2">
-                                {formatBRL(pro.price)} / sessão
-                              </span>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Treinos & Serviços */}
-                      {matchingServices.length > 0 && (
-                        <div className="py-2 px-1">
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-2 block mb-1">
-                            ⚡ Treinos & Serviços
-                          </span>
-                          {matchingServices.map((svc) => (
-                            <Link
-                              key={svc.id}
-                              to={`/servico/${svc.id}`}
-                              onClick={() => setIsDropdownOpen(false)}
-                              className="flex items-center justify-between p-2 rounded-xl hover:bg-muted/70 transition-colors group cursor-pointer"
-                            >
-                              <div className="truncate">
-                                <p className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                                  {svc.name}
-                                </p>
-                                <p className="text-[11px] text-muted-foreground truncate">
-                                  {svc.modality}
-                                </p>
-                              </div>
-                              <span className="text-primary font-bold text-xs shrink-0 pl-2">
-                                {formatBRL(svc.price)}
-                              </span>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-
-                      {!hasAnyMatches && (
-                        <div className="p-4 text-center text-muted-foreground">
-                          <p className="text-xs">
-                            Pressione <strong>Enter</strong> ou clique em <strong>Buscar</strong> para pesquisar "<em>{searchQuery}</em>" no catálogo completo.
-                          </p>
-                        </div>
+                {/* 2. LOGO ABAIXO: CAMPO DE PREENCHIMENTO */}
+                <div ref={searchContainerRef} className="relative w-full">
+                  <form
+                    id="hero-search-form"
+                    onSubmit={handleSearchSubmit}
+                    className="w-full"
+                  >
+                    <div className="relative">
+                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Buscar treinos, profissionais, academias ou cidades..."
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          setIsDropdownOpen(true);
+                        }}
+                        onFocus={() => {
+                          setIsDropdownOpen(true);
+                          if (window.scrollY < 200) {
+                            window.scrollTo({ top: 0, behavior: "instant" });
+                          }
+                        }}
+                        className="pl-10 pr-9 h-11 text-xs sm:text-sm rounded-xl bg-background/90 border-border/80 shadow-inner focus-visible:ring-primary/50"
+                      />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSearchQuery("");
+                            setIsDropdownOpen(false);
+                            fetchFeed();
+                          }}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 rounded-full cursor-pointer"
+                          aria-label="Limpar campo de busca"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
                       )}
                     </div>
+                  </form>
 
-                    {/* BOTÃO VER TODOS */}
-                    <div className="p-2.5 bg-muted/40 border-t border-border/50 flex items-center justify-between">
-                      <span className="text-[11px] text-muted-foreground">
-                        Catálogo completo com mapa e filtros
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleSearchSubmit()}
-                        className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1 cursor-pointer transition-colors"
-                      >
-                        Ver todos os resultados <ArrowRight className="h-3.5 w-3.5" />
-                      </button>
+                  {/* DROPDOWN FLUTUANTE DE RESULTADOS INSTANTÂNEOS */}
+                  {isDropdownOpen && queryLower.length >= 1 && (
+                    <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl bg-card/95 backdrop-blur-xl border border-border/80 shadow-2xl overflow-hidden animate-in fade-in-50 slide-in-from-top-2">
+                      <div className="max-h-72 overflow-y-auto divide-y divide-border/40 p-2 text-xs">
+                        {/* Academias */}
+                        {matchingGyms.length > 0 && (
+                          <div className="py-2 px-1">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-2 block mb-1">
+                              🏢 Academias & Estúdios
+                            </span>
+                            {matchingGyms.map((gym) => (
+                              <Link
+                                key={gym.id}
+                                to={`/perfil/${gym.providerId || gym.id}`}
+                                onClick={() => setIsDropdownOpen(false)}
+                                className="flex items-center justify-between p-2 rounded-xl hover:bg-muted/70 transition-colors group cursor-pointer"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                    <Building2 className="h-4 w-4" />
+                                  </div>
+                                  <div className="truncate">
+                                    <p className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                                      {gym.providerName || gym.name}
+                                    </p>
+                                    <p className="text-[11px] text-muted-foreground truncate">
+                                      {gym.city || "Uruguaiana - RS"} • {gym.modality || "Day Pass & Musculação"}
+                                    </p>
+                                  </div>
+                                </div>
+                                <span className="text-primary font-bold text-xs shrink-0 pl-2">
+                                  {formatBRL(gym.price)}
+                                </span>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Profissionais */}
+                        {matchingPros.length > 0 && (
+                          <div className="py-2 px-1">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-2 block mb-1">
+                              🏋️‍♂️ Profissionais
+                            </span>
+                            {matchingPros.map((pro) => (
+                              <Link
+                                key={pro.id}
+                                to={`/perfil/${pro.providerId || pro.id}`}
+                                onClick={() => setIsDropdownOpen(false)}
+                                className="flex items-center justify-between p-2 rounded-xl hover:bg-muted/70 transition-colors group cursor-pointer"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className="h-8 w-8 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+                                    <Dumbbell className="h-4 w-4" />
+                                  </div>
+                                  <div className="truncate">
+                                    <p className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                                      {pro.providerName || pro.name}
+                                    </p>
+                                    <p className="text-[11px] text-muted-foreground truncate">
+                                      {pro.professionTitle || pro.modality || "Personal Trainer"} • {pro.city || "Uruguaiana - RS"}
+                                    </p>
+                                  </div>
+                                </div>
+                                <span className="text-foreground font-semibold text-xs shrink-0 pl-2">
+                                  {formatBRL(pro.price)} / sessão
+                                </span>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Treinos & Serviços */}
+                        {matchingServices.length > 0 && (
+                          <div className="py-2 px-1">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-2 block mb-1">
+                              ⚡ Treinos & Serviços
+                            </span>
+                            {matchingServices.map((svc) => (
+                              <Link
+                                key={svc.id}
+                                to={`/servico/${svc.id}`}
+                                onClick={() => setIsDropdownOpen(false)}
+                                className="flex items-center justify-between p-2 rounded-xl hover:bg-muted/70 transition-colors group cursor-pointer"
+                              >
+                                <div className="truncate">
+                                  <p className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+                                    {svc.name}
+                                  </p>
+                                  <p className="text-[11px] text-muted-foreground truncate">
+                                    {svc.modality}
+                                  </p>
+                                </div>
+                                <span className="text-primary font-bold text-xs shrink-0 pl-2">
+                                  {formatBRL(svc.price)}
+                                </span>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+
+                        {!hasAnyMatches && (
+                          <div className="p-4 text-center text-muted-foreground">
+                            <p className="text-xs">
+                              Pressione <strong>Enter</strong> ou clique em <strong>Buscar</strong> para pesquisar "<em>{searchQuery}</em>" no catálogo completo.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* BOTÃO VER TODOS */}
+                      <div className="p-2.5 bg-muted/40 border-t border-border/50 flex items-center justify-between">
+                        <span className="text-[11px] text-muted-foreground">
+                          Catálogo completo com mapa e filtros
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleSearchSubmit()}
+                          className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          Ver todos os resultados <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
-                {/* ATALHOS RÁPIDOS DE CATEGORIAS POPULARES */}
-                <div className="flex flex-wrap items-center gap-1.5 pt-2 text-xs">
+                {/* 3. LOGO ABAIXO: LINKS MAIS POPULARES */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
                   <span className="text-muted-foreground font-semibold text-[11px] mr-0.5 flex items-center gap-1">
                     <Sparkles className="h-3 w-3 text-primary" /> Populares:
                   </span>
                   <button
                     type="button"
                     onClick={() => navigate("/buscar?providerType=ACADEMIA")}
-                    className="px-2.5 py-1 rounded-full bg-card/70 hover:bg-primary/15 hover:text-primary border border-border/70 hover:border-primary/40 transition-all text-[11px] font-medium flex items-center gap-1 cursor-pointer shadow-2xs"
+                    className="px-2.5 py-1 rounded-full bg-card/80 hover:bg-primary/15 hover:text-primary border border-border/70 hover:border-primary/40 transition-all text-[11px] font-medium flex items-center gap-1 cursor-pointer shadow-2xs"
                   >
                     <Building2 className="h-3 w-3 text-primary" /> Academias & Day Pass
                   </button>
                   <button
                     type="button"
                     onClick={() => navigate("/buscar?providerType=PERSONAL&modality=Personal")}
-                    className="px-2.5 py-1 rounded-full bg-card/70 hover:bg-primary/15 hover:text-primary border border-border/70 hover:border-primary/40 transition-all text-[11px] font-medium flex items-center gap-1 cursor-pointer shadow-2xs"
+                    className="px-2.5 py-1 rounded-full bg-card/80 hover:bg-primary/15 hover:text-primary border border-border/70 hover:border-primary/40 transition-all text-[11px] font-medium flex items-center gap-1 cursor-pointer shadow-2xs"
                   >
                     <Dumbbell className="h-3 w-3 text-primary" /> Personal Trainers
                   </button>
                   <button
                     type="button"
                     onClick={() => navigate("/buscar?providerType=PERSONAL&modality=Nutri")}
-                    className="px-2.5 py-1 rounded-full bg-card/70 hover:bg-primary/15 hover:text-primary border border-border/70 hover:border-primary/40 transition-all text-[11px] font-medium flex items-center gap-1 cursor-pointer shadow-2xs"
+                    className="px-2.5 py-1 rounded-full bg-card/80 hover:bg-primary/15 hover:text-primary border border-border/70 hover:border-primary/40 transition-all text-[11px] font-medium flex items-center gap-1 cursor-pointer shadow-2xs"
                   >
                     <Utensils className="h-3 w-3 text-primary" /> Nutricionistas
                   </button>
@@ -419,16 +438,109 @@ const Index: React.FC = () => {
                       const el = document.getElementById("comunidade");
                       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
                     }}
-                    className="px-2.5 py-1 rounded-full bg-card/70 hover:bg-primary/15 hover:text-primary border border-border/70 hover:border-primary/40 transition-all text-[11px] font-medium flex items-center gap-1 cursor-pointer shadow-2xs"
+                    className="px-2.5 py-1 rounded-full bg-card/80 hover:bg-primary/15 hover:text-primary border border-border/70 hover:border-primary/40 transition-all text-[11px] font-medium flex items-center gap-1 cursor-pointer shadow-2xs"
                   >
                     <MessageSquare className="h-3 w-3 text-primary" /> Fórum & Dúvidas
                   </button>
                 </div>
+
+                {/* 4. E SÓ DEPOIS OS TEXTOS */}
+                <div className="pt-4 border-t border-border/50 space-y-2 mt-auto">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary text-xs font-bold tracking-wide">
+                    <Sparkles className="h-3.5 w-3.5" /> O Ponto de Encontro Fitness do Brasil
+                  </div>
+
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-foreground leading-snug">
+                    Conecte-se com as <span className="text-primary underline decoration-primary/40">Melhores Academias</span>, Profissionais e a Comunidade
+                  </h1>
+
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    Descubra treinos, tire dúvidas, compartilhe sua evolução, adquira Day Passes e agende sessões com profissionais credenciados.
+                  </p>
+                </div>
               </div>
+
+              {/* ELEMENTO DECORATIVO DE FUNDO */}
+              <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
             </div>
 
-            {/* ELEMENTO DECORATIVO DE FUNDO */}
-            <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+            {/* CARD 2: SOCIAL FINEX (REDE SOCIAL FITNESS) */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#071728] via-[#09253d] to-[#043d56] border-2 border-cyan-400/40 hover:border-cyan-300 shadow-[0_0_25px_rgba(6,182,212,0.18)] hover:shadow-[0_0_40px_rgba(6,182,212,0.28)] p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 group">
+              <div className="relative z-10 flex flex-col h-full space-y-4">
+                {/* 1. PARTE SUPERIOR DO CARD: BADGE E BOTÃO CONECTAR */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-xs font-extrabold tracking-wide shadow-sm">
+                    <Flame className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />
+                    <span>REDE SOCIAL FITNESS</span>
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={handleConnectSocial}
+                    className="h-10 px-6 text-xs sm:text-sm font-bold gap-2 rounded-xl shadow-lg bg-gradient-to-r from-cyan-500 via-sky-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-white font-display border border-cyan-300/40 transition-all hover:scale-[1.03] cursor-pointer"
+                  >
+                    <Users className="h-4 w-4" /> Conectar
+                  </Button>
+                </div>
+
+                {/* 2. TÍTULO E APRESENTAÇÃO DO SOCIAL FINEX */}
+                <div className="space-y-2">
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white leading-tight">
+                    Social <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-emerald-400 drop-shadow-[0_0_25px_rgba(34,211,238,0.5)]">FINEX</span>
+                  </h2>
+                  <p className="text-xs sm:text-sm text-cyan-100/80 leading-relaxed">
+                    A rede social fitness da Finex feita para quem vive o estilo de vida saudável. Compartilhe sua evolução, tire dúvidas no fórum, curta treinos e conecte-se com alunos e profissionais.
+                  </p>
+                </div>
+
+                {/* 3. RECURSOS EM DESTAQUE (PILLS MODERNAS) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                  <div className="p-3 rounded-2xl bg-cyan-950/50 border border-cyan-500/30 backdrop-blur-sm flex flex-col justify-center">
+                    <div className="flex items-center gap-1.5 text-cyan-300 font-bold text-xs mb-0.5">
+                      <MessageSquare className="h-3.5 w-3.5 text-cyan-400" /> Feed ao Vivo
+                    </div>
+                    <p className="text-[11px] text-cyan-100/60 leading-tight">Postagens de treinos, fotos e rotinas</p>
+                  </div>
+
+                  <div className="p-3 rounded-2xl bg-sky-950/50 border border-sky-500/30 backdrop-blur-sm flex flex-col justify-center">
+                    <div className="flex items-center gap-1.5 text-sky-300 font-bold text-xs mb-0.5">
+                      <Sparkles className="h-3.5 w-3.5 text-sky-400" /> Fórum & Dúvidas
+                    </div>
+                    <p className="text-[11px] text-cyan-100/60 leading-tight">Respostas diretas de profissionais</p>
+                  </div>
+
+                  <div className="p-3 rounded-2xl bg-emerald-950/50 border border-emerald-500/30 backdrop-blur-sm flex flex-col justify-center">
+                    <div className="flex items-center gap-1.5 text-emerald-300 font-bold text-xs mb-0.5">
+                      <Flame className="h-3.5 w-3.5 text-emerald-400" /> Comunidade
+                    </div>
+                    <p className="text-[11px] text-cyan-100/60 leading-tight">Interação diária com alunos e personais</p>
+                  </div>
+                </div>
+
+                {/* 4. RODAPÉ COM REDIRECIONAMENTO EXPLÍCITO */}
+                <div className="pt-3 border-t border-cyan-500/30 flex flex-wrap items-center justify-between gap-3 text-xs mt-auto">
+                  <div className="flex items-center gap-2 text-cyan-200/90 text-xs">
+                    <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                    <span className="font-medium">
+                      {isAuthenticated ? "Sua conta está conectada!" : "Acesse com sua conta ou cadastre-se"}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleConnectSocial}
+                    className="text-xs font-bold text-cyan-300 hover:text-cyan-100 flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <span>{isAuthenticated ? "Ir para o Feed da Comunidade" : "Acessar Feed & Fórum"}</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* ELEMENTOS DECORATIVOS DE LUZ NO FUNDO */}
+              <div className="absolute -right-8 -top-8 w-44 h-44 bg-cyan-500/25 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -left-8 -bottom-8 w-44 h-44 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+            </div>
           </section>
 
           {/* 🌟 DESTAQUES DE ACADEMIAS & PROFISSIONAIS (MANTIDOS E ENRIQUECIDOS) */}

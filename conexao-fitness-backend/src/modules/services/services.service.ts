@@ -103,7 +103,7 @@ export class ServicesService {
     if (query?.city) {
       const cityPattern = `%${query.city.trim().toLowerCase()}%`;
       qb.andWhere(
-        '(LOWER(service.locationCity) LIKE :city OR LOWER(provider.cityBase) LIKE :city OR LOWER(personalProfile.city) LIKE :city OR LOWER(academiaProfile.city) LIKE :city OR LOWER(partnerGymProfile.city) LIKE :city OR service.attendanceType = :onlineAttendance)',
+        '(LOWER(service.locationCity) LIKE :city OR LOWER(provider.cityBase) LIKE :city OR LOWER(academiaProfile.city) LIKE :city OR LOWER(partnerGymProfile.city) LIKE :city OR service.attendanceType = :onlineAttendance)',
         { city: cityPattern, onlineAttendance: AttendanceType.ONLINE },
       );
     }
@@ -202,7 +202,7 @@ export class ServicesService {
     
     const { entities, raw } = await qb.getRawAndEntities();
 
-    return entities.map((entity, index) => {
+    const results = entities.map((entity, index) => {
       const rawData = raw[index];
       const premium = rawData.premiumBoost ? parseInt(rawData.premiumBoost, 10) : 0;
       const totalReviews = rawData.totalReviews ? parseInt(rawData.totalReviews, 10) : 0;
@@ -223,6 +223,66 @@ export class ServicesService {
         totalReviews,
       };
     });
+
+    if (query?.q && query.q.trim().length >= 2) {
+      const qTerm = `%${query.q.trim()}%`;
+      const providerQb = this.servicesRepo.manager.getRepository(User).createQueryBuilder('u')
+        .leftJoinAndSelect('u.personalProfile', 'p')
+        .leftJoinAndSelect('u.academiaProfile', 'a')
+        .where("u.role IN ('PERSONAL', 'ACADEMIA')")
+        .andWhere("u.status = 'ATIVO'")
+        .andWhere(
+          '(u.name ILIKE :q OR p.publicName ILIKE :q OR p.professionTitle ILIKE :q OR a.nomeFantasia ILIKE :q OR a.razaoSocial ILIKE :q)',
+          { q: qTerm }
+        );
+
+      if (query?.city) {
+        const cityPattern = `%${query.city.trim().toLowerCase()}%`;
+        providerQb.andWhere(
+          '(LOWER(u.cityBase) LIKE :city OR LOWER(p.city) LIKE :city OR LOWER(a.city) LIKE :city)',
+          { city: cityPattern }
+        );
+      }
+
+      if (query?.providerType) {
+        providerQb.andWhere('u.role = :providerType', { providerType: query.providerType });
+      }
+
+      const matchingUsers = await providerQb.limit(10).getMany();
+      const existingProviderIds = new Set(results.map(r => r.providerId));
+
+      for (const u of matchingUsers) {
+        if (!existingProviderIds.has(u.id)) {
+          results.push({
+            id: `profile-${u.id}`,
+            providerId: u.id,
+            name: u.role === 'ACADEMIA' ? (u.academiaProfile?.nomeFantasia || u.name) : (u.personalProfile?.publicName || u.name),
+            description: u.personalProfile?.bio || u.academiaProfile?.bio || 'Profissional credenciado no Conexão Fitness',
+            modality: u.personalProfile?.professionTitle || (u.role === 'ACADEMIA' ? 'Academia' : 'Personal Trainer'),
+            type: 'SESSION',
+            price: u.personalProfile?.baseHourlyPrice ? Number(u.personalProfile.baseHourlyPrice) : 0,
+            currency: 'BRL',
+            isActive: true,
+            format: 'PRESENCIAL',
+            attendanceType: AttendanceType.PRESENCIAL,
+            durationMinutes: 60,
+            providerType: u.role as any,
+            providerName: u.role === 'ACADEMIA' ? (u.academiaProfile?.nomeFantasia || u.name) : u.name,
+            providerAvatar: u.avatarUrl,
+            professionTitle: u.personalProfile?.professionTitle || (u.role === 'ACADEMIA' ? 'Academia' : 'Profissional'),
+            averageRating: u.averageRating ? parseFloat(u.averageRating as any) : null,
+            totalReviews: u.totalReviews || 0,
+            boostScore: 0,
+            isPremium: false,
+            providerRating: u.averageRating ? parseFloat(u.averageRating as any) : null,
+            createdAt: u.createdAt,
+            locationCity: u.cityBase || u.academiaProfile?.city || null,
+          } as any);
+        }
+      }
+    }
+
+    return results;
   }
 
   async findOne(id: string): Promise<Service | null> {

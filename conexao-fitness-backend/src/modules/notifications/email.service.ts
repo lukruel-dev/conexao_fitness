@@ -5,9 +5,10 @@ import * as nodemailer from 'nodemailer';
 export class EmailService {
   private transporter: nodemailer.Transporter;
   private readonly logger = new Logger(EmailService.name);
+  private initPromise: Promise<void>;
 
   constructor() {
-    this.initTransporter();
+    this.initPromise = this.initTransporter();
   }
 
   private async initTransporter() {
@@ -41,6 +42,9 @@ export class EmailService {
   }
 
   async sendEmail(to: string, subject: string, html: string) {
+    if (!this.transporter) {
+      await this.initPromise;
+    }
     if (!this.transporter) {
       this.logger.warn('Transporter não está pronto. Ignorando envio.');
       return;
@@ -184,6 +188,215 @@ export class EmailService {
         <div class="footer">
           <p>© ${new Date().getFullYear()} Conexão Fitness. Todos os direitos reservados.</p>
         </div>
+      </div>
+    </body>
+    </html>
+    `;
+
+    await this.sendEmail(to, subject, html);
+  }
+
+  /**
+   * Envia e-mail de notificação de APROVAÇÃO de KYC / Credenciamento
+   */
+  async sendKycApprovedEmail(to: string, name: string) {
+    const firstName = name ? name.split(' ')[0] : 'Profissional';
+    const subject = `🎉 Parabéns! Seu credenciamento foi aprovado — Conexão Fitness`;
+
+    const html = `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Credenciamento Aprovado</title>
+      <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0b0f17; color: #e2e8f0; }
+        .container { max-width: 560px; margin: 40px auto; background-color: #131b26; border: 1px solid #1e293b; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); }
+        .header { background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 32px 24px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; }
+        .header p { margin: 6px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500; }
+        .content { padding: 36px 32px; }
+        .greeting { font-size: 18px; font-weight: 600; color: #f8fafc; margin-bottom: 16px; }
+        .text { font-size: 15px; line-height: 1.6; color: #94a3b8; margin-bottom: 24px; }
+        .badge-box { background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 24px; }
+        .badge-title { font-size: 18px; font-weight: 700; color: #10b981; margin-bottom: 6px; }
+        .badge-desc { font-size: 13px; color: #cbd5e1; }
+        .cta-btn { display: inline-block; background-color: #10b981; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-weight: 700; font-size: 14px; text-align: center; }
+        .footer { background-color: #0b0f17; padding: 24px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #1e293b; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>CONEXÃO FITNESS</h1>
+          <p>Validação de Credenciamento Concluída</p>
+        </div>
+        <div class="content">
+          <div class="greeting">Olá, ${firstName}!</div>
+          <div class="text">
+            Temos uma ótima notícia! Sua documentação profissional foi revisada e <strong>aprovada com sucesso</strong> pela equipe de compliance da Finex.
+          </div>
+          <div class="badge-box">
+            <div class="badge-title">✓ Perfil Oficialmente Verificado</div>
+            <div class="badge-desc">Seu perfil já está visível para alunos e clientes na plataforma com o selo de verificação Finex.</div>
+          </div>
+          <div class="text">
+            Agora você já pode:
+            <ul style="padding-left: 20px; line-height: 1.8;">
+              <li>Cadastrar seus serviços e planos personalizados</li>
+              <li>Receber agendamentos e novos alunos diretamente pelo app</li>
+              <li>Configurar seus locais de atendimento e agenda</li>
+            </ul>
+          </div>
+          <div style="text-align: center; margin-top: 30px;">
+            <a href="https://finex.net.br/login" class="cta-btn">Acessar Meu Painel</a>
+          </div>
+        </div>
+        <div class="footer">
+          <p>© ${new Date().getFullYear()} Conexão Fitness. Todos os direitos reservados.</p>
+          <p>Ecossistema inteligente para Alunos, Personais e Academias.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+
+    await this.sendEmail(to, subject, html);
+  }
+
+  /**
+   * Envia e-mail de notificação de REJEIÇÃO / PENDÊNCIA de KYC com motivo
+   */
+  async sendKycRejectedEmail(to: string, name: string, reason: string) {
+    const firstName = name ? name.split(' ')[0] : 'Profissional';
+    const subject = `Aviso Importante: Ajuste na documentação — Conexão Fitness`;
+
+    const html = `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Ajuste de Documentação</title>
+      <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0b0f17; color: #e2e8f0; }
+        .container { max-width: 560px; margin: 40px auto; background-color: #131b26; border: 1px solid #1e293b; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); }
+        .header { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); padding: 32px 24px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; }
+        .header p { margin: 6px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 500; }
+        .content { padding: 36px 32px; }
+        .greeting { font-size: 18px; font-weight: 600; color: #f8fafc; margin-bottom: 16px; }
+        .text { font-size: 15px; line-height: 1.6; color: #94a3b8; margin-bottom: 24px; }
+        .reason-box { background-color: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; border-radius: 8px; padding: 18px; margin-bottom: 24px; }
+        .reason-label { font-size: 12px; font-weight: 700; color: #ef4444; text-transform: uppercase; margin-bottom: 6px; }
+        .reason-text { font-size: 14px; color: #f8fafc; font-weight: 500; line-height: 1.5; }
+        .cta-btn { display: inline-block; background-color: #ef4444; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 10px; font-weight: 700; font-size: 14px; text-align: center; }
+        .footer { background-color: #0b0f17; padding: 24px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #1e293b; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>CONEXÃO FITNESS</h1>
+          <p>Atualização sobre seu Credenciamento</p>
+        </div>
+        <div class="content">
+          <div class="greeting">Olá, ${firstName}!</div>
+          <div class="text">
+            Nossa equipe de validação analisou a documentação enviada para o seu cadastro profissional e identificou uma inconformidade que precisa de ajuste.
+          </div>
+          <div class="reason-box">
+            <div class="reason-label">Motivo apontado pela equipe de compliance:</div>
+            <div class="reason-text">${reason || 'Documento ilegível, vencido ou divergente dos dados informados no cadastro.'}</div>
+          </div>
+          <div class="text">
+            Não se preocupe: basta acessar o seu perfil na plataforma e anexar um novo comprovante (como foto nítida do documento oficial CREF/CRN ou diploma) para que façamos uma nova análise rápida.
+          </div>
+          <div style="text-align: center; margin-top: 30px;">
+            <a href="https://finex.net.br/perfil" class="cta-btn">Reenviar Documento</a>
+          </div>
+        </div>
+        <div class="footer">
+          <p>© ${new Date().getFullYear()} Conexão Fitness. Todos os direitos reservados.</p>
+          <p>Equipe de Atendimento e Suporte Conexão Fitness.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+
+    await this.sendEmail(to, subject, html);
+  }
+
+  /**
+   * Envia e-mail de notificação de SUSPENSÃO de conta
+   */
+  async sendAccountSuspendedEmail(to: string, name: string) {
+    const firstName = name ? name.split(' ')[0] : 'Usuário';
+    const subject = `Conta temporariamente suspensa — Conexão Fitness`;
+
+    const html = `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <title>Conta Suspensa</title>
+      <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0b0f17; color: #e2e8f0; }
+        .container { max-width: 560px; margin: 40px auto; background-color: #131b26; border: 1px solid #1e293b; border-radius: 16px; overflow: hidden; }
+        .header { background-color: #b91c1c; padding: 28px 24px; text-align: center; color: #fff; }
+        .content { padding: 32px 28px; }
+        .text { font-size: 14px; line-height: 1.6; color: #94a3b8; }
+        .footer { background-color: #0b0f17; padding: 20px; text-align: center; font-size: 12px; color: #64748b; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header"><h2>Conexão Fitness</h2><p>Notificação de Conta</p></div>
+        <div class="content">
+          <p>Olá, ${firstName}.</p>
+          <p class="text">Informamos que sua conta na Conexão Fitness foi temporariamente suspensa pela administração. Se acredita que isso ocorreu por engano ou deseja esclarecimentos, entre em contato com nosso time de suporte.</p>
+        </div>
+        <div class="footer"><p>© Conexão Fitness</p></div>
+      </div>
+    </body>
+    </html>
+    `;
+
+    await this.sendEmail(to, subject, html);
+  }
+
+  /**
+   * Envia e-mail de notificação de REATIVAÇÃO de conta
+   */
+  async sendAccountReactivatedEmail(to: string, name: string) {
+    const firstName = name ? name.split(' ')[0] : 'Usuário';
+    const subject = `Sua conta foi reativada com sucesso! — Conexão Fitness`;
+
+    const html = `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <title>Conta Reativada</title>
+      <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0b0f17; color: #e2e8f0; }
+        .container { max-width: 560px; margin: 40px auto; background-color: #131b26; border: 1px solid #1e293b; border-radius: 16px; overflow: hidden; }
+        .header { background-color: #059669; padding: 28px 24px; text-align: center; color: #fff; }
+        .content { padding: 32px 28px; }
+        .text { font-size: 14px; line-height: 1.6; color: #94a3b8; }
+        .footer { background-color: #0b0f17; padding: 20px; text-align: center; font-size: 12px; color: #64748b; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header"><h2>Conexão Fitness</h2><p>Conta Reativada</p></div>
+        <div class="content">
+          <p>Olá, ${firstName}.</p>
+          <p class="text">Sua conta na Conexão Fitness foi reativada e você já pode voltar a utilizar todas as funcionalidades normalmente.</p>
+        </div>
+        <div class="footer"><p>© Conexão Fitness</p></div>
       </div>
     </body>
     </html>
