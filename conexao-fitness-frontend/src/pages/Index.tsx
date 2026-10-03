@@ -5,10 +5,6 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PlansSection from "@/components/PlansSection";
 import { FeaturedSpotlight } from "@/components/feed/FeaturedSpotlight";
-import { CreatePostCard } from "@/components/feed/CreatePostCard";
-import { PostCard } from "@/components/feed/PostCard";
-import { FeedSidebar } from "@/components/feed/FeedSidebar";
-import { listPosts } from "@/services/posts";
 import { listServices } from "@/services/services";
 import { formatBRL } from "@/lib/format";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,32 +16,18 @@ import {
   Users,
   Search,
   Sparkles,
-  RefreshCw,
-  Loader2,
   Dumbbell,
-  Filter,
   X,
-  PlusCircle,
   MessageSquare,
   Building2,
   Utensils,
   ArrowRight,
   ChevronRight,
   ChevronLeft,
-  QrCode,
   CreditCard,
   Calendar,
   ShieldCheck,
 } from "lucide-react";
-import type { Post } from "@/types/community";
-
-const CATEGORY_FILTERS = [
-  { id: "Todos", label: "🌟 Todos os Posts" },
-  { id: "Treino", label: "🏋️ Treinos & Rotinas" },
-  { id: "Dieta", label: "🥗 Dieta & Nutrição" },
-  { id: "Evolução", label: "🔥 Evolução & Foco" },
-  { id: "Dúvidas", label: "❓ Perguntas & Dúvidas" },
-];
 
 interface AppPromo {
   id: string;
@@ -179,16 +161,9 @@ const Index: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  const [activeFeedTab, setActiveFeedTab] = useState<"explore" | "following">("explore");
-  const [selectedCategory, setSelectedCategory] = useState<string>("Todos");
-  const [activeTag, setActiveTag] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
-
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
   // Estados da propaganda rotativa das funcionalidades
   const [currentPromoIndex, setCurrentPromoIndex] = useState(0);
@@ -307,26 +282,12 @@ const Index: React.FC = () => {
     }
   };
 
-  const handleConnectSocial = () => {
-    if (isAuthenticated) {
-      const el = document.getElementById("comunidade");
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-      } else {
-        navigate("/#comunidade");
-      }
-    } else {
-      navigate("/login?redirect=/#comunidade");
-    }
-  };
-
-  const scrollToCommunity = (e?: React.MouseEvent) => {
+  const handleAccessSocial = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
-    const el = document.getElementById("comunidade");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (isAuthenticated) {
+      navigate("/social");
     } else {
-      window.location.hash = "comunidade";
+      navigate("/login?redirect=/social");
     }
   };
 
@@ -344,54 +305,6 @@ const Index: React.FC = () => {
     };
     tryScroll();
   }, [hash]);
-
-  // Carrega feed de posts
-  const fetchFeed = async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-
-    try {
-      const res = await listPosts({
-        feed: activeFeedTab,
-        category: selectedCategory !== "Todos" ? selectedCategory : undefined,
-        tag: activeTag || undefined,
-      });
-
-      let filtered = res.items;
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        filtered = filtered.filter(
-          (p) =>
-            p.content.toLowerCase().includes(q) ||
-            p.author?.name?.toLowerCase().includes(q) ||
-            p.tags?.some((t) => t.toLowerCase().includes(q))
-        );
-      }
-
-      setPosts(filtered);
-    } catch (err) {
-      console.error("Erro ao buscar feed de postagens:", err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFeed();
-  }, [activeFeedTab, selectedCategory, activeTag]);
-
-  const handlePostCreated = (newPost: Post) => {
-    setPosts((prev) => [newPost, ...prev]);
-  };
-
-  const handlePostDeleted = (deletedId: string) => {
-    setPosts((prev) => prev.filter((p) => p.id !== deletedId));
-  };
-
-  const handleTagClick = (tag: string) => {
-    setActiveTag((prev) => (prev.toLowerCase() === tag.toLowerCase() ? "" : tag));
-  };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary/20">
@@ -743,17 +656,17 @@ const Index: React.FC = () => {
 
                 {/* 2. CONTEÚDO EM CARROSSEL: TOMADA 0 (LOGO GIGANTE EM DESTAQUE COMO LINK) VS TOMADA 1 (LINHA DE CONEXÃO + TEXTOS ALINHADOS + PILLS) */}
                 {socialSlideIndex === 0 ? (
-                  /* TOMADA 1: APENAS O LOGO OFICIAL TRANSFORMADO EM LINK PARA O FEED & FÓRUM DA COMUNIDADE */
+                  /* TOMADA 1: APENAS O LOGO OFICIAL TRANSFORMADO EM LINK PARA A REDE SOCIAL SOCIAL FINEX */
                   <div className="flex-1 flex flex-col items-center justify-center py-1 sm:py-2">
                     <a
-                      href="#comunidade"
-                      onClick={scrollToCommunity}
+                      href="/social"
+                      onClick={handleAccessSocial}
                       className="flex flex-col items-center justify-center w-full h-full cursor-pointer group/logo select-none no-underline transition-all duration-300 hover:scale-[1.03] active:scale-95"
-                      title="Acessar o Feed & Fórum da Comunidade"
+                      title="Acessar a Rede Social Social FINEX"
                     >
                       <img
                         src={socialFinexOfficialLogo}
-                        alt="Social FINEX - Feed & Fórum da Comunidade"
+                        alt="Social FINEX - Rede Social & Comunidade"
                         className="h-52 sm:h-64 md:h-72 lg:h-[275px] max-h-[275px] w-auto max-w-full object-contain drop-shadow-[0_16px_36px_rgba(245,158,11,0.30)]"
                       />
                     </a>
@@ -772,7 +685,7 @@ const Index: React.FC = () => {
 
                       <Button
                         type="button"
-                        onClick={handleConnectSocial}
+                        onClick={handleAccessSocial}
                         className="h-11 w-24 sm:w-28 text-xs sm:text-sm font-bold tracking-normal gap-1.5 rounded-xl shadow-xs bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shrink-0 cursor-pointer transition-all border-0 justify-center"
                       >
                         <Users className="h-3.5 w-3.5" /> Conectar
@@ -847,10 +760,10 @@ const Index: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={scrollToCommunity}
+                    onClick={handleAccessSocial}
                     className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:opacity-80 flex items-center gap-1 cursor-pointer transition-colors no-underline"
                   >
-                    <span>Ir para o Feed da Comunidade</span>
+                    <span>Acessar Social FINEX</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -861,175 +774,15 @@ const Index: React.FC = () => {
             </div>
           </section>
 
-          {/* 🌟 DESTAQUES DE ACADEMIAS & PROFISSIONAIS (MANTIDOS E ENRIQUECIDOS) */}
+          {/* 🌟 DESTAQUES DE ACADEMIAS & PROFISSIONAIS */}
           <FeaturedSpotlight
             searchQuery={searchQuery}
-            onClearSearch={() => {
-              setSearchQuery("");
-              fetchFeed();
-            }}
+            onClearSearch={() => setSearchQuery("")}
           />
-
-          {/* 💬 PAINEL DE INTERAÇÕES: FEED SOCIAL & FÓRUM FITNESS */}
-          <section id="comunidade" className="space-y-6">
-            {/* CABEÇALHO DO FEED COM NAVEGAÇÃO ENTRE ABAS */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/70 pb-4">
-              <div className="flex items-center gap-2">
-                <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-                  <MessageSquare className="h-5 w-5" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                    Feed & Fórum da Comunidade
-                  </h2>
-                  <p className="text-xs text-muted-foreground">
-                    Troca de treinos, dúvidas e evoluções em tempo real
-                  </p>
-                </div>
-              </div>
-
-              {/* ABAS DO FEED: "🔥 EXPLORAR" vs "👥 SEGUINDO" */}
-              <div className="flex items-center gap-2 bg-muted/60 p-1 rounded-xl border border-border/60 self-start md:self-auto">
-                <button
-                  type="button"
-                  onClick={() => setActiveFeedTab("explore")}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    activeFeedTab === "explore"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Flame className="h-3.5 w-3.5" /> Explorar / Todos
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveFeedTab("following")}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    activeFeedTab === "following"
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Users className="h-3.5 w-3.5" /> Seguindo
-                </button>
-              </div>
-            </div>
-
-            {/* PÍLULAS DE FILTRO POR CATEGORIA & TAG ATIVA - EM FLEX-WRAP SEM ROLAGEM LATERAL */}
-            <div className="flex flex-wrap items-center gap-2 pb-1">
-              {CATEGORY_FILTERS.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`text-xs font-semibold px-3.5 py-1.5 rounded-full transition-all border ${
-                    selectedCategory === cat.id
-                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                      : "bg-card border-border/70 text-muted-foreground hover:text-foreground hover:border-primary/40"
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
-
-              {activeTag && (
-                <div className="flex items-center gap-1 bg-primary/15 text-primary text-xs font-bold px-3 py-1.5 rounded-full border border-primary/30 shrink-0">
-                  <span>Tag: {activeTag}</span>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTag("")}
-                    className="hover:text-destructive transition-colors ml-1"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* GRID PRINCIPAL: FEED (ESQUERDA) + SIDEBAR (DIREITA) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-              {/* COLUNA DO FEED */}
-              <div className="lg:col-span-2 space-y-6">
-                {/* CAIXA DE CRIAÇÃO RÁPIDA DE POST */}
-                <CreatePostCard onPostCreated={handlePostCreated} />
-
-                {/* BOTÃO ATUALIZAR FEED */}
-                <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-                  <span>
-                    Mostrando {posts.length} {posts.length === 1 ? "publicação" : "publicações"}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => fetchFeed(true)}
-                    disabled={refreshing}
-                    className="flex items-center gap-1 font-semibold text-primary hover:underline"
-                  >
-                    <RefreshCw className={`h-3 w-3 ${refreshing ? "animate-spin" : ""}`} />
-                    Atualizar feed
-                  </button>
-                </div>
-
-                {/* LISTA DE POSTS */}
-                {loading ? (
-                  <div className="rounded-2xl border border-border/60 bg-card p-12 flex flex-col items-center justify-center gap-3 text-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-sm font-semibold text-muted-foreground">
-                      Carregando publicações da comunidade...
-                    </p>
-                  </div>
-                ) : posts.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-border p-10 text-center space-y-3 bg-card/40">
-                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto">
-                      <Dumbbell className="h-6 w-6" />
-                    </div>
-                    <h3 className="font-bold text-base text-foreground">
-                      {activeFeedTab === "following"
-                        ? "Nenhuma postagem dos perfis que você segue"
-                        : "Nenhuma postagem encontrada nesta categoria"}
-                    </h3>
-                    <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                      {activeFeedTab === "following"
-                        ? "Explore a comunidade, siga profissionais e amigos para ver as postagens deles aqui na sua aba Seguindo!"
-                        : "Seja o primeiro a compartilhar uma rotina de treino ou dica nesta categoria!"}
-                    </p>
-                    {activeFeedTab === "following" && (
-                      <Button
-                        size="sm"
-                        onClick={() => setActiveFeedTab("explore")}
-                        className="text-xs font-bold gap-1 mt-2"
-                      >
-                        <Flame className="h-3.5 w-3.5" /> Explorar Comunidade
-                      </Button>
-                    )}
-                  </div>
-                ) : (
-                  <div>
-                    {posts.map((post) => (
-                      <PostCard
-                        key={post.id}
-                        post={post}
-                        onTagClick={handleTagClick}
-                        onPostDeleted={handlePostDeleted}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* COLUNA LATERAL (SIDEBAR COM TÓPICOS & ATALHOS) */}
-              <div className="hidden lg:block lg:col-span-1 sticky top-28">
-                <FeedSidebar
-                  activeTag={activeTag}
-                  onSelectTag={(tag) => setActiveTag(tag)}
-                />
-              </div>
-            </div>
-          </section>
         </div>
 
         {/* 💳 SEÇÃO COMPLETA DE PLANOS & ASSINATURAS */}
-        <div className="mt-20 border-t border-border/60">
+        <div className="mt-14 border-t border-border/60">
           <PlansSection />
         </div>
       </main>

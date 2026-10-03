@@ -1,6 +1,6 @@
 import FinexLogo from "@/components/FinexLogo";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu, X, Building2, Dumbbell, User, Eye, ChevronDown, ShieldCheck, Utensils } from "lucide-react";
+import { LogOut, Menu, X, Building2, Dumbbell, User, Eye, ChevronDown, ShieldCheck, Utensils, Flame } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -98,6 +98,18 @@ const Header = () => {
               }`}
             >
               Planos
+            </Link>
+
+            <Link
+              to="/social"
+              className={`transition-colors font-medium text-sm flex items-center gap-1.5 ${
+                location.pathname.startsWith("/social") || location.pathname === "/comunidade"
+                  ? "text-amber-500 font-bold"
+                  : "text-muted-foreground hover:text-amber-500"
+              }`}
+            >
+              <Flame className="w-3.5 h-3.5 text-amber-500" />
+              <span>Social FINEX</span>
             </Link>
 
             {isAuthenticated && (
@@ -270,6 +282,19 @@ const Header = () => {
                 }`}
               >
                 Planos
+              </Link>
+
+              <Link
+                to="/social"
+                onClick={() => setIsMenuOpen(false)}
+                className={`py-2 text-sm font-semibold transition-colors flex items-center gap-1.5 ${
+                  location.pathname.startsWith("/social") || location.pathname === "/comunidade"
+                    ? "text-amber-500 font-bold"
+                    : "text-foreground hover:text-amber-500"
+                }`}
+              >
+                <Flame className="w-4 h-4 text-amber-500" />
+                <span>Social FINEX</span>
               </Link>
 
               {isAuthenticated && (

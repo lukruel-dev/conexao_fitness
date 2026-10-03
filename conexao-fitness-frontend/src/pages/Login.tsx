@@ -130,7 +130,11 @@ const Login = () => {
 
       if ("accessToken" in res && res.accessToken) {
         toast.success(`Bem-vindo de volta, ${res.user.name.split(" ")[0]}!`);
-        if (res.user.role === "ADMIN") {
+        const searchParams = new URLSearchParams(location.search);
+        const redirectUrl = searchParams.get("redirect");
+        if (redirectUrl) {
+          navigate(redirectUrl);
+        } else if (res.user.role === "ADMIN") {
           navigate("/perfil");
         } else if (res.user.role === "PERSONAL" || res.user.role === "ACADEMIA") {
           navigate("/agenda-profissional");

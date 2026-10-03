@@ -32,6 +32,7 @@ import Treinos from "./pages/Treinos";
 import TotemCatraca from "./pages/TotemCatraca";
 import QuemSomos from "./pages/QuemSomos";
 import Planos from "./pages/Planos";
+import SocialFeed from "./pages/SocialFeed";
 import BottomNav from "@/components/BottomNav";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import { PWAInstallBanner } from "@/components/PWAInstallBanner";
@@ -97,6 +98,9 @@ const App = () => (
               <Route path="/admin/profissoes" element={<AdminProfessions />} />
               <Route path="/carteira" element={<Carteira />} />
               <Route path="/agenda-profissional" element={<AgendaProfissional />} />
+              <Route path="/social" element={<SocialFeed />} />
+              <Route path="/social-finex" element={<SocialFeed />} />
+              <Route path="/comunidade" element={<SocialFeed />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
