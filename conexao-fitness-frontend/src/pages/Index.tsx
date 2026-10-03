@@ -629,20 +629,22 @@ const Index: React.FC = () => {
 
                 {/* 3. TÍTULO E APRESENTAÇÃO DA FUNCIONALIDADE EM PROPAGANDA ROTATIVA */}
                 <div className="space-y-1.5 transition-all duration-300">
-                  <h2 className="text-xl sm:text-2xl font-black tracking-tight text-foreground leading-tight">
-                    {APP_PROMOS[currentPromoIndex].titlePrefix}
-                    <span className="text-primary">
-                      {APP_PROMOS[currentPromoIndex].titleHighlight}
+                  <h2 className="text-xl sm:text-2xl font-black tracking-tight text-foreground leading-tight min-h-[56px] sm:min-h-[64px] flex items-center">
+                    <span>
+                      {APP_PROMOS[currentPromoIndex].titlePrefix}
+                      <span className="text-primary">
+                        {APP_PROMOS[currentPromoIndex].titleHighlight}
+                      </span>
                     </span>
                   </h2>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2 min-h-[36px]">
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2 h-[38px] sm:h-[40px]">
                     {APP_PROMOS[currentPromoIndex].description}
                   </p>
                 </div>
 
                 {/* 4. RECURSOS EM DESTAQUE (2 PILLS MODERNAS E SUAVES) */}
                 <div className="grid grid-cols-2 gap-2 sm:gap-2.5 pt-0.5">
-                  <div className="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center min-w-0">
+                  <div className="h-[56px] sm:h-[60px] p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center min-w-0">
                     <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5 min-w-0">
                       {React.createElement(APP_PROMOS[currentPromoIndex].pill1.icon, {
                         className: "h-3.5 w-3.5 text-primary shrink-0",
@@ -654,7 +656,7 @@ const Index: React.FC = () => {
                     </p>
                   </div>
 
-                  <div className="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center min-w-0">
+                  <div className="h-[56px] sm:h-[60px] p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center min-w-0">
                     <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5 min-w-0">
                       {React.createElement(APP_PROMOS[currentPromoIndex].pill2.icon, {
                         className: "h-3.5 w-3.5 text-primary shrink-0",
@@ -757,8 +759,8 @@ const Index: React.FC = () => {
                     </a>
                   </div>
                 ) : (
-                  /* TOMADA 2: LINHA DE AÇÃO COM BOTÃO CONECTAR IDÊNTICO AO BUSCAR + TÍTULO E SUBTÍTULO ALINHADOS + PILLS */
-                  <div className="space-y-3.5 transition-all duration-300 flex-1 flex flex-col justify-between">
+                  /* TOMADA 2: ELEMENTOS PARALELOS E PERFEITAMENTE SINCRONIZADOS COM O CARD 1 */
+                  <>
                     {/* LINHA DE AÇÃO COM O BOTÃO CONECTAR NA MESMA POSIÇÃO ESPACIAL DO BOTÃO BUSCAR (LARGURA E ALTURA IDÊNTICAS) */}
                     <div className="w-full flex items-center gap-2">
                       <div className="relative flex-1 h-11 rounded-xl bg-background/80 border border-border/70 shadow-xs px-3.5 flex items-center gap-2 min-w-0 text-muted-foreground">
@@ -777,19 +779,21 @@ const Index: React.FC = () => {
                       </Button>
                     </div>
 
-                    {/* TÍTULO E FRASE PERFEITAMENTE ALINHADOS COM OS TEXTOS DO CARD 1 */}
+                    {/* TÍTULO E FRASE RIGOROSAMENTE ALINHADOS COM OS TEXTOS DO CARD 1 */}
                     <div className="space-y-1.5 transition-all duration-300">
-                      <h2 className="text-xl sm:text-2xl font-black tracking-tight text-foreground leading-tight">
-                        Social <span className="text-amber-500 dark:text-amber-400">FINEX</span>
+                      <h2 className="text-xl sm:text-2xl font-black tracking-tight text-foreground leading-tight min-h-[56px] sm:min-h-[64px] flex items-center">
+                        <span>
+                          Social <span className="text-amber-500 dark:text-amber-400">FINEX</span>: A Rede Social da Comunidade Fitness
+                        </span>
                       </h2>
-                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2 min-h-[36px]">
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2 h-[38px] sm:h-[40px]">
                         A rede social fitness feita para quem vive o estilo de vida saudável. Compartilhe sua evolução, tire dúvidas e conecte-se com alunos e profissionais.
                       </p>
                     </div>
 
-                    {/* RECURSOS EM DESTAQUE (2 PILLS COM A MESMA ESTRUTURA DO CARD 1) */}
+                    {/* RECURSOS EM DESTAQUE (2 PILLS COM A MESMA ESTRUTURA E ALTURA DO CARD 1) */}
                     <div className="grid grid-cols-2 gap-2 sm:gap-2.5 pt-0.5">
-                      <div className="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center min-w-0">
+                      <div className="h-[56px] sm:h-[60px] p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center min-w-0">
                         <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5 min-w-0">
                           <MessageSquare className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                           <span className="truncate">Feed ao Vivo</span>
@@ -799,7 +803,7 @@ const Index: React.FC = () => {
                         </p>
                       </div>
 
-                      <div className="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center min-w-0">
+                      <div className="h-[56px] sm:h-[60px] p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center min-w-0">
                         <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5 min-w-0">
                           <Flame className="h-3.5 w-3.5 text-orange-500 shrink-0" />
                           <span className="truncate">Comunidade</span>
@@ -809,7 +813,7 @@ const Index: React.FC = () => {
                         </p>
                       </div>
                     </div>
-                  </div>
+                  </>
                 )}
 
                 {/* 3. RODAPÉ COM INDICADORES DAS 2 TOMADAS + REDIRECIONAMENTO */}
