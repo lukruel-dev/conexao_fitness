@@ -14,6 +14,7 @@ import { formatBRL } from "@/lib/format";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import socialFinexBanner from "@/assets/social_finex_banner.jpg";
 import {
   Flame,
   Users,
@@ -193,6 +194,10 @@ const Index: React.FC = () => {
   const [currentPromoIndex, setCurrentPromoIndex] = useState(0);
   const [isPromoPaused, setIsPromoPaused] = useState(false);
 
+  // Estados do carrossel do Card 2 (Social FINEX) - 2 tomadas (0: Imagem 3D, 1: Detalhes & Comunidade)
+  const [socialSlideIndex, setSocialSlideIndex] = useState(0);
+  const [isSocialPaused, setIsSocialPaused] = useState(false);
+
   // Auto-play do card de propagandas das funcionalidades (a cada 4.8s)
   useEffect(() => {
     if (isPromoPaused || isDropdownOpen || searchQuery.trim().length > 0) return;
@@ -207,6 +212,22 @@ const Index: React.FC = () => {
   };
   const nextPromo = () => {
     setCurrentPromoIndex((prev) => (prev + 1) % APP_PROMOS.length);
+  };
+
+  // Auto-play do card Social FINEX (alterna as 2 tomadas a cada 5s)
+  useEffect(() => {
+    if (isSocialPaused) return;
+    const timer = setInterval(() => {
+      setSocialSlideIndex((prev) => (prev === 0 ? 1 : 0));
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [isSocialPaused]);
+
+  const prevSocialSlide = () => {
+    setSocialSlideIndex((prev) => (prev === 0 ? 1 : 0));
+  };
+  const nextSocialSlide = () => {
+    setSocialSlideIndex((prev) => (prev === 0 ? 1 : 0));
   };
 
   // Carrega catálogo para busca instantânea / preview na barra de pesquisa
@@ -670,14 +691,42 @@ const Index: React.FC = () => {
               <div className="absolute -right-8 -bottom-8 w-44 h-44 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
             </div>
 
-            {/* CARD 2: SOCIAL FINEX (REDE SOCIAL FITNESS) - TOM ÂMBAR DOURADO SUAVE (AMARELO QUINDIM) */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card/95 to-amber-500/[0.06] border border-border/80 hover:border-amber-500/40 p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 shadow-sm group">
+            {/* CARD 2: SOCIAL FINEX (REDE SOCIAL FITNESS) - CARROSSEL COM 2 TOMADAS (IMAGEM 3D & RECURSOS DA COMUNIDADE) */}
+            <div
+              onMouseEnter={() => setIsSocialPaused(true)}
+              onMouseLeave={() => setIsSocialPaused(false)}
+              className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card/95 to-amber-500/[0.06] border border-border/80 hover:border-amber-500/40 p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 shadow-sm group"
+            >
               <div className="relative z-10 flex flex-col h-full space-y-3.5">
-                {/* 1. PARTE SUPERIOR DO CARD: BADGE E BOTÃO CONECTAR */}
+                {/* 1. PARTE SUPERIOR DO CARD: BADGE, NAVEGAÇÃO DE TOMADAS E BOTÃO CONECTAR */}
                 <div className="flex items-center justify-between gap-3">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold tracking-wide shadow-xs">
-                    <Flame className="h-3.5 w-3.5 text-amber-500" />
-                    <span>REDE SOCIAL FITNESS</span>
+                  <div className="flex items-center gap-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold tracking-wide shadow-xs">
+                      <Flame className="h-3.5 w-3.5 text-amber-500" />
+                      <span>REDE SOCIAL FITNESS</span>
+                    </div>
+
+                    {/* Botões rápidos de navegação entre as 2 tomadas do carrossel */}
+                    <div className="flex items-center gap-0.5 bg-muted/40 border border-border/60 rounded-lg p-0.5">
+                      <button
+                        type="button"
+                        onClick={prevSocialSlide}
+                        className="p-1 rounded-md text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/10 transition-colors cursor-pointer"
+                        title="Tomada anterior"
+                        aria-label="Tomada anterior"
+                      >
+                        <ChevronLeft className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={nextSocialSlide}
+                        className="p-1 rounded-md text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/10 transition-colors cursor-pointer"
+                        title="Próxima tomada"
+                        aria-label="Próxima tomada"
+                      >
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
 
                   <Button
@@ -689,41 +738,85 @@ const Index: React.FC = () => {
                   </Button>
                 </div>
 
-                {/* 2. TÍTULO E APRESENTAÇÃO DO SOCIAL FINEX */}
-                <div className="space-y-1.5">
-                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-foreground leading-tight">
-                    Social <span className="text-amber-500 dark:text-amber-400">FINEX</span>
-                  </h2>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                    A rede social fitness feita para quem vive o estilo de vida saudável. Compartilhe sua evolução, tire dúvidas, curta treinos e conecte-se com alunos e profissionais.
-                  </p>
-                </div>
-
-                {/* 3. RECURSOS EM DESTAQUE (PILLS SUAVES COM TOQUE DOURADO) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
-                  <div className="p-2.5 sm:p-3 rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center">
-                    <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5">
-                      <MessageSquare className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-                      <span>Feed ao Vivo</span>
+                {/* 2. CONTEÚDO EM CARROSSEL: TOMADA 0 (IMAGEM 3D OFICIAL) VS TOMADA 1 (RECURSOS & DETALHES) */}
+                {socialSlideIndex === 0 ? (
+                  <div className="flex flex-col justify-between flex-1 space-y-2.5 transition-all duration-300">
+                    <div className="flex items-center justify-center p-3 rounded-2xl bg-amber-500/[0.04] border border-amber-500/20 overflow-hidden relative group/img cursor-pointer" onClick={toggleSocialSlide}>
+                      <img
+                        src={socialFinexBanner}
+                        alt="Social FINEX 3D"
+                        className="h-28 sm:h-32 max-w-full object-contain drop-shadow-md transition-transform duration-300 group-hover/img:scale-105"
+                      />
                     </div>
-                    <p className="text-[11px] text-muted-foreground leading-tight">Postagens de treinos, fotos e rotinas</p>
-                  </div>
-
-                  <div className="p-2.5 sm:p-3 rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center">
-                    <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5">
-                      <Flame className="h-3.5 w-3.5 text-orange-500" />
-                      <span>Comunidade</span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        <span>Comunidade Oficial Social FINEX</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                        O ponto de encontro diário de alunos, atletas, personais e academias para compartilhar evolução, rotinas e treinos.
+                      </p>
                     </div>
-                    <p className="text-[11px] text-muted-foreground leading-tight">Interação diária com alunos e personais</p>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-3.5 transition-all duration-300 flex-1 flex flex-col justify-between">
+                    {/* TÍTULO E APRESENTAÇÃO ORIGINAL DO SOCIAL FINEX */}
+                    <div className="space-y-1.5">
+                      <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-foreground leading-tight">
+                        Social <span className="text-amber-500 dark:text-amber-400">FINEX</span>
+                      </h2>
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                        A rede social fitness feita para quem vive o estilo de vida saudável. Compartilhe sua evolução, tire dúvidas, curta treinos e conecte-se com alunos e profissionais.
+                      </p>
+                    </div>
 
-                {/* 4. RODAPÉ COM REDIRECIONAMENTO */}
+                    {/* RECURSOS EM DESTAQUE (PILLS SUAVES COM TOQUE DOURADO) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
+                      <div className="p-2.5 sm:p-3 rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center">
+                        <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5">
+                          <MessageSquare className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                          <span>Feed ao Vivo</span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground leading-tight">Postagens de treinos, fotos e rotinas</p>
+                      </div>
+
+                      <div className="p-2.5 sm:p-3 rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center">
+                        <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5">
+                          <Flame className="h-3.5 w-3.5 text-orange-500" />
+                          <span>Comunidade</span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground leading-tight">Interação diária com alunos e personais</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. RODAPÉ COM INDICADORES DAS 2 TOMADAS + REDIRECIONAMENTO */}
                 <div className="pt-2.5 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 text-xs mt-auto">
-                  <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                    <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-                    <span className="font-medium text-foreground">
-                      {isAuthenticated ? "Sua conta está conectada!" : "Acesse com sua conta ou cadastre-se"}
+                  {/* Dots de navegação das 2 tomadas */}
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setSocialSlideIndex(0)}
+                      className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                        socialSlideIndex === 0
+                          ? "w-5 bg-amber-500"
+                          : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
+                      }`}
+                      aria-label="Tomada 1: Imagem Oficial Social FINEX"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setSocialSlideIndex(1)}
+                      className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                        socialSlideIndex === 1
+                          ? "w-5 bg-amber-500"
+                          : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
+                      }`}
+                      aria-label="Tomada 2: Recursos da Comunidade"
+                    />
+                    <span className="text-[10px] text-muted-foreground ml-1">
+                      {socialSlideIndex + 1}/2
                     </span>
                   </div>
 
