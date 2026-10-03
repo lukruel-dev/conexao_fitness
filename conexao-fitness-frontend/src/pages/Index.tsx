@@ -229,6 +229,9 @@ const Index: React.FC = () => {
   const nextSocialSlide = () => {
     setSocialSlideIndex((prev) => (prev === 0 ? 1 : 0));
   };
+  const toggleSocialSlide = () => {
+    setSocialSlideIndex((prev) => (prev === 0 ? 1 : 0));
+  };
 
   // Carrega catálogo para busca instantânea / preview na barra de pesquisa
   const { data: allServices = [] } = useQuery({
