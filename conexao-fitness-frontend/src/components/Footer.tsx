@@ -21,8 +21,8 @@ const Footer = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand */}
           <div>
-            <Link to="/" className="flex items-center gap-3 mb-4 shrink-0">
-              <FinexLogo size="lg" />
+            <Link to="/" className="inline-flex items-center gap-3 mb-4 shrink-0 focus:outline-none">
+              <FinexLogo size="md" />
             </Link>
             <p className="text-muted-foreground text-sm mb-6">
               Sua plataforma inteligente para treinar, conectar e evoluir.

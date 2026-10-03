@@ -323,57 +323,124 @@ const Buscar = () => {
       <main className="pt-28 sm:pt-32 md:pt-36 pb-16">
         <div className="container mx-auto px-4">
           {/* Header */}
-          <div className="mb-6 sm:mb-8">
-            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
-              Encontre seu <span className="gradient-text">treino</span>
+          <div className="mb-6">
+            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-black mb-1.5 tracking-tight">
+              Encontre seu <span className="gradient-text">treino</span> & parceiros
             </h1>
-            <div className="flex items-center gap-2 text-muted-foreground text-sm">
-              <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
+            <div className="flex items-center gap-2 text-muted-foreground text-xs sm:text-sm">
+              <MapPin className="w-4 h-4 text-primary shrink-0" />
               <span>
                 {coords
-                  ? "Filtrando por proximidade GPS"
+                  ? "Buscando por proximidade GPS (Perto de você)"
                   : isAllCities
-                  ? "Exibindo resultados em todo o Brasil"
+                  ? "Exibindo opções disponíveis em todo o Brasil"
                   : `Exibindo resultados em ${selectedCity}`}
               </span>
             </div>
+          </div>
 
-            {/* SELETOR RÁPIDO DE CIDADES BRASILEIRAS */}
-            <div className="mt-4 p-3.5 sm:p-4 rounded-2xl bg-card border border-border/70 shadow-sm space-y-3">
-              {/* Linha 1: Indicador de Cidade Atual e Botão Ver Todas */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                    <Building2 className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-[11px] font-semibold text-muted-foreground block leading-tight">
-                      Cidade Selecionada:
-                    </span>
-                    <span className="text-xs sm:text-sm font-bold text-foreground truncate block">
-                      {coords ? "Localização GPS (Perto de mim)" : selectedCity}
-                    </span>
-                  </div>
-                </div>
-
-                {(!isAllCities || coords) && (
+          {/* ========================================================================= */}
+          {/* PAINEL UNIFICADO DE BUSCA & FILTROS INTELIGENTES                          */}
+          {/* ========================================================================= */}
+          <div className="bg-card border border-border/80 rounded-3xl p-4 sm:p-5 mb-8 shadow-sm space-y-4">
+            {/* LINHA 1: BARRA DE BUSCA PRINCIPAL + BOTÃO GPS / LOCALIZAÇÃO */}
+            <div className="flex flex-col sm:flex-row items-stretch gap-2.5">
+              <div className="flex-1 flex items-center gap-2.5 px-3.5 py-2.5 bg-muted/60 hover:bg-muted/80 border border-border/60 rounded-2xl relative transition-colors">
+                <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+                <Input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  aria-label="Buscar academia, profissional ou modalidade"
+                  placeholder="Buscar por nome, modalidade, especialidade..."
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 text-xs sm:text-sm placeholder:text-muted-foreground min-w-0 flex-1 pr-6"
+                />
+                {q && (
                   <button
                     type="button"
                     onClick={() => {
-                      setSelectedCity("Todas as cidades");
-                      setCoords(null);
-                      setCustomCityInput("");
+                      setQ("");
+                      const newParams = new URLSearchParams(searchParams);
+                      newParams.delete("q");
+                      setSearchParams(newParams, { replace: true });
                     }}
-                    className="text-[11px] font-semibold text-primary hover:underline shrink-0 px-2 py-1 rounded-lg hover:bg-primary/10 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 rounded-full cursor-pointer"
+                    aria-label="Limpar busca"
                   >
-                    Ver todo o Brasil
+                    <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
 
-              {/* Linha 2: Chips de Cidades com scroll horizontal fluido e sem quebras */}
-              <div className="w-full min-w-0">
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar touch-pan-x">
+              {/* Botão de Localização Inteligente (GPS) */}
+              <Button
+                type="button"
+                variant={coords ? "success" : "outline"}
+                size="default"
+                onClick={() => requestGeolocation(false)}
+                disabled={geoLoading}
+                aria-label="Usar minha localização GPS"
+                className={`shrink-0 flex items-center justify-center gap-2 h-11 px-4 text-xs sm:text-sm font-bold rounded-2xl transition-all cursor-pointer ${
+                  coords
+                    ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm border border-emerald-400/40"
+                    : "border-border/80 hover:border-primary/50 text-foreground bg-muted/40"
+                }`}
+              >
+                {geoLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                ) : (
+                  <LocateFixed className="w-4 h-4 shrink-0" />
+                )}
+                <span>{coords ? "GPS Ativo (remover)" : "Perto de mim"}</span>
+              </Button>
+            </div>
+
+            {/* LINHA 2: TIPO DE SERVIÇO & MODALIDADES CONTEXTUAIS */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-3 border-t border-border/50">
+              {/* Segmented Control: Tipo */}
+              <div className="flex items-center gap-1.5 p-1 bg-muted/70 rounded-2xl border border-border/60 shrink-0 self-start sm:self-auto">
+                {typeOptions.map((t) => (
+                  <button
+                    key={t.label}
+                    type="button"
+                    onClick={() => handleProviderTypeChange(t.value)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      providerType === t.value
+                        ? "bg-primary text-primary-foreground shadow-sm scale-[1.02]"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Chips de Modalidades / Especialidades */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar touch-pan-x flex-1 lg:justify-end">
+                {currentModalityOptions.map((m) => (
+                  <button
+                    key={m.label}
+                    type="button"
+                    onClick={() => setModality(m.value)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0 cursor-pointer ${
+                      modality === m.value
+                        ? "bg-secondary text-secondary-foreground font-bold shadow-sm"
+                        : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* LINHA 3: CIDADES & RAIO DE DISTÂNCIA */}
+            <div className="pt-3 border-t border-border/50 space-y-3">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+                {/* Seletor rápido de Cidades */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar touch-pan-x flex-1">
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider shrink-0 mr-1 flex items-center gap-1">
+                    <Building2 className="w-3.5 h-3.5 text-primary" /> Cidades:
+                  </span>
                   {CITIES_PRESETS.map((city) => {
                     const isSelected = selectedCity === city && !coords;
                     return (
@@ -385,10 +452,10 @@ const Buscar = () => {
                           setCoords(null);
                           setCustomCityInput("");
                         }}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0 active:scale-95 ${
+                        className={`px-2.5 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0 cursor-pointer ${
                           isSelected
-                            ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
-                            : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
+                            ? "bg-primary text-primary-foreground shadow-sm font-bold"
+                            : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
                         }`}
                       >
                         {city}
@@ -396,163 +463,72 @@ const Buscar = () => {
                     );
                   })}
                 </div>
-              </div>
 
-              {/* Linha 3: Campo de busca de outra cidade 100% responsivo */}
-              <div className="flex items-center gap-2 pt-2 border-t border-border/40 w-full min-w-0">
-                <div className="relative flex-1 min-w-0">
-                  <MapPin className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 shrink-0 pointer-events-none" />
-                  <Input
-                    placeholder="Ou digite outra cidade..."
-                    value={customCityInput}
-                    onChange={(e) => setCustomCityInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && customCityInput.trim()) {
+                {/* Input compacto para digitar outra cidade */}
+                <div className="flex items-center gap-1.5 shrink-0 self-start md:self-auto w-full md:w-auto">
+                  <div className="relative flex-1 md:w-52">
+                    <MapPin className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Input
+                      placeholder="Outra cidade..."
+                      value={customCityInput}
+                      onChange={(e) => setCustomCityInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && customCityInput.trim()) {
+                          setSelectedCity(customCityInput.trim());
+                          setCoords(null);
+                        }
+                      }}
+                      className="h-8 text-xs pl-7 pr-6 rounded-xl bg-muted/50 border-border/70 focus-visible:ring-primary/30"
+                    />
+                    {customCityInput && (
+                      <button
+                        type="button"
+                        onClick={() => setCustomCityInput("")}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      if (customCityInput.trim()) {
                         setSelectedCity(customCityInput.trim());
                         setCoords(null);
                       }
                     }}
-                    className="h-9 text-xs sm:text-sm pl-8 pr-7 rounded-xl bg-muted/50 border-border/70 w-full focus-visible:ring-primary/30"
-                  />
-                  {customCityInput && (
-                    <button
-                      type="button"
-                      onClick={() => setCustomCityInput("")}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
-                      aria-label="Limpar cidade digitada"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
+                    className="h-8 text-xs px-2.5 rounded-xl font-bold shrink-0 border-border/80 hover:bg-primary hover:text-primary-foreground"
+                  >
+                    Filtrar
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    if (customCityInput.trim()) {
-                      setSelectedCity(customCityInput.trim());
-                      setCoords(null);
-                    }
-                  }}
-                  className="h-9 text-xs px-3 sm:px-4 rounded-xl font-bold shrink-0 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
-                >
-                  Buscar Cidade
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Search bar */}
-          <div className="bg-card border border-border rounded-2xl p-3 sm:p-4 mb-6 shadow-card">
-            <div className="flex flex-col md:flex-row gap-3">
-              <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-muted rounded-lg relative">
-                <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <Input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  aria-label="Buscar academia, profissional ou modalidade"
-                  placeholder="Buscar academia, profissional, modalidade..."
-                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 text-xs sm:text-sm placeholder:text-xs placeholder:sm:text-sm min-w-0 flex-1 pr-6"
-                />
-                {q && (
-                  <button
-                    onClick={() => {
-                      setQ("");
-                      const newParams = new URLSearchParams(searchParams);
-                      newParams.delete("q");
-                      setSearchParams(newParams, { replace: true });
-                    }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded-full"
-                    aria-label="Limpar busca"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-              <Button
-                type="button"
-                variant={coords ? "success" : "outline"}
-                size="default"
-                onClick={() => requestGeolocation(false)}
-                disabled={geoLoading}
-                aria-label="Usar minha localização"
-                className="w-full md:w-auto shrink-0 flex items-center justify-center gap-2 h-11 text-xs sm:text-sm font-medium px-3 sm:px-4 max-w-full overflow-hidden"
-              >
-                {geoLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-                ) : (
-                  <LocateFixed className="w-4 h-4 shrink-0" />
-                )}
-                <span className="truncate">
-                  {coords ? "Localização ativa (remover)" : "Perto de mim"}
-                </span>
-              </Button>
-            </div>
-
-            {coords && (
-              <div className="flex flex-wrap gap-2 mt-3 items-center">
-                <span className="text-xs text-muted-foreground mr-1">Raio:</span>
-                {radiusOptions.map((r) => (
-                  <button
-                    key={r.label}
-                    onClick={() => setRadiusKm(r.value)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                      radiusKm === r.value
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground hover:bg-muted/70"
-                    }`}
-                  >
-                    {r.label}
-                  </button>
-                ))}
-              </div>
-            )}
-
-
-            {/* Filters */}
-            <div className="flex flex-col gap-3 mt-4">
-              {/* Nível 1: Tipo de Prestador */}
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-medium text-muted-foreground mr-1">Filtrar por:</span>
-                {typeOptions.map((t) => (
-                  <button
-                    key={t.label}
-                    onClick={() => handleProviderTypeChange(t.value)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                      providerType === t.value
-                        ? "bg-primary text-primary-foreground shadow-sm scale-[1.02]"
-                        : "bg-muted text-muted-foreground hover:bg-muted/70"
-                    }`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
               </div>
 
-              {/* Nível 2: Especialidades / Modalidades Contextuais */}
-              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/40">
-                <span className="text-xs font-medium text-muted-foreground mr-1">
-                  {providerType === "PERSONAL"
-                    ? "Especialidade:"
-                    : providerType === "ACADEMIA"
-                    ? "Modalidade:"
-                    : "Categoria:"}
-                </span>
-                {currentModalityOptions.map((m) => (
-                  <button
-                    key={m.label}
-                    onClick={() => setModality(m.value)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                      modality === m.value
-                        ? "bg-secondary text-secondary-foreground font-semibold shadow-sm scale-[1.02]"
-                        : "bg-muted text-muted-foreground hover:bg-muted/70"
-                    }`}
-                  >
-                    {m.label}
-                  </button>
-                ))}
-              </div>
+              {/* Se GPS estiver ativo: Barra de Raio de Distância */}
+              {coords && (
+                <div className="flex items-center gap-2 pt-2 border-t border-border/40 flex-wrap">
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mr-1 flex items-center gap-1">
+                    <Navigation className="w-3 h-3 text-emerald-500" /> Raio Máximo:
+                  </span>
+                  {radiusOptions.map((r) => (
+                    <button
+                      key={r.label}
+                      type="button"
+                      onClick={() => setRadiusKm(r.value)}
+                      className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                        radiusKm === r.value
+                          ? "bg-emerald-600 text-white shadow-sm font-bold"
+                          : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -595,7 +571,7 @@ const Buscar = () => {
                       <Link
                         key={s.id}
                         to={`/perfil/${s.providerId || s.id}`}
-                        className={`relative block bg-card rounded-2xl p-5 transition-all ${
+                        className={`relative block bg-card rounded-2xl p-5 transition-all no-underline hover:no-underline [&_*]:no-underline group ${
                           s.isPremium
                             ? "border-2 border-yellow-400 shadow-[0_0_0_4px_rgba(250,204,21,0.12)] hover:shadow-[0_0_0_6px_rgba(250,204,21,0.18)]"
                             : "border border-border hover:border-primary/40 hover:shadow-card"
@@ -654,13 +630,13 @@ const Buscar = () => {
                                   </span>
                                 )}
                               </div>
-                              <h3 className="font-display font-bold text-lg text-foreground">{s.name}</h3>
+                              <h3 className="font-display font-bold text-lg text-foreground no-underline group-hover:text-primary transition-colors">{s.name}</h3>
                               {s.providerName && s.providerName.trim().toLowerCase() !== s.name.trim().toLowerCase() && (
-                                <p className="text-sm text-muted-foreground mt-0.5">
+                                <p className="text-sm text-muted-foreground mt-0.5 no-underline">
                                   {s.providerName}
                                 </p>
                               )}
-                              <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground flex-wrap">
+                              <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground flex-wrap no-underline">
                                 {(() => {
                                   const total = s.totalReviews ?? s.reviewsCount ?? 0;
                                   const rating = s.providerRating ?? s.rating;
@@ -705,7 +681,7 @@ const Buscar = () => {
                                 </div>
                               </div>
                             ) : null}
-                            <span className="inline-flex items-center justify-center rounded-xl text-xs font-bold px-3.5 py-2 bg-primary text-primary-foreground shadow-sm hover:opacity-95 transition-opacity pointer-events-none">
+                            <span className="inline-flex items-center justify-center rounded-xl text-xs font-bold px-3.5 py-2 bg-primary text-primary-foreground shadow-sm hover:opacity-95 transition-opacity pointer-events-none no-underline">
                               {s.providerType === "ACADEMIA" ? "Conhecer Academia & Planos" : "Ver Perfil & Planos"}
                             </span>
                           </div>
@@ -881,9 +857,9 @@ const Buscar = () => {
                                 <Button
                                   size="sm"
                                   asChild
-                                  className="w-full h-9 rounded-xl text-xs font-bold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                                  className="w-full h-9 rounded-xl text-xs font-bold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm no-underline hover:no-underline"
                                 >
-                                  <Link to={`/perfil/${gym.partnerId || gym.id}`}>
+                                  <Link to={`/perfil/${gym.partnerId || gym.id}`} className="no-underline hover:no-underline flex items-center justify-center gap-1.5">
                                     <BadgeCheck className="w-3.5 h-3.5" />
                                     Ver Perfil & Comprar Day Pass
                                   </Link>

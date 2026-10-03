@@ -376,54 +376,46 @@ const Index: React.FC = () => {
               }}
             >
               <div className="relative z-10 flex flex-col h-full space-y-3.5">
-                {/* 1. PARTE SUPERIOR DO CARD: BADGE DINÂMICO DA PROPAGANDA + CONTROLES + BOTÃO BUSCAR */}
-                <div className="flex items-center justify-between gap-2.5">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold tracking-wide shadow-xs max-w-[210px] sm:max-w-none truncate">
+                {/* 1. PARTE SUPERIOR DO CARD: BADGE COMPLETO E CONTROLES DE SLIDE */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold tracking-wide shadow-xs">
                     {React.createElement(APP_PROMOS[currentPromoIndex].badgeIcon, {
                       className: "h-3.5 w-3.5 text-primary shrink-0",
                     })}
-                    <span className="truncate">{APP_PROMOS[currentPromoIndex].badge}</span>
+                    <span className="whitespace-normal sm:whitespace-nowrap font-bold">
+                      {APP_PROMOS[currentPromoIndex].badge}
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {/* Controles manuais do carrossel de propaganda */}
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={prevPromo}
-                        aria-label="Funcionalidade anterior"
-                        className="h-8 w-8 rounded-lg bg-background/80 hover:bg-muted border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={nextPromo}
-                        aria-label="Próxima funcionalidade"
-                        className="h-8 w-8 rounded-lg bg-background/80 hover:bg-muted border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      form="hero-search-form"
-                      className="h-9 sm:h-10 px-4 sm:px-5 text-xs sm:text-sm font-bold tracking-normal gap-1.5 rounded-xl shadow-xs bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 cursor-pointer transition-all"
+                  {/* Controles manuais do carrossel de propaganda */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={prevPromo}
+                      aria-label="Funcionalidade anterior"
+                      className="h-8 w-8 rounded-lg bg-background/80 hover:bg-muted border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                     >
-                      <Search className="h-3.5 w-3.5" /> Buscar
-                    </Button>
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={nextPromo}
+                      aria-label="Próxima funcionalidade"
+                      className="h-8 w-8 rounded-lg bg-background/80 hover:bg-muted border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
 
-                {/* 2. LOGO ABAIXO: CAMPO DE PREENCHIMENTO RÁPIDO */}
+                {/* 2. LOGO ABAIXO: CAMPO DE BUSCA COM BOTÃO INTEGRADO */}
                 <div ref={searchContainerRef} className="relative w-full">
                   <form
                     id="hero-search-form"
                     onSubmit={handleSearchSubmit}
-                    className="w-full"
+                    className="w-full flex items-center gap-2"
                   >
-                    <div className="relative">
+                    <div className="relative flex-1">
                       <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Buscar treinos, profissionais, academias ou cidades..."
@@ -459,6 +451,13 @@ const Index: React.FC = () => {
                         </button>
                       )}
                     </div>
+
+                    <Button
+                      type="submit"
+                      className="h-11 px-4 sm:px-5 text-xs sm:text-sm font-bold tracking-normal gap-1.5 rounded-xl shadow-xs bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 cursor-pointer transition-all"
+                    >
+                      <Search className="h-3.5 w-3.5" /> Buscar
+                    </Button>
                   </form>
 
                   {/* DROPDOWN FLUTUANTE DE RESULTADOS INSTANTÂNEOS */}
@@ -659,7 +658,7 @@ const Index: React.FC = () => {
                   {/* Botão de ação (CTA) para a funcionalidade ativa */}
                   <Link
                     to={APP_PROMOS[currentPromoIndex].ctaLink}
-                    className="text-xs font-bold text-primary hover:underline flex items-center gap-1 cursor-pointer transition-colors no-underline group/cta"
+                    className="text-xs font-bold text-primary hover:opacity-80 flex items-center gap-1 cursor-pointer transition-colors no-underline group/cta"
                   >
                     <span>{APP_PROMOS[currentPromoIndex].ctaText}</span>
                     <ArrowRight className="h-3.5 w-3.5 group-hover/cta:translate-x-0.5 transition-transform" />
@@ -731,7 +730,7 @@ const Index: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleConnectSocial}
-                    className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+                    className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:opacity-80 flex items-center gap-1 cursor-pointer transition-colors no-underline"
                   >
                     <span>{isAuthenticated ? "Ir para o Feed da Comunidade" : "Acessar Comunidade Fitness"}</span>
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -799,14 +798,14 @@ const Index: React.FC = () => {
               </div>
             </div>
 
-            {/* PÍLULAS DE FILTRO POR CATEGORIA & TAG ATIVA */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {/* PÍLULAS DE FILTRO POR CATEGORIA & TAG ATIVA - EM FLEX-WRAP SEM ROLAGEM LATERAL */}
+            <div className="flex flex-wrap items-center gap-2 pb-1">
               {CATEGORY_FILTERS.map((cat) => (
                 <button
                   key={cat.id}
                   type="button"
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full transition-all border ${
+                  className={`text-xs font-semibold px-3.5 py-1.5 rounded-full transition-all border ${
                     selectedCategory === cat.id
                       ? "bg-primary text-primary-foreground border-primary shadow-sm"
                       : "bg-card border-border/70 text-muted-foreground hover:text-foreground hover:border-primary/40"

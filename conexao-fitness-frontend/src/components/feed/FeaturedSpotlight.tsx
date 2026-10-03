@@ -309,10 +309,10 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
                         key={`${gym.id}-${idx}`}
                         className="w-full shrink-0 flex flex-col justify-between h-full"
                       >
-                        {/* Imagem de Capa e Título clicáveis para o perfil */}
+                        {/* Imagem de Capa e Título clicáveis para busca de academias */}
                         <Link
-                          to={`/perfil/${gym.providerId || gym.id}`}
-                          className="relative h-40 sm:h-44 w-full overflow-hidden bg-muted block group/img no-underline cursor-pointer"
+                          to="/buscar?providerType=ACADEMIA"
+                          className="relative h-36 sm:h-40 w-full overflow-hidden bg-muted block group/img no-underline hover:no-underline cursor-pointer"
                         >
                           <img
                             src={
@@ -331,7 +331,7 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
 
                           <div className="absolute bottom-2.5 left-3 right-3 flex items-end justify-between gap-2">
                             <div className="min-w-0">
-                              <h3 className="font-bold text-white text-base drop-shadow-sm truncate leading-tight group-hover/img:text-primary transition-colors">
+                              <h3 className="font-bold text-white text-base drop-shadow-sm truncate leading-tight group-hover/img:text-primary transition-colors no-underline">
                                 {gym.providerName || gym.name}
                               </h3>
                               <div className="flex items-center gap-1 text-[11px] text-white/90 mt-0.5">
@@ -349,7 +349,7 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
                         </Link>
 
                         {/* Conteúdo & Ações */}
-                        <div className="p-4 flex flex-col justify-between flex-1 gap-3.5">
+                        <div className="p-4 flex flex-col justify-between flex-1 gap-3">
                           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                             {gym.description || "Acesso completo à estrutura com catraca digital inteligente via QR Code no App."}
                           </p>
@@ -359,16 +359,16 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
                               <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider block">
                                 Day Pass / Treino
                               </span>
-                              <span className="text-base sm:text-lg font-black text-primary">
+                              <span className="text-base sm:text-lg font-black text-primary no-underline">
                                 {formatBRL(Number(gym.price) || 25.0)}
                               </span>
                             </div>
                             <Button
                               size="sm"
-                              className="h-9 text-xs font-bold px-4 gap-1.5 shadow-sm rounded-xl cursor-pointer"
+                              className="h-9 text-xs font-bold px-4 gap-1.5 shadow-sm rounded-xl cursor-pointer bg-primary hover:bg-primary/90 text-primary-foreground no-underline hover:no-underline"
                               asChild
                             >
-                              <Link to={`/perfil/${gym.providerId || gym.id}`}>
+                              <Link to="/buscar?providerType=ACADEMIA" className="no-underline hover:no-underline">
                                 Conhecer Academia & Planos
                               </Link>
                             </Button>
@@ -404,17 +404,11 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
               )}
             </div>
 
-            {/* 3. RODAPÉ DO CARD */}
+            {/* 3. RODAPÉ DO CARD: SEM LINKS NO CANTO INFERIOR DIREITO */}
             <div className="pt-2 border-t border-border/50 flex items-center justify-between gap-2 text-xs">
               <span className="text-[11px] text-muted-foreground truncate">
                 Rolagem automática • Passe o mouse para pausar
               </span>
-              <Link
-                to="/buscar?providerType=ACADEMIA"
-                className="text-[11px] font-bold text-primary hover:underline flex items-center gap-1 shrink-0"
-              >
-                Ver academias mapeadas <ChevronRight className="h-3 w-3" />
-              </Link>
             </div>
           </div>
 
@@ -503,8 +497,8 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
                         {/* Perfil & Identificação */}
                         <div className="flex items-start gap-4">
                           <Link
-                            to={`/perfil/${pro.providerId || pro.id}`}
-                            className="relative shrink-0 block group/avatar cursor-pointer no-underline"
+                            to="/buscar?providerType=PERSONAL"
+                            className="relative shrink-0 block group/avatar cursor-pointer no-underline hover:no-underline"
                           >
                             <img
                               src={(() => {
@@ -538,8 +532,8 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-1">
                               <Link
-                                to={`/perfil/${pro.providerId || pro.id}`}
-                                className="font-bold text-base sm:text-lg text-foreground truncate hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors no-underline cursor-pointer block"
+                                to="/buscar?providerType=PERSONAL"
+                                className="font-bold text-base sm:text-lg text-foreground truncate hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors no-underline hover:no-underline cursor-pointer block"
                               >
                                 {pro.providerName || pro.name}
                               </Link>
@@ -575,17 +569,17 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
                             <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider block">
                               Sessão / Consulta
                             </span>
-                            <span className="text-base sm:text-lg font-black text-emerald-400">
+                            <span className="text-base sm:text-lg font-black text-emerald-500 dark:text-emerald-400 no-underline">
                               {Number(pro.price) > 0 ? `${formatBRL(Number(pro.price))}` : "Planos no perfil"}
                             </span>
                           </div>
                           <Button
                             size="sm"
-                            className="h-9 text-xs font-bold px-4 gap-1.5 shadow-sm rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400/30"
+                            className="h-9 text-xs font-bold px-4 gap-1.5 shadow-sm rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-400/30 no-underline hover:no-underline cursor-pointer"
                             asChild
                           >
-                            <Link to={`/perfil/${pro.providerId || pro.id}`}>
-                              <Calendar className="h-3.5 w-3.5" /> Ver Perfil & Horários
+                            <Link to="/buscar?providerType=PERSONAL" className="no-underline hover:no-underline flex items-center gap-1.5">
+                              <Calendar className="h-3.5 w-3.5" /> Explorar Profissionais
                             </Link>
                           </Button>
                         </div>
@@ -619,17 +613,11 @@ export const FeaturedSpotlight: React.FC<FeaturedSpotlightProps> = ({ searchQuer
               )}
             </div>
 
-            {/* 3. RODAPÉ DO CARD */}
+            {/* 3. RODAPÉ DO CARD: SEM LINKS NO CANTO INFERIOR DIREITO */}
             <div className="pt-2 border-t border-border/50 flex items-center justify-between gap-2 text-xs">
               <span className="text-[11px] text-muted-foreground truncate">
                 Rolagem automática • Passe o mouse para pausar
               </span>
-              <Link
-                to="/cadastro"
-                className="text-[11px] font-bold text-emerald-400 hover:underline flex items-center gap-1 shrink-0"
-              >
-                <UserPlus className="h-3 w-3" /> Sou profissional <ChevronRight className="h-3 w-3" />
-              </Link>
             </div>
           </div>
 
