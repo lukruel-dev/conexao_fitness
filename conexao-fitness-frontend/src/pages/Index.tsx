@@ -14,7 +14,7 @@ import { formatBRL } from "@/lib/format";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import socialFinexBanner from "@/assets/social_finex_banner.jpg";
+import socialFinexLogo from "@/assets/social_finex_transparent.png";
 import {
   Flame,
   Users,
@@ -741,25 +741,18 @@ const Index: React.FC = () => {
                   </Button>
                 </div>
 
-                {/* 2. CONTEÚDO EM CARROSSEL: TOMADA 0 (IMAGEM 3D OFICIAL) VS TOMADA 1 (RECURSOS & DETALHES) */}
+                {/* 2. CONTEÚDO EM CARROSSEL: TOMADA 0 (APENAS O LOGO COM FUNDO TRANSPARENTE) VS TOMADA 1 (RECURSOS & DETALHES) */}
                 {socialSlideIndex === 0 ? (
-                  <div className="flex flex-col justify-between flex-1 space-y-2.5 transition-all duration-300">
-                    <div className="flex items-center justify-center p-3 rounded-2xl bg-amber-500/[0.04] border border-amber-500/20 overflow-hidden relative group/img cursor-pointer" onClick={toggleSocialSlide}>
-                      <img
-                        src={socialFinexBanner}
-                        alt="Social FINEX 3D"
-                        className="h-28 sm:h-32 max-w-full object-contain drop-shadow-md transition-transform duration-300 group-hover/img:scale-105"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
-                        <Sparkles className="h-3.5 w-3.5" />
-                        <span>Comunidade Oficial Social FINEX</span>
-                      </div>
-                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2">
-                        O ponto de encontro diário de alunos, atletas, personais e academias para compartilhar evolução, rotinas e treinos.
-                      </p>
-                    </div>
+                  <div
+                    onClick={toggleSocialSlide}
+                    className="flex flex-col items-center justify-center flex-1 py-1 sm:py-2 transition-all duration-300 cursor-pointer group/logo select-none"
+                    title="Clique para ver os recursos da comunidade"
+                  >
+                    <img
+                      src={socialFinexLogo}
+                      alt="Social FINEX"
+                      className="h-36 sm:h-44 md:h-48 w-auto max-w-full object-contain drop-shadow-[0_8px_25px_rgba(245,158,11,0.22)] transition-transform duration-300 group-hover/logo:scale-105"
+                    />
                   </div>
                 ) : (
                   <div className="space-y-3.5 transition-all duration-300 flex-1 flex flex-col justify-between">
