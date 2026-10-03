@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import PlansSection from "@/components/PlansSection";
 import { FeaturedSpotlight } from "@/components/feed/FeaturedSpotlight";
 import { listServices } from "@/services/services";
 import { formatBRL } from "@/lib/format";
@@ -780,11 +779,6 @@ const Index: React.FC = () => {
             searchQuery={searchQuery}
             onClearSearch={() => setSearchQuery("")}
           />
-        </div>
-
-        {/* 💳 SEÇÃO COMPLETA DE PLANOS & ASSINATURAS */}
-        <div className="mt-14 border-t border-border/60">
-          <PlansSection />
         </div>
       </main>
 
