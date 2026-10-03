@@ -6,7 +6,7 @@ import { PersonalProfile } from './entities/personal-profile.entity';
 import { AcademiaProfile } from './entities/academia-profile.entity';
 import { AlunoProfile } from './entities/aluno-profile.entity';
 import { WalletAccount } from '../wallet/entities/wallet-account.entity';
-import { Service as AppService } from '../services/entities/service.entity';
+import { Service as AppService, ProviderType, ServiceType, AttendanceType } from '../services/entities/service.entity';
 import { ScheduleSlot } from '../services/entities/schedule-slot.entity';
 import { MembershipPlan } from '../memberships/entities/membership-plan.entity';
 import { ServiceCatalog } from '../service-catalog/entities/service-catalog.entity';
@@ -17,6 +17,7 @@ import { CreatePersonalProfileDto } from './dto/create-personal-profile.dto';
 import { UpdatePersonalProfileDto } from './dto/update-personal-profile.dto';
 import { CreateAcademiaProfileDto } from './dto/create-academia-profile.dto';
 import { validateBioContent } from '../../common/utils/bio-validator';
+import { resolveCityCoordinates } from '../../common/utils/geocoding.util';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -158,6 +159,41 @@ export class UsersService implements OnApplicationBootstrap {
     return this.findByEmail(email);
   }
 
+  /**
+   * Garante que todo profissional cadastrado tenha ao menos um serviço ativo inicial,
+   * permitindo que seu perfil seja instantaneamente indexado e encontrado na busca.
+   */
+  private async ensureDefaultServiceForPersonal(user: User, profile: PersonalProfile): Promise<void> {
+    try {
+      const servicesRepo = this.usersRepo.manager.getRepository(AppService);
+      const existing = await servicesRepo.findOne({ where: { providerId: user.id } });
+      if (!existing) {
+        const modality = profile.modalities?.[0] || profile.professionTitle || 'Personal Trainer';
+        const title = profile.professionTitle || 'Profissional';
+        const city = user.cityBase || 'Viamão - RS';
+        const newService = servicesRepo.create({
+          providerId: user.id,
+          name: `Atendimento & Consulta de ${title}`,
+          description: profile.bio || `Atendimento individualizado e personalizado na região de ${city}. Agende seu horário pelo app Conexão Fitness.`,
+          price: profile.baseHourlyPrice ? String(profile.baseHourlyPrice) : '100.00',
+          durationMinutes: 60,
+          modality: modality,
+          providerType: ProviderType.PERSONAL,
+          attendanceType: AttendanceType.PRESENCIAL,
+          locationCity: city,
+          locationName: `Atendimento em ${city}`,
+          locationAddress: city,
+          isActive: true,
+          type: ServiceType.SESSAO,
+        });
+        await servicesRepo.save(newService);
+        console.log(`[Auto-Onboarding] Serviço inicial criado com sucesso para o profissional ${user.name}`);
+      }
+    } catch (err) {
+      console.error('Erro ao auto-provisionar serviço padrão para profissional:', err);
+    }
+  }
+
   async create(dto: CreateUserDto): Promise<User> {
     const cleanDoc = (dto.cpf || dto.cnpj || '').replace(/\D/g, '');
     if (!cleanDoc && dto.role !== 'ADMIN') {
@@ -170,6 +206,17 @@ export class UsersService implements OnApplicationBootstrap {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(dto.password, salt);
 
+    // Resolver geolocalização automática se cidade foi informada mas coordenadas não
+    let lastLat = dto.lastLat;
+    let lastLng = dto.lastLng;
+    if ((!lastLat || !lastLng) && dto.cityBase) {
+      const coords = resolveCityCoordinates(dto.cityBase);
+      if (coords) {
+        lastLat = coords.lat;
+        lastLng = coords.lng;
+      }
+    }
+
     const user = this.usersRepo.create({
       name: dto.name,
       email: dto.email,
@@ -180,6 +227,9 @@ export class UsersService implements OnApplicationBootstrap {
       cpf: dto.cpf || dto.cnpj,
       phone: dto.phone,
       avatarUrl: dto.avatarUrl,
+      cityBase: dto.cityBase,
+      lastLat,
+      lastLng,
     });
 
     const savedUser = await this.usersRepo.save(user);
@@ -192,7 +242,8 @@ export class UsersService implements OnApplicationBootstrap {
         cref: dto.professionalRegistrationId,
         documentUrl: dto.professionalDocumentUrl,
       });
-      await this.personalProfileRepo.save(profile);
+      const savedProfile = await this.personalProfileRepo.save(profile);
+      await this.ensureDefaultServiceForPersonal(savedUser, savedProfile);
     } else if (dto.role === 'ACADEMIA') {
       const profile = this.academiaProfileRepo.create({
         userId: savedUser.id,
@@ -200,6 +251,7 @@ export class UsersService implements OnApplicationBootstrap {
         nomeFantasia: dto.nomeFantasia || dto.name,
         cnpj: dto.cnpj || dto.cpf || '',
         documentUrl: dto.professionalDocumentUrl,
+        city: dto.cityBase,
       });
       await this.academiaProfileRepo.save(profile);
     }
@@ -427,12 +479,31 @@ export class UsersService implements OnApplicationBootstrap {
       user.phone = dto.whatsapp;
     }
     if (dto.avatarUrl !== undefined) user.avatarUrl = dto.avatarUrl;
-    if (dto.cityBase !== undefined) user.cityBase = dto.cityBase;
+    if (dto.cityBase !== undefined) {
+      user.cityBase = dto.cityBase;
+      if (dto.lastLat !== undefined && dto.lastLat !== null) {
+        user.lastLat = dto.lastLat;
+      }
+      if (dto.lastLng !== undefined && dto.lastLng !== null) {
+        user.lastLng = dto.lastLng;
+      }
+      if (!user.lastLat || !user.lastLng) {
+        const coords = resolveCityCoordinates(dto.cityBase);
+        if (coords) {
+          user.lastLat = coords.lat;
+          user.lastLng = coords.lng;
+        }
+      }
+    } else if (dto.lastLat !== undefined && dto.lastLng !== undefined) {
+      user.lastLat = dto.lastLat;
+      user.lastLng = dto.lastLng;
+    }
     if (dto.serviceRadiusKm !== undefined) profile.serviceRadiusKm = dto.serviceRadiusKm;
     if (dto.baseHourlyPrice !== undefined) profile.baseHourlyPrice = dto.baseHourlyPrice;
 
     await this.usersRepo.save(user);
     await this.personalProfileRepo.save(profile);
+    await this.ensureDefaultServiceForPersonal(user, profile);
 
     return this.getPersonalProfile(userId);
   }
@@ -505,6 +576,13 @@ export class UsersService implements OnApplicationBootstrap {
     if (dto.city !== undefined) {
       profile.city = dto.city;
       user.cityBase = dto.city;
+      if (!user.lastLat || !user.lastLng) {
+        const coords = resolveCityCoordinates(dto.city);
+        if (coords) {
+          user.lastLat = coords.lat;
+          user.lastLng = coords.lng;
+        }
+      }
     }
     if (dto.state !== undefined) profile.state = dto.state;
     if (dto.zipCode !== undefined) profile.zipCode = dto.zipCode;

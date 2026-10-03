@@ -50,4 +50,14 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   professionalDocumentUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  cityBase?: string;
+
+  @IsOptional()
+  lastLat?: number;
+
+  @IsOptional()
+  lastLng?: number;
 }

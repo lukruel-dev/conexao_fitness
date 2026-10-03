@@ -87,4 +87,14 @@ export class UpdatePersonalProfileDto {
   @IsOptional()
   @IsString()
   baseHourlyPrice?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  lastLat?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  lastLng?: number;
 }

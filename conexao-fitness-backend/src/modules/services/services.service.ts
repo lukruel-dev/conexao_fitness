@@ -22,6 +22,7 @@ import { AcademiaProfile } from '../users/entities/academia-profile.entity';
 import { Subscription } from '../payments/entities/subscription.entity';
 import { AvailabilityService } from '../availability/availability.service';
 import { ServiceCatalogService } from '../service-catalog/service-catalog.service';
+import { resolveCityCoordinates } from '../../common/utils/geocoding.util';
 
 @Injectable()
 export class ServicesService {
@@ -82,7 +83,30 @@ export class ServicesService {
       onlineInstructions: dto.onlineInstructions ?? null,
     });
 
-    return this.servicesRepo.save(service);
+    const saved = await this.servicesRepo.save(service);
+
+    // Sincronizar localização geográfica do prestador com base na cidade do serviço se necessário
+    if (dto.locationCity && dto.providerId) {
+      try {
+        const userRepo = this.servicesRepo.manager.getRepository(User);
+        const user = await userRepo.findOne({ where: { id: dto.providerId } });
+        if (user && (!user.lastLat || !user.lastLng || !user.cityBase)) {
+          if (!user.cityBase) user.cityBase = dto.locationCity;
+          if (!user.lastLat || !user.lastLng) {
+            const coords = resolveCityCoordinates(dto.locationCity);
+            if (coords) {
+              user.lastLat = coords.lat;
+              user.lastLng = coords.lng;
+            }
+          }
+          await userRepo.save(user);
+        }
+      } catch (err) {
+        console.error('Erro ao sincronizar localização do provedor com base no serviço:', err);
+      }
+    }
+
+    return saved;
   }
 
   async findAll(query?: GetServicesDto): Promise<any[]> {
@@ -224,7 +248,7 @@ export class ServicesService {
       };
     });
 
-    if (query?.q && query.q.trim().length >= 2) {
+    if (query?.q && query.q.trim().length >= 2 && this.servicesRepo.manager?.getRepository) {
       const qTerm = `%${query.q.trim()}%`;
       const providerQb = this.servicesRepo.manager.getRepository(User).createQueryBuilder('u')
         .leftJoinAndSelect('u.personalProfile', 'p')
