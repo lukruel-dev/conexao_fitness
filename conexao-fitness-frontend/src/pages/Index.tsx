@@ -27,6 +27,7 @@ import {
   CreditCard,
   Calendar,
   ShieldCheck,
+  QrCode,
 } from "lucide-react";
 
 interface AppPromo {
