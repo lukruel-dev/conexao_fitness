@@ -442,7 +442,7 @@ const Index: React.FC = () => {
                     <div className="relative flex-1">
                       <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Buscar treinos, profissionais, academias ou cidades..."
+                        placeholder="Buscar personais, academias, treinos..."
                         value={searchQuery}
                         onChange={(e) => {
                           setSearchQuery(e.target.value);
@@ -478,7 +478,7 @@ const Index: React.FC = () => {
 
                     <Button
                       type="submit"
-                      className="h-11 px-4 sm:px-5 text-xs sm:text-sm font-bold tracking-normal gap-1.5 rounded-xl shadow-xs bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 cursor-pointer transition-all"
+                      className="h-11 w-24 sm:w-28 text-xs sm:text-sm font-bold tracking-normal gap-1.5 rounded-xl shadow-xs bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 cursor-pointer transition-all justify-center"
                     >
                       <Search className="h-3.5 w-3.5" /> Buscar
                     </Button>
@@ -729,39 +729,41 @@ const Index: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 2. LOGO ABAIXO: LINHA DE AÇÃO COM O BOTÃO CONECTAR NA MESMA POSIÇÃO ESPACIAL DO BOTÃO BUSCAR */}
-                <div className="w-full flex items-center gap-2">
-                  <div className="relative flex-1 h-11 rounded-xl bg-background/80 border border-border/70 shadow-xs px-3.5 flex items-center gap-2 min-w-0 text-muted-foreground">
-                    <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
-                    <span className="truncate text-xs sm:text-sm font-medium text-foreground">
-                      {isAuthenticated ? "Conectado ao ecossistema FINEX" : "Conecte-se com alunos e personais"}
-                    </span>
-                  </div>
-
-                  <Button
-                    type="button"
-                    onClick={handleConnectSocial}
-                    className="h-11 px-4 sm:px-5 text-xs sm:text-sm font-bold tracking-normal gap-1.5 rounded-xl shadow-xs bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shrink-0 cursor-pointer transition-all border-0"
-                  >
-                    <Users className="h-3.5 w-3.5" /> Conectar
-                  </Button>
-                </div>
-
-                {/* 3. CONTEÚDO EM CARROSSEL: TOMADA 0 (LOGO OFICIAL ANEXADO) VS TOMADA 1 (TEXTO SOCIAL FINEX ALINHADO COM CARD 1 + PILLS) */}
+                {/* 2. CONTEÚDO EM CARROSSEL: TOMADA 0 (LOGO GIGANTE EM DESTAQUE) VS TOMADA 1 (LINHA DE CONEXÃO + TEXTOS ALINHADOS + PILLS) */}
                 {socialSlideIndex === 0 ? (
+                  /* TOMADA 1: APENAS O LOGO OFICIAL COM TAMANHO CONSIDERAVELMENTE MAIOR (SEM CAMPO DE TEXTO E SEM BOTÃO CONECTAR) */
                   <div
                     onClick={toggleSocialSlide}
-                    className="flex flex-col items-center justify-center flex-1 py-1 transition-all duration-300 cursor-pointer group/logo select-none"
+                    className="flex flex-col items-center justify-center flex-1 py-2 sm:py-3 transition-all duration-300 cursor-pointer group/logo select-none"
                     title="Clique para ver os recursos da comunidade"
                   >
                     <img
                       src={socialFinexOfficialLogo}
                       alt="Social FINEX"
-                      className="max-h-[145px] sm:max-h-[155px] w-auto max-w-full object-contain drop-shadow-[0_8px_25px_rgba(245,158,11,0.22)] transition-transform duration-300 group-hover/logo:scale-105"
+                      className="h-48 sm:h-52 md:h-56 lg:h-60 w-auto max-w-full object-contain drop-shadow-[0_12px_32px_rgba(245,158,11,0.25)] transition-transform duration-300 group-hover/logo:scale-105"
                     />
                   </div>
                 ) : (
+                  /* TOMADA 2: LINHA DE AÇÃO COM BOTÃO CONECTAR IDÊNTICO AO BUSCAR + TÍTULO E SUBTÍTULO ALINHADOS + PILLS */
                   <div className="space-y-3.5 transition-all duration-300 flex-1 flex flex-col justify-between">
+                    {/* LINHA DE AÇÃO COM O BOTÃO CONECTAR NA MESMA POSIÇÃO ESPACIAL DO BOTÃO BUSCAR (LARGURA E ALTURA IDÊNTICAS) */}
+                    <div className="w-full flex items-center gap-2">
+                      <div className="relative flex-1 h-11 rounded-xl bg-background/80 border border-border/70 shadow-xs px-3.5 flex items-center gap-2 min-w-0 text-muted-foreground">
+                        <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
+                        <span className="truncate text-xs sm:text-sm font-medium text-foreground">
+                          {isAuthenticated ? "Conectado ao ecossistema FINEX" : "Participe da rede oficial fitness"}
+                        </span>
+                      </div>
+
+                      <Button
+                        type="button"
+                        onClick={handleConnectSocial}
+                        className="h-11 w-24 sm:w-28 text-xs sm:text-sm font-bold tracking-normal gap-1.5 rounded-xl shadow-xs bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shrink-0 cursor-pointer transition-all border-0 justify-center"
+                      >
+                        <Users className="h-3.5 w-3.5" /> Conectar
+                      </Button>
+                    </div>
+
                     {/* TÍTULO E FRASE PERFEITAMENTE ALINHADOS COM OS TEXTOS DO CARD 1 */}
                     <div className="space-y-1.5 transition-all duration-300">
                       <h2 className="text-xl sm:text-2xl font-black tracking-tight text-foreground leading-tight">
