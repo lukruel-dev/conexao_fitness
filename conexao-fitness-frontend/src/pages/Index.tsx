@@ -14,7 +14,7 @@ import { formatBRL } from "@/lib/format";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import socialFinexLogo from "@/assets/social_finex_transparent.png";
+import socialFinexOfficialLogo from "@/assets/social_finex_logo_official.png";
 import {
   Flame,
   Users,
@@ -701,87 +701,97 @@ const Index: React.FC = () => {
               className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card/95 to-amber-500/[0.06] border border-border/80 hover:border-amber-500/40 p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 shadow-sm group"
             >
               <div className="relative z-10 flex flex-col h-full space-y-3.5">
-                {/* 1. PARTE SUPERIOR DO CARD: BADGE, NAVEGAÇÃO DE TOMADAS E BOTÃO CONECTAR */}
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold tracking-wide shadow-xs">
-                      <Flame className="h-3.5 w-3.5 text-amber-500" />
-                      <span>REDE SOCIAL FITNESS</span>
-                    </div>
+                {/* 1. PARTE SUPERIOR DO CARD: BADGE E SETINHAS (IDÊNTICO EM POSIÇÃO AO CARD 1) */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-bold tracking-wide shadow-xs">
+                    <Flame className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                    <span className="whitespace-normal sm:whitespace-nowrap font-bold">REDE SOCIAL FITNESS</span>
+                  </div>
 
-                    {/* Botões rápidos de navegação entre as 2 tomadas do carrossel */}
-                    <div className="flex items-center gap-0.5 bg-muted/40 border border-border/60 rounded-lg p-0.5">
-                      <button
-                        type="button"
-                        onClick={prevSocialSlide}
-                        className="p-1 rounded-md text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/10 transition-colors cursor-pointer"
-                        title="Tomada anterior"
-                        aria-label="Tomada anterior"
-                      >
-                        <ChevronLeft className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={nextSocialSlide}
-                        className="p-1 rounded-md text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/10 transition-colors cursor-pointer"
-                        title="Próxima tomada"
-                        aria-label="Próxima tomada"
-                      >
-                        <ChevronRight className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+                  {/* Controles manuais (setinhas) na mesma posição espacial do Card 1 */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={prevSocialSlide}
+                      aria-label="Tomada anterior"
+                      className="h-8 w-8 rounded-lg bg-background/80 hover:bg-muted border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={nextSocialSlide}
+                      aria-label="Próxima tomada"
+                      className="h-8 w-8 rounded-lg bg-background/80 hover:bg-muted border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. LOGO ABAIXO: LINHA DE AÇÃO COM O BOTÃO CONECTAR NA MESMA POSIÇÃO ESPACIAL DO BOTÃO BUSCAR */}
+                <div className="w-full flex items-center gap-2">
+                  <div className="relative flex-1 h-11 rounded-xl bg-background/80 border border-border/70 shadow-xs px-3.5 flex items-center gap-2 min-w-0 text-muted-foreground">
+                    <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
+                    <span className="truncate text-xs sm:text-sm font-medium text-foreground">
+                      {isAuthenticated ? "Conectado ao ecossistema FINEX" : "Conecte-se com alunos e personais"}
+                    </span>
                   </div>
 
                   <Button
                     type="button"
                     onClick={handleConnectSocial}
-                    className="h-9 sm:h-10 px-5 sm:px-6 text-xs sm:text-sm font-bold tracking-normal gap-2 rounded-xl shadow-xs bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white transition-all cursor-pointer border-0"
+                    className="h-11 px-4 sm:px-5 text-xs sm:text-sm font-bold tracking-normal gap-1.5 rounded-xl shadow-xs bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shrink-0 cursor-pointer transition-all border-0"
                   >
                     <Users className="h-3.5 w-3.5" /> Conectar
                   </Button>
                 </div>
 
-                {/* 2. CONTEÚDO EM CARROSSEL: TOMADA 0 (APENAS O LOGO COM FUNDO TRANSPARENTE) VS TOMADA 1 (RECURSOS & DETALHES) */}
+                {/* 3. CONTEÚDO EM CARROSSEL: TOMADA 0 (LOGO OFICIAL ANEXADO) VS TOMADA 1 (TEXTO SOCIAL FINEX ALINHADO COM CARD 1 + PILLS) */}
                 {socialSlideIndex === 0 ? (
                   <div
                     onClick={toggleSocialSlide}
-                    className="flex flex-col items-center justify-center flex-1 py-1 sm:py-2 transition-all duration-300 cursor-pointer group/logo select-none"
+                    className="flex flex-col items-center justify-center flex-1 py-1 transition-all duration-300 cursor-pointer group/logo select-none"
                     title="Clique para ver os recursos da comunidade"
                   >
                     <img
-                      src={socialFinexLogo}
+                      src={socialFinexOfficialLogo}
                       alt="Social FINEX"
-                      className="h-36 sm:h-44 md:h-48 w-auto max-w-full object-contain drop-shadow-[0_8px_25px_rgba(245,158,11,0.22)] transition-transform duration-300 group-hover/logo:scale-105"
+                      className="max-h-[145px] sm:max-h-[155px] w-auto max-w-full object-contain drop-shadow-[0_8px_25px_rgba(245,158,11,0.22)] transition-transform duration-300 group-hover/logo:scale-105"
                     />
                   </div>
                 ) : (
                   <div className="space-y-3.5 transition-all duration-300 flex-1 flex flex-col justify-between">
-                    {/* TÍTULO E APRESENTAÇÃO ORIGINAL DO SOCIAL FINEX */}
-                    <div className="space-y-1.5">
-                      <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-foreground leading-tight">
+                    {/* TÍTULO E FRASE PERFEITAMENTE ALINHADOS COM OS TEXTOS DO CARD 1 */}
+                    <div className="space-y-1.5 transition-all duration-300">
+                      <h2 className="text-xl sm:text-2xl font-black tracking-tight text-foreground leading-tight">
                         Social <span className="text-amber-500 dark:text-amber-400">FINEX</span>
                       </h2>
-                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed min-h-[38px]">
                         A rede social fitness feita para quem vive o estilo de vida saudável. Compartilhe sua evolução, tire dúvidas, curta treinos e conecte-se com alunos e profissionais.
                       </p>
                     </div>
 
-                    {/* RECURSOS EM DESTAQUE (PILLS SUAVES COM TOQUE DOURADO) */}
+                    {/* RECURSOS EM DESTAQUE (2 PILLS COM A MESMA ESTRUTURA DO CARD 1) */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
                       <div className="p-2.5 sm:p-3 rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center">
                         <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5">
-                          <MessageSquare className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-                          <span>Feed ao Vivo</span>
+                          <MessageSquare className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                          <span className="truncate">Feed ao Vivo</span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground leading-tight">Postagens de treinos, fotos e rotinas</p>
+                        <p className="text-[11px] text-muted-foreground leading-tight">
+                          Postagens de treinos, fotos e rotinas
+                        </p>
                       </div>
 
                       <div className="p-2.5 sm:p-3 rounded-2xl bg-muted/40 border border-border/60 flex flex-col justify-center">
                         <div className="flex items-center gap-1.5 text-foreground font-bold text-xs mb-0.5">
-                          <Flame className="h-3.5 w-3.5 text-orange-500" />
-                          <span>Comunidade</span>
+                          <Flame className="h-3.5 w-3.5 text-orange-500 shrink-0" />
+                          <span className="truncate">Comunidade</span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground leading-tight">Interação diária com alunos e personais</p>
+                        <p className="text-[11px] text-muted-foreground leading-tight">
+                          Interação diária com alunos e personais
+                        </p>
                       </div>
                     </div>
                   </div>
