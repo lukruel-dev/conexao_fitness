@@ -744,17 +744,17 @@ const Index: React.FC = () => {
                 {/* 2. CONTEÚDO EM CARROSSEL: TOMADA 0 (LOGO GIGANTE EM DESTAQUE COMO LINK) VS TOMADA 1 (LINHA DE CONEXÃO + TEXTOS ALINHADOS + PILLS) */}
                 {socialSlideIndex === 0 ? (
                   /* TOMADA 1: APENAS O LOGO OFICIAL TRANSFORMADO EM LINK PARA O FEED & FÓRUM DA COMUNIDADE */
-                  <div className="flex-1 flex flex-col items-center justify-center py-2 sm:py-3">
+                  <div className="flex-1 flex flex-col items-center justify-center py-1 sm:py-2">
                     <a
                       href="#comunidade"
                       onClick={scrollToCommunity}
-                      className="flex flex-col items-center justify-center w-full h-full cursor-pointer group/logo select-none no-underline transition-all duration-300 hover:scale-105 active:scale-95"
+                      className="flex flex-col items-center justify-center w-full h-full cursor-pointer group/logo select-none no-underline transition-all duration-300 hover:scale-[1.03] active:scale-95"
                       title="Acessar o Feed & Fórum da Comunidade"
                     >
                       <img
                         src={socialFinexOfficialLogo}
                         alt="Social FINEX - Feed & Fórum da Comunidade"
-                        className="h-44 sm:h-52 md:h-56 lg:h-60 max-h-[220px] w-auto max-w-full object-contain drop-shadow-[0_12px_32px_rgba(245,158,11,0.25)]"
+                        className="h-52 sm:h-64 md:h-72 lg:h-[275px] max-h-[275px] w-auto max-w-full object-contain drop-shadow-[0_16px_36px_rgba(245,158,11,0.30)]"
                       />
                     </a>
                   </div>
