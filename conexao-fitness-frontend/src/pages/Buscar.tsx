@@ -127,12 +127,13 @@ const Buscar = () => {
 
   const CITIES_PRESETS = [
     "Todas as cidades",
-    "São Paulo - SP",
-    "Santa Maria - RS",
+    "Viamão - RS",
     "Porto Alegre - RS",
+    "Santa Maria - RS",
+    "Uruguaiana - RS",
+    "São Paulo - SP",
     "Rio de Janeiro - RJ",
     "Curitiba - PR",
-    "Uruguaiana - RS",
   ];
 
   const isAllCities = !selectedCity || selectedCity === "Todas as cidades";
@@ -394,50 +395,64 @@ const Buscar = () => {
               </Button>
             </div>
 
-            {/* LINHA 2: TIPO DE SERVIÇO & MODALIDADES CONTEXTUAIS */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-3 border-t border-border/50">
-              {/* Segmented Control: Tipo */}
-              <div className="flex items-center gap-1.5 p-1 bg-muted/70 rounded-2xl border border-border/60 shrink-0 self-start sm:self-auto">
-                {typeOptions.map((t) => (
-                  <button
-                    key={t.label}
-                    type="button"
-                    onClick={() => handleProviderTypeChange(t.value)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      providerType === t.value
-                        ? "bg-primary text-primary-foreground shadow-sm scale-[1.02]"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
+            {/* LINHA 2: TIPO DE PRESTADOR & MODALIDADES SEPARADOS COM RESPIRO TOTAL */}
+            <div className="pt-3 border-t border-border/50 space-y-2.5">
+              {/* 2A: Segmented Control de Tipo */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider shrink-0 mr-1">
+                  Filtrar por:
+                </span>
+                <div className="flex items-center gap-1.5 p-1 bg-muted/70 rounded-2xl border border-border/60">
+                  {typeOptions.map((t) => (
+                    <button
+                      key={t.label}
+                      type="button"
+                      onClick={() => handleProviderTypeChange(t.value)}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        providerType === t.value
+                          ? "bg-primary text-primary-foreground shadow-sm scale-[1.02]"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {/* Chips de Modalidades / Especialidades */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar touch-pan-x flex-1 lg:justify-end">
-                {currentModalityOptions.map((m) => (
-                  <button
-                    key={m.label}
-                    type="button"
-                    onClick={() => setModality(m.value)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0 cursor-pointer ${
-                      modality === m.value
-                        ? "bg-secondary text-secondary-foreground font-bold shadow-sm"
-                        : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-                    }`}
-                  >
-                    {m.label}
-                  </button>
-                ))}
+              {/* 2B: Chips de Modalidades / Especialidades (Sem justify-end, sem corte no início) */}
+              <div className="flex items-center gap-2 pt-1">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider shrink-0 mr-0.5">
+                  {providerType === "PERSONAL"
+                    ? "Especialidade:"
+                    : providerType === "ACADEMIA"
+                    ? "Modalidade:"
+                    : "Modalidade:"}
+                </span>
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 text-xs no-scrollbar touch-pan-x flex-1 pr-6">
+                  {currentModalityOptions.map((m) => (
+                    <button
+                      key={m.label}
+                      type="button"
+                      onClick={() => setModality(m.value)}
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0 cursor-pointer ${
+                        modality === m.value
+                          ? "bg-secondary text-secondary-foreground font-bold shadow-sm"
+                          : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
             {/* LINHA 3: CIDADES & RAIO DE DISTÂNCIA */}
             <div className="pt-3 border-t border-border/50 space-y-3">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
-                {/* Seletor rápido de Cidades */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar touch-pan-x flex-1">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                {/* Seletor de Cidades com scroll suave e padding final generoso para nunca cortar Uruguaiana */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 text-xs no-scrollbar touch-pan-x flex-1 pr-6">
                   <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider shrink-0 mr-1 flex items-center gap-1">
                     <Building2 className="w-3.5 h-3.5 text-primary" /> Cidades:
                   </span>
@@ -452,7 +467,7 @@ const Buscar = () => {
                           setCoords(null);
                           setCustomCityInput("");
                         }}
-                        className={`px-2.5 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0 cursor-pointer ${
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0 cursor-pointer ${
                           isSelected
                             ? "bg-primary text-primary-foreground shadow-sm font-bold"
                             : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -465,9 +480,9 @@ const Buscar = () => {
                 </div>
 
                 {/* Input compacto para digitar outra cidade */}
-                <div className="flex items-center gap-1.5 shrink-0 self-start md:self-auto w-full md:w-auto">
-                  <div className="relative flex-1 md:w-52">
-                    <MapPin className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <div className="flex items-center gap-2 shrink-0 self-start lg:self-auto w-full lg:w-auto">
+                  <div className="relative flex-1 lg:w-56">
+                    <MapPin className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <Input
                       placeholder="Outra cidade..."
                       value={customCityInput}
@@ -478,15 +493,15 @@ const Buscar = () => {
                           setCoords(null);
                         }
                       }}
-                      className="h-8 text-xs pl-7 pr-6 rounded-xl bg-muted/50 border-border/70 focus-visible:ring-primary/30"
+                      className="h-9 text-xs pl-8 pr-7 rounded-xl bg-muted/50 border-border/70 focus-visible:ring-primary/30 w-full"
                     />
                     {customCityInput && (
                       <button
                         type="button"
                         onClick={() => setCustomCityInput("")}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
                       >
-                        <X className="w-3 h-3" />
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     )}
                   </div>
@@ -500,7 +515,7 @@ const Buscar = () => {
                         setCoords(null);
                       }
                     }}
-                    className="h-8 text-xs px-2.5 rounded-xl font-bold shrink-0 border-border/80 hover:bg-primary hover:text-primary-foreground"
+                    className="h-9 text-xs px-3.5 rounded-xl font-bold shrink-0 border-border/80 hover:bg-primary hover:text-primary-foreground"
                   >
                     Filtrar
                   </Button>
@@ -511,7 +526,7 @@ const Buscar = () => {
               {coords && (
                 <div className="flex items-center gap-2 pt-2 border-t border-border/40 flex-wrap">
                   <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mr-1 flex items-center gap-1">
-                    <Navigation className="w-3 h-3 text-emerald-500" /> Raio Máximo:
+                    <Navigation className="w-3.5 h-3.5 text-emerald-500" /> Raio Máximo:
                   </span>
                   {radiusOptions.map((r) => (
                     <button
@@ -554,6 +569,9 @@ const Buscar = () => {
                       const lowerTitle = (s.professionTitle || "").toLowerCase();
                       if (s.providerType === "ACADEMIA" || lowerMod.includes("academia")) {
                         return "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=400&auto=format&fit=crop";
+                      }
+                      if (lowerName.includes("cristina") || lowerMod.includes("masso") || lowerTitle.includes("masso")) {
+                        return "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop";
                       }
                       if (lowerName.includes("camila") || lowerName.includes("dra") || lowerMod.includes("nutri") || lowerTitle.includes("nutri")) {
                         return "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=400&auto=format&fit=crop";
